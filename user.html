@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>User Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { height: 100%; font-family: Arial, sans-serif; }
+    #start, #chat { display: none; height: 100%; width: 100%; }
+    #start.active, #chat.active { display: flex; flex-direction: column; }
+    #start { justify-content: center; align-items: center; background: #ece5dd; }
+    #start input, #start button {
+      padding: 10px; font-size: 16px; border-radius: 8px;
+      width: 80%; max-width: 300px; margin-top: 10px;
+      border: 1px solid #ccc;
+    }
+    #start button { background: #075E54; color: white; border: none; }
+
+    #chatHeader {
+      background: #FFFFFF;
+      color: #191818;
+      padding: 4px 8px; 
+      font-size: 16px; 
+      display:flex; align-items:center;
+      height: 48px;
+      border-bottom: 1px solid #ccc;
+    }
+    #chatHeader img { margin-left: 8px; border-radius: 50%; height: 32px; width: 32px; }
+    #chatHeader #chatTitle { margin-left: 10px; font-weight: 400; }
+
+    #messages { flex: 1; padding: 10px; overflow-y: auto; display: flex; 
+      flex-direction: column;
+      background-image: url('chat.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-attachment: scroll;
+    }
+    .bubble {
+      margin: 6px 0; padding: 10px 15px; border-radius: 8px;
+      max-width: 70%; position: relative; word-wrap: break-word;
+      display: flex; flex-direction: column;
+      transition: transform 0.2s ease;
+      will-change: transform;
+    }
+    .from-user { background: #dcf8c6; align-self: flex-end; }
+    .from-brother { background: #fff; align-self: flex-start; }
+
+    .reply-snippet {
+      background: rgba(0, 0, 0, 0.05);
+      border-left: 4px solid #075E54;
+      padding: 5px 10px;
+      font-size: 13px;
+      margin-bottom: 5px;
+      
+      color: #333;
+      border-radius: 4px;
+    }
+
+    #replyBox {
+      background: #f1f0f0;
+      padding: 5px 10px;
+      border-left: 4px solid #075E54;
+      margin: 5px 10px;
+      font-style: italic;
+      font-size: 14px;
+      display: none;
+    }
+
+    #inputArea { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ccc; flex-direction: column; }
+    #inputRow { display: flex; }
+    #inputRow input {
+      flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 20px;
+    }
+    #inputRow button {
+      margin-left: 10px; padding: 8px 16px; background: #075E54;
+      color: #fff; border: none; border-radius: 20px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: #555;
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+
+    /* Reply arrow indicator */
+    .reply-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      color: #075E54;
+    }
+    .from-user .reply-indicator { left: -25px; }
+    .from-brother .reply-indicator { right: -25px; }
+  </style>
+</head>
+<body>
+  <div id="start" class="active">
+    <input id="emailInput" placeholder="Enter your email..." />
+    <input id="passInput" placeholder="Enter password..." type="password" />
+    <button onclick="startChat()">Enter</button>
+  </div>
+
+  <div id="chat">
+    <div id="chatHeader">
+      <img src="chat_logo.png" alt="logo" />
+      <div id="chatTitle">Babu😘</div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="inputArea">
+      <div id="replyBox"></div>
+      <div id="inputRow">
+        <input id="msgInput" placeholder="Type a message…" />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const db = firebase.database();
+    const startEl = document.getElementById('start');
+    const chatEl = document.getElementById('chat');
+    const messagesEl = document.getElementById('messages');
+    const msgInput = document.getElementById('msgInput');
+    const emailInput = document.getElementById('emailInput');
+    const passInput = document.getElementById('passInput');
+    const replyBox = document.getElementById('replyBox');
+
+    let userKey = '';
+    let replyTo = null;
+    let messageListener = null;
+    let messageMap = {};
+
+    // Always require password on refresh
+    window.onload = function() {
+  const savedEmail = localStorage.getItem('userEmail');
+  
+  if (savedEmail) {
+    // ✅ Skip login page, go directly to chat
+    userKey = savedEmail.replace(/\./g, '_');
+    startEl.classList.remove('active');
+    chatEl.classList.add('active');
+    loadMessages();
+    
+    // Ask for password using default Chrome popup
+    const pass = prompt("Enter your password:");
+    if (pass !== "mahi@123") {
+      alert("Incorrect password!");
+      // Clear storage and redirect back to login
+      localStorage.removeItem('userEmail');
+      startEl.classList.add('active');
+      chatEl.classList.remove('active');
+    }
+  } else {
+    // No email stored → normal login
+    startEl.classList.add('active');
+    chatEl.classList.remove('active');
+  }
+};
+
+    function startChat() {
+      const email = emailInput.value.trim();
+      const pass = passInput.value.trim();
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        alert('Please enter a valid email');
+        return;
+      }
+      if (pass !== 'mahi@123') {
+        alert('Incorrect password!');
+        return;
+      }
+
+      localStorage.setItem('userEmail', email); // save only email
+      userKey = email.replace(/\./g, '_');
+      startEl.classList.remove('active');
+      chatEl.classList.add('active');
+      loadMessages();
+    }
+
+    function loadMessages() {
+      messagesEl.innerHTML = '';
+      if (messageListener) messageListener.off();
+
+      const ref = db.ref('chats/' + userKey);
+      ref.on('value', snap => {
+        messagesEl.innerHTML = '';
+        messageMap = {};
+        const msgs = [];
+        snap.forEach(c => {
+          const msg = { key: c.key, ...c.val() };
+          messageMap[c.key] = msg;
+          msgs.push(msg);
+        });
+        msgs.sort((a, b) => a.key - b.key);
+        msgs.forEach(addBubble);
+        scrollToBottom();
+      });
+      messageListener = ref;
+    }
+
+    function sendMessage() {
+      const msg = msgInput.value.trim();
+      if (msg === '') return;
+
+      const ref = db.ref('chats/' + userKey);
+      const key = Date.now();
+      const newMsg = {
+        text: msg,
+        from: 'user',
+        time: key,
+        replyTo: replyTo ? replyTo.key : null
+      };
+
+      ref.child(key).set(newMsg);
+      msgInput.value = '';
+      replyTo = null;
+      replyBox.style.display = 'none';
+      scrollToBottom();
+    }
+
+    function addBubble(data) {
+      const div = document.createElement('div');
+      div.classList.add('bubble');
+      div.classList.add(data.from === 'user' ? 'from-user' : 'from-brother');
+
+      if (data.replyTo && messageMap[data.replyTo]) {
+        const replyDiv = document.createElement('div');
+        replyDiv.classList.add('reply-snippet');
+        replyDiv.innerText = messageMap[data.replyTo].text;
+        div.appendChild(replyDiv);
+      }
+
+      const textDiv = document.createElement('div');
+      textDiv.innerText = data.text;
+      div.appendChild(textDiv);
+
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'msg-time';
+      const ts = data.time || data.key;
+      timeDiv.textContent = new Date(parseInt(ts)).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+      div.appendChild(timeDiv);
+
+      // reply indicator arrow
+      const indicator = document.createElement('div');
+      indicator.className = 'reply-indicator';
+      indicator.innerHTML = '&#8617;'; // ↩
+      div.appendChild(indicator);
+
+      // Add swipe detection
+      addSwipeListeners(div, data, indicator);
+
+      messagesEl.appendChild(div);
+    }
+
+    function addSwipeListeners(element, msgData, indicator) {
+      let startX = 0, startY = 0, currentX = 0;
+      let isDragging = false;
+      const threshold = 70;
+
+      element.addEventListener("touchstart", e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        element.style.transition = "none";
+      });
+
+      element.addEventListener("touchmove", e => {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX;
+        let diffX = currentX - startX;
+        let diffY = e.touches[0].clientY - startY;
+
+        if (Math.abs(diffY) > 40) return; // ignore vertical
+
+        element.style.transform = `translateX(${diffX}px)`;
+
+        if (Math.abs(diffX) > 30) {
+          indicator.style.opacity = "1";
+        } else {
+          indicator.style.opacity = "0";
+        }
+      });
+
+      element.addEventListener("touchend", () => {
+        isDragging = false;
+        element.style.transition = "transform 0.25s ease";
+        indicator.style.opacity = "0";
+
+        let diffX = currentX - startX;
+        if (Math.abs(diffX) > threshold) {
+          setReply(msgData);
+          if (navigator.vibrate) navigator.vibrate(20); // haptic on reply
+        }
+        element.style.transform = "translateX(0)";
+      });
+    }
+
+    function setReply(msg) {
+      replyTo = msg;
+      replyBox.innerText = "Replying to: " + msg.text;
+      replyBox.style.display = 'block';
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  </script>
+</body>
+</html>
