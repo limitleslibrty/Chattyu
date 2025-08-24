@@ -10,7 +10,7 @@ const ASSETS = [
   "./send.mp3",
   "./chat_logo.png",
   "./firebase-config.js",
-  "./logo.jpg"
+  "./logo.png"
   // add your CSS/JS files here, e.g. "./style.css", "./app.js"
 ];
 
