@@ -4,7 +4,7 @@
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#ffffff" id="theme-color-meta">
 
-    
+  
   
   <meta charset="utf-8">
   <title>Brother Dashboard</title>
@@ -974,6 +974,18 @@ db.ref('chats').on('child_changed', snap => {
 });
   // When going back to inbox, badges will already be updated
 </script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./service-worker.js")
+        .then((reg) => console.log("Service Worker registered:", reg.scope))
+        .catch((err) => console.error("Service Worker failed:", err));
+    });
+  }
+</script>
+
+
 
 
 </body>
