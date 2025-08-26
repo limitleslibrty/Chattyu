@@ -462,7 +462,12 @@ body.dark #darkModeToggle {
      margin-left: 5px;" />
 
       
-      <div style="margin-left:10px;" id="chatTitle">Chat</div>
+<div style="margin-left:10px; display:flex; flex-direction:column;">
+  <div id="chatTitle">Babu😘</div>
+  <div id="typingIndicator" style="font-size:12px; color:gray; display:none;">
+    typing…
+  </div>
+</div>
       <button id="darkModeToggle" >
   🌙
 </button>
@@ -526,8 +531,34 @@ const chatEl = document.getElementById('chat');
 const chatList = document.getElementById('chatList');
 const messagesEl = document.getElementById('messages');
 const replyInput = document.getElementById('replyInput');
+// --- Typing indicator (brother side) ---
+let typingTimeout;
+
+replyInput.addEventListener("input", () => {
+  // Mark brother as typing
+  db.ref("status/brother/typing").set(true);
+  
+  // Reset after 2 seconds of no input
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    db.ref("status/brother/typing").set(false);
+  }, 2000);
+});
 const searchBox = document.getElementById('searchBox');
 const replyPreviewContainer = document.getElementById('replyPreviewContainer');
+
+// Instead of listening to your own typing status:
+const typingIndicator = document.getElementById('typingIndicator');
+
+// use a single place to derive the DB key from the email
+const currentUserEmail = "mahekj05@gmail.com";
+const currentUserKey = currentUserEmail.replace(/\./g, '_');
+
+// listen for typing under the same key used elsewhere
+db.ref('status/' + currentUserKey + '/typing').on('value', (snapshot) => {
+  const isTyping = snapshot.val();
+  typingIndicator.style.display = isTyping ? 'block' : 'none';
+});
 
 let currentKey = null;
 let childListener = null;
@@ -551,6 +582,8 @@ let initialLoadDone = false;
 function cacheChats(data) { localStorage.setItem('cachedChats', JSON.stringify(data)); }
 function getCachedChats() { const c = localStorage.getItem('cachedChats'); return c ? JSON.parse(c) : null; }
 function cacheMessages(chatKey, data) { localStorage.setItem('chat_' + chatKey, JSON.stringify(data)); }
+
+
 function getCachedMessages(chatKey) { const c = localStorage.getItem('chat_' + chatKey); return c ? JSON.parse(c) : null; }
 
 // --- Load cached chats ---
@@ -564,8 +597,8 @@ db.ref('chats').on('value', snapshot => {
 
 function setPresence(userKey) {
   const userStatusRef = db.ref("/status/" + userKey);
+  const connectedRef = db.ref(".info/connected");
   
-  // Set as online when connected
   const isOfflineForDatabase = {
     state: "offline",
     last_changed: firebase.database.ServerValue.TIMESTAMP,
@@ -576,22 +609,22 @@ function setPresence(userKey) {
     last_changed: firebase.database.ServerValue.TIMESTAMP,
   };
   
-  db.ref(".info/connected").on("value", function(snapshot) {
-    if (snapshot.val() == false) {
-      return;
+  connectedRef.on("value", (snapshot) => {
+    if (snapshot.val() === false) {
+      return; // still offline
     }
-    userStatusRef
-      .onDisconnect()
-      .set(isOfflineForDatabase)
-      .then(function() {
-        userStatusRef.set(isOnlineForDatabase);
-      });
+    
+    // When client reconnects, set onDisconnect again
+    userStatusRef.onDisconnect().set(isOfflineForDatabase).then(() => {
+      userStatusRef.set(isOnlineForDatabase);
+    });
   });
-}
-
-
-// Call this once after brother logs in
-setPresence("brother"); // use the correct brotherKey
+  
+  // Refresh every few minutes to avoid stale presence (important for mobile browsers)
+  setInterval(() => {
+    userStatusRef.update({ last_changed: firebase.database.ServerValue.TIMESTAMP });
+  }, 60000); // every 60s
+} // use the correct brotherKey
 function renderChats(chats) {
   chatList.innerHTML = '';
   allChats = [];
@@ -761,12 +794,15 @@ function sendReply(){
   const message = {text,from:'brother'};
   if(replyToText){message.replyTo = replyToText.msgKey; replyToText=null;}
   
- db.ref('chats/'+currentKey+'/'+timestamp).set(message);
-  
-    // 🔊 Play send sound
+  db.ref('chats/'+currentKey+'/'+timestamp).set(message);
+  db.ref("status/brother/typing").set(false); // stop typing
+
   document.getElementById("sendSound").play();
   
-  replyInput.value=''; replyInput.style.height="auto"; replyInput.focus(); replyPreviewContainer.innerHTML='';
+  replyInput.value='';
+  replyInput.style.height="auto";
+  replyInput.focus();
+  replyPreviewContainer.innerHTML='';
 }
 
 
