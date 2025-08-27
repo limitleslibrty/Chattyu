@@ -98,7 +98,7 @@
 
     #messages {
       flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column;
-      background-image: url('chat.png');
+      background-color: #BBBBBB;
       background-size: 110% 110%;
       background-repeat: no-repeat;
       background-position: center;
@@ -526,12 +526,177 @@ body.dark #darkModeToggle {
 
 <script>
 const db = firebase.database();
+
 const listEl = document.getElementById('list');
 const chatEl = document.getElementById('chat');
 const chatList = document.getElementById('chatList');
 const messagesEl = document.getElementById('messages');
 const replyInput = document.getElementById('replyInput');
-// --- Typing indicator (brother side) ---
+
+
+// ---- Presence in the SAME typingIndicator div ----
+let statusListener = null; // holds { ref, callback } for cleanup
+
+function formatLastSeen(ts) {
+  if (!ts) return 'Last seen: unknown';
+  const d = new Date(Number(ts));
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  if (d.toDateString() === today.toDateString()) return 'Last seen today at ' + timeStr;
+  if (d.toDateString() === yesterday.toDateString()) return 'Last seen yesterday at ' + timeStr;
+  return 'Last seen ' + d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) + ' at ' + timeStr;
+}
+
+function subscribeToPresenceFor(chatKey) {
+  // remove previous listener
+  if (statusListener && statusListener.ref) {
+    try { statusListener.ref.off('value', statusListener.callback); } catch(e) {}
+    statusListener = null;
+  }
+
+  const typingEl = document.getElementById('typingIndicator');
+  const userLogo = document.getElementById('userLogo');
+  if (!typingEl) return;
+
+  const statusRef = db.ref('status/' + chatKey);
+  const callback = snap => {
+    const statusObj = snap.val();
+    let typing = false;
+    let state = 'offline';
+    let last_changed = null;
+
+    if (statusObj) {
+      if (typeof statusObj === 'object') {
+        typing = !!statusObj.typing;
+        state = statusObj.state || state;
+        last_changed = statusObj.last_changed || null;
+      } else if (typeof statusObj === 'string') {
+        state = statusObj;
+      }
+    }
+
+    // Show in same div
+    if (typing) {
+      typingEl.style.display = 'block';
+      typingEl.textContent = 'typing…';
+      typingEl.style.color = ''; // inherit or keep your css
+      if (userLogo) userLogo.style.border = '3px solid green';
+    } else {
+      // not typing: online or last seen
+      typingEl.style.display = 'block';
+      if (state === 'online') {
+        typingEl.textContent = 'online';
+        typingEl.style.color = ''; // use CSS color or inline if you like
+        if (userLogo) userLogo.style.border = '3px solid green';
+      } else {
+        typingEl.textContent = formatLastSeen(last_changed);
+        typingEl.style.color = '';
+        if (userLogo) userLogo.style.border = '3px solid orange';
+      }
+    }
+  };
+
+  statusListener = { ref: statusRef, callback };
+  statusRef.on('value', callback);
+}
+
+// Ensure we subscribe when opening a chat
+const oldOpenChat_forPresence = openChat;
+openChat = function(key) {
+  oldOpenChat_forPresence(key);
+  // key in your app is the DB key (looks like you already use underscores)
+  subscribeToPresenceFor(key);
+};
+
+// Optional: cleanup listener when going back to inbox
+const oldPop = window.onpopstate;
+window.addEventListener('popstate', function(event) {
+  // remove presence listener when leaving chat view
+  if (statusListener && statusListener.ref) {
+    try { statusListener.ref.off('value', statusListener.callback); } catch(e) {}
+    statusListener = null;
+  }
+  // also hide the typingIndicator when leaving
+  const typingEl = document.getElementById('typingIndicator');
+  if (typingEl) typingEl.style.display = 'none';
+
+  if (typeof oldPop === 'function') oldPop(event);
+});
+
+/* ===== improved presence helper =====
+   Replace your current setPresence(...) function with this.
+*/
+let _presenceHeartbeat = null;
+
+function setPresence(userKey) {
+  if (!userKey) return;
+  const userStatusRef = db.ref('status/' + userKey);
+
+  const makeOffline = () => ({
+    state: 'offline',
+    last_changed: Date.now(),
+  });
+  const makeOnline = () => ({
+    state: 'online',
+    last_changed: Date.now(),
+  });
+
+  // Clear any previous heartbeat
+  if (_presenceHeartbeat) {
+    clearInterval(_presenceHeartbeat);
+    _presenceHeartbeat = null;
+  }
+
+  // Listen for connection status to RTDB servers
+  db.ref('.info/connected').on('value', (snap) => {
+    if (snap.val() === true) {
+      // Ensure server will set offline when this client truly disconnects
+      userStatusRef.onDisconnect().set(makeOffline()).catch(()=>{});
+
+      // Immediately mark online
+      userStatusRef.set(makeOnline()).catch(()=>{});
+
+      // Start heartbeat to continually update last_changed so server
+      // will not mark connection idle. 10s is a good compromise.
+      if (!_presenceHeartbeat) {
+        _presenceHeartbeat = setInterval(() => {
+          userStatusRef.update({ last_changed: Date.now(), state: 'online' }).catch(()=>{});
+        }, 5000);
+      }
+    } else {
+      // not connected -> clear heartbeat
+      if (_presenceHeartbeat) {
+        clearInterval(_presenceHeartbeat);
+        _presenceHeartbeat = null;
+      }
+    }
+  });
+
+  // Best-effort attempt to mark offline on page unload using beacon
+  window.addEventListener('unload', () => {
+    try {
+      // Try to use onDisconnect as main line; sendBeacon is fallback
+      const payload = JSON.stringify(makeOffline());
+      // Using REST endpoint would be ideal, but as a fallback use sendBeacon to a small cloud function
+      // Here we attempt a tiny write via navigator.sendBeacon to a special endpoint if you have one.
+      // Fallback: attempt a synchronous set (sometimes fails)
+      userStatusRef.set(makeOffline());
+    } catch (e) {
+      // ignore
+    }
+  });
+}
+
+// Call it like this:
+setPresence("brother");
+
+
+
+
 let typingTimeout;
 
 replyInput.addEventListener("input", () => {
@@ -595,36 +760,8 @@ db.ref('chats').on('value', snapshot => {
   if (chats) { cacheChats(chats); renderChats(chats); }
 });
 
-function setPresence(userKey) {
-  const userStatusRef = db.ref("/status/" + userKey);
-  const connectedRef = db.ref(".info/connected");
-  
-  const isOfflineForDatabase = {
-    state: "offline",
-    last_changed: firebase.database.ServerValue.TIMESTAMP,
-  };
-  
-  const isOnlineForDatabase = {
-    state: "online",
-    last_changed: firebase.database.ServerValue.TIMESTAMP,
-  };
-  
-  connectedRef.on("value", (snapshot) => {
-    if (snapshot.val() === false) {
-      return; // still offline
-    }
-    
-    // When client reconnects, set onDisconnect again
-    userStatusRef.onDisconnect().set(isOfflineForDatabase).then(() => {
-      userStatusRef.set(isOnlineForDatabase);
-    });
-  });
-  
-  // Refresh every few minutes to avoid stale presence (important for mobile browsers)
-  setInterval(() => {
-    userStatusRef.update({ last_changed: firebase.database.ServerValue.TIMESTAMP });
-  }, 60000); // every 60s
-} // use the correct brotherKey
+
+// use the correct brotherKey
 function renderChats(chats) {
   chatList.innerHTML = '';
   allChats = [];
@@ -888,38 +1025,29 @@ window.addEventListener("popstate", function(event) {
 
 
 <script>
-  // Make sure firebase.initializeApp({...}) and firebase.database() config runs before this script
-
-  document.addEventListener('DOMContentLoaded', function() {
-  const db = firebase.database();
-  const userLogo = document.getElementById('userLogo');
-  
-  // Use the exact same email used on user page, transform to key
-  const userEmail = "mahekj05@gmail.com"; // replace with actual email you used
+  // ensure this runs after firebase.initializeApp(...) and after "const db = firebase.database();"
+  const userEmail = "mahekj05@gmail.com";
   const userKey = userEmail.replace(/\./g, '_');
   
-  const statusRef = db.ref('status/' + userKey);
-  
-  // ⬇️ REPLACE the old listener with this one
-  statusRef.on('value', function(snapshot) {
-    const status = snapshot.val();
-    console.log('Status snapshot:', status); // debug
-    
-    let state = null;
-    
-    if (status && typeof status === 'object') {
-      state = status.state;
-    } else {
-      state = status;
-    }
-    
-    if (state === 'online') {
-      userLogo.style.border = '3px solid green';
-    } else {
-      userLogo.style.border = '3px solid orange';
-    }
+  // debug helper
+  db.ref('.info/connected').on('value', snap => {
+    console.log('DEBUG: .info/connected =>', snap.val());
   });
-});
+  
+  // call setPresence that you already defined (or add below if missing)
+  
+  
+  // For UI: update avatar border on status changes (you already have similar code)
+  db.ref('status/' + userKey).on('value', snapshot => {
+    const status = snapshot.val();
+    console.log('DEBUG: status snapshot', status);
+    const userLogo = document.getElementById('userLogo');
+    if (!userLogo) return;
+    let state = null;
+    if (status && typeof status === 'object') state = status.state;
+    else state = status;
+    userLogo.style.border = (state === 'online') ? '3px solid green' : '3px solid orange';
+  });
 </script>
 <style>
 .chat-item {
