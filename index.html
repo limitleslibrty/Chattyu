@@ -18,7 +18,111 @@
   <!-- Preload images for faster UI -->
   <link rel="preload" as="image" href="chat_logo.png">
   <link rel="preload" as="image" href="chat.png">
+<!-- Emoji picker -->
+<script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.2/dist/index.min.js"></script>
 
+<style>
+
+/* Compact WhatsApp-like icon buttons for GIF & Attach */
+#inputControls {
+  display: flex;
+  align-items: center;   /* center vertically */
+  gap: 2px;              /* small spacing between controls */
+}
+
+#inputControls button.icon-btn,
+#gifBtn, /* fallback selector if you don't change HTML */
+#attachBtn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;      /* icon / emoji size */
+  line-height: 1;
+  flex: 0 0 36px;       /* don't grow or shrink */
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(16,24,40,0.06);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+/* subtle pressed effect */
+#inputControls button.icon-btn:active,
+#gifBtn:active,
+#attachBtn:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* handle dark mode */
+body.dark #inputControls button.icon-btn,
+body.dark #gifBtn,
+body.dark #attachBtn {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  box-shadow: none;
+  color: #f0f0f0;
+}
+
+/* make sure textarea doesn’t push icons out on small screens */
+#inputControls textarea {
+  flex: 1 1 auto;    /* textarea grows, icons keep fixed size */
+  margin: 0;
+}
+
+/* slightly shrink the 'Send' button so it balances with icons */
+#inputControls button#sendBtn {
+  padding: 8px 12px;
+  border-radius: 18px;
+  margin-left: 6px;
+  flex: 0 0 auto;
+}
+
+
+
+/* GIF picker modal */
+#gifModal {
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+}
+#gifModal .panel {
+  width: 92%;
+  max-width: 720px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  padding: 12px;
+  max-height: 80vh;
+  overflow: auto;
+}
+#gifModal .search {
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+#gifResults {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.gif-thumb {
+  width: 30%;
+  max-width: 160px;
+  border-radius: 8px;
+  cursor: pointer;
+  object-fit: cover;
+}
+@media (max-width:480px){ .gif-thumb{ width: 48%; } }
+</style>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body, html { height: 100%; font-family: 'Segoe UI', sans-serif; background: #f2f3f7; overflow-x: hidden; }
@@ -473,13 +577,31 @@ body.dark #darkModeToggle {
 </button>
     </div>
     <div id="messages"></div>
-    <div id="inputArea">
-      <div id="replyPreviewContainer"></div>
-      <div id="inputControls">
-        <textarea id="replyInput" placeholder="Type a message…" rows="1"></textarea>
-        <button onclick="sendReply()">Send</button>
-      </div>
+<div id="inputArea">
+  <div id="replyPreviewContainer"></div>
+  <div id="inputControls">
+    
+    <button id="gifBtn" title="GIF" style="margin-right:0px;">🙂</button>
+    <!-- optional file attach (works locally; to upload to Firebase Storage add storage SDK) -->
+    <input id="attachFile" type="file" accept="image/*,video/gif" style="display:none" />
+    <button id="attachBtn" title="Attach">📎</button>
+    
+    <textarea id="replyInput" placeholder="Type" rows="1" style="flex:1"></textarea>
+    <button id="sendBtn">Send</button>
+  </div>
+</div>
+
+<!-- GIF modal -->
+<div id="gifModal" aria-hidden="true">
+  <div class="panel">
+    <div class="search">
+      <input id="gifSearch" placeholder="Search GIFs (GIPHY)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ccc" />
+      <button id="gifSearchBtn">Search</button>
+      <button id="gifCloseBtn">Close</button>
     </div>
+    <div id="gifResults"></div>
+  </div>
+</div>
   </div>
   
   
@@ -630,6 +752,10 @@ window.addEventListener('popstate', function(event) {
 /* ===== improved presence helper =====
    Replace your current setPresence(...) function with this.
 */
+
+
+
+
 let _presenceHeartbeat = null;
 
 function setPresence(userKey) {
@@ -828,33 +954,74 @@ function createDateDivider(label){
 
 
 
-function buildMessageBubble(msgKey, val){
+function buildMessageBubble(msgKey, val) {
+  // create bubble wrapper & classes
   const div = document.createElement('div');
-  div.className = 'bubble ' + (val.from==='user' ? 'from-user':'from-brother');
+  div.className = 'bubble ' + (val.from === 'user' ? 'from-user' : 'from-brother');
+  
+  // reply arrow (swipe UI)
   const arrow = document.createElement('div');
   arrow.className = 'reply-arrow';
   arrow.innerHTML = '↩';
   div.appendChild(arrow);
-  attachSwipeHandlers(div,msgKey,val.text);
-  if(val.replyTo && messageStore[val.replyTo]){
+  
+  // attach swipe/reply behavior (re-uses your helper)
+  attachSwipeHandlers(div, msgKey, val.text || val.url || '');
+  
+  // reply preview if present
+  if (val.replyTo && messageStore[val.replyTo]) {
     const replyDiv = document.createElement('div');
     replyDiv.className = 'reply-box';
-    replyDiv.textContent = messageStore[val.replyTo].text;
+    // if the referenced message had text use it, otherwise if media show type
+    const ref = messageStore[val.replyTo];
+    replyDiv.textContent = ref && ref.text ? ref.text : (ref && ref.type ? '[' + (ref.type || 'media') + ']' : '');
     div.prepend(replyDiv);
   }
   
+  // If media (gif/image) -> render image tag, allow optional text underneath
+  if (val.type === 'gif' || val.type === 'image' || val.url) {
+    const media = document.createElement('img');
+    media.style.maxWidth = '260px';
+    media.style.maxHeight = '260px';
+    media.style.borderRadius = '8px';
+    media.style.display = 'block';
+    media.style.marginBottom = '6px';
+    // prefer val.url; some payloads may include url or mediaUrl
+    media.src = val.url || val.mediaUrl || '';
+    media.alt = val.type || 'media';
+    // add error handler to help debug CORS/missing URL
+    media.addEventListener('error', () => {
+      const err = document.createElement('div');
+      err.style.fontSize = '12px';
+      err.style.color = '#b00';
+      err.textContent = '[Unable to load media]';
+      div.insertBefore(err, media.nextSibling);
+    });
+    div.appendChild(media);
+    if (val.text) {
+      const textNode = document.createElement('div');
+      textNode.textContent = val.text;
+      div.appendChild(textNode);
+    }
+  } else {
+    // regular text-only message
+    const textNode = document.createElement('div');
+    textNode.textContent = val.text || '';
+    div.appendChild(textNode);
+  }
   
-  const textNode = document.createElement('div');
-  textNode.textContent = val.text;
-  div.appendChild(textNode);
+  // timestamp
   const timeNode = document.createElement('div');
   timeNode.className = 'msg-time';
-  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true});
-  
-  
+  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   div.appendChild(timeNode);
+  
   return div;
 }
+
+
+// ensure the local name points to the same function used in renderMessages
+buildMessageBubble = window.buildMessageBubble;
 
 // --- Render messages (fixed) ---
 function renderMessages(chatKey, messages) {
@@ -864,7 +1031,7 @@ function renderMessages(chatKey, messages) {
   sortedKeys.forEach(msgKey => {
     if (messageStore[msgKey]) return; // already rendered
     const val = messages[msgKey];
-    if (!val || !val.text) return;
+    if (!val || (!(val.text) && !(val.type) && !(val.url))) return;
     messageStore[msgKey] = val;
     
     const msgDate = new Date(Number(msgKey));
@@ -1169,7 +1336,262 @@ db.ref('chats').on('child_changed', snap => {
     }, { passive: false });
   </script>
 
+<script>
+/* ===== Configuration ===== */
+// Add your GIPHY API key here:
+const GIPHY_API_KEY = "e68mngd8xYdq05iTwWRZPlbK92CIPhMB"; // <-- get one at https://developers.giphy.com/ (free)
 
+/* ===== Emoji picker setup using emoji-button ===== */
+const { EmojiButton } = window;
+let picker;
+try{
+  picker = new EmojiButton({ position: 'top-end', zIndex: 99999 });
+  const emojiBtn = document.getElementById('emojiBtn');
+  const replyInput = document.getElementById('replyInput');
+
+  emojiBtn.addEventListener('click', () => {
+    picker.togglePicker(emojiBtn);
+  });
+
+  picker.on('emoji', selection => {
+    // Insert emoji at cursor position in textarea
+    insertAtCursor(replyInput, selection.emoji);
+    replyInput.focus();
+  });
+} catch(e){
+  console.warn("Emoji picker failed to load:", e);
+}
+
+/* helper: insert at cursor for textarea */
+function insertAtCursor(input, text) {
+  const start = input.selectionStart || 0;
+  const end = input.selectionEnd || 0;
+  const value = input.value || '';
+  input.value = value.slice(0, start) + text + value.slice(end);
+  // move cursor after inserted text
+  const newPos = start + text.length;
+  input.selectionStart = input.selectionEnd = newPos;
+  input.dispatchEvent(new Event('input'));
+}
+
+/* ===== GIF picker modal + search ===== */
+const gifBtn = document.getElementById('gifBtn');
+const gifModal = document.getElementById('gifModal');
+const gifSearch = document.getElementById('gifSearch');
+const gifSearchBtn = document.getElementById('gifSearchBtn');
+const gifResults = document.getElementById('gifResults');
+const gifCloseBtn = document.getElementById('gifCloseBtn');
+
+gifBtn.addEventListener('click', () => {
+  if(!GIPHY_API_KEY || GIPHY_API_KEY.includes("PUT_YOUR")) {
+    alert("Please set GIPHY_API_KEY in the code to use GIF search (free key at developers.giphy.com).");
+    return;
+  }
+  gifModal.style.display = 'flex';
+  gifModal.setAttribute('aria-hidden','false');
+  gifResults.innerHTML = '';
+  gifSearch.value = '';
+  // show trending by default
+  searchGiphy('trending');
+});
+
+gifCloseBtn.addEventListener('click', () => {
+  gifModal.style.display = 'none';
+  gifModal.setAttribute('aria-hidden','true');
+});
+
+gifSearchBtn.addEventListener('click', () => {
+  const q = gifSearch.value.trim();
+  if(!q) return;
+  searchGiphy(q);
+});
+
+async function searchGiphy(query){
+  gifResults.innerHTML = 'Loading…';
+  try {
+    let url;
+    if (query === 'trending') {
+      url = `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=25&rating=pg`;
+    } else {
+      url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=25&rating=pg`;
+    }
+    const res = await fetch(url);
+    const json = await res.json();
+    gifResults.innerHTML = '';
+    (json.data || []).forEach(g => {
+      // use fixed_width_small url for thumbnails
+      const thumb = g.images && (g.images.fixed_width_small || g.images.fixed_width) ;
+      const full = g.images && (g.images.fixed_width || g.images.original);
+      if(!thumb) return;
+      const img = document.createElement('img');
+      img.className = 'gif-thumb';
+      img.src = thumb.url;
+      img.alt = g.title || 'gif';
+      img.addEventListener('click', () => {
+        // When user selects a GIF -> send as message
+        const gifUrl = full.url || thumb.url;
+        sendMediaMessage({ type: 'gif', url: gifUrl });
+        gifModal.style.display = 'none';
+      });
+      gifResults.appendChild(img);
+    });
+    if((json.data||[]).length===0) gifResults.innerHTML = 'No GIFs found.';
+  } catch(err){
+    console.error(err);
+    gifResults.innerHTML = 'Search failed.';
+  }
+}
+
+/* ===== Attach/file input (optional) ===== */
+const attachBtn = document.getElementById('attachBtn');
+const attachFile = document.getElementById('attachFile');
+
+attachBtn.addEventListener('click', () => attachFile.click());
+attachFile.addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if(!f) return;
+  // Simple client-side preview / send as base64 (not recommended for big files)
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    // send as image message with data URL (if small). Ideally upload to Firebase Storage and send storage URL.
+    const dataUrl = ev.target.result;
+    sendMediaMessage({ type: 'image', url: dataUrl });
+  };
+  reader.readAsDataURL(f);
+  attachFile.value = '';
+});
+
+/* ===== Paste handler for image/GIF URLs or direct images ===== */
+document.addEventListener('paste', (e) => {
+  // If clipboard contains an image file, or URL
+  const items = e.clipboardData && e.clipboardData.items;
+  if(!items) return;
+  for (const it of items) {
+    if (it.kind === 'file') {
+      const blob = it.getAsFile();
+      if (blob) {
+        // File pasted -> read and send as dataURL (or upload to Storage in production)
+        const reader = new FileReader();
+        reader.onload = (ev) => sendMediaMessage({ type: 'image', url: ev.target.result });
+        reader.readAsDataURL(blob);
+        e.preventDefault();
+        return;
+      }
+    }
+    if (it.kind === 'string' && it.type === 'text/plain') {
+      it.getAsString(str => {
+        // if user pasted a giphy or image URL, send as gif/image
+        if (str.match(/\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || str.includes('giphy.com')) {
+          sendMediaMessage({ type: 'gif', url: str });
+        }
+      });
+    }
+  }
+});
+
+/* ===== sendMediaMessage helper =====
+   Sends a chat message object to your DB with type and url.
+*/
+function sendMediaMessage(payload){
+  // payload = { type: 'gif' | 'image', url: '...' }
+  if(!currentKey) { alert('Open a chat first'); return; }
+  const timestamp = Date.now();
+  const message = { from: 'brother', type: payload.type, url: payload.url };
+  // optionally include replyTo
+  if(replyToText){ message.replyTo = replyToText.msgKey; replyToText=null; replyPreviewContainer.innerHTML=''; }
+  db.ref('chats/' + currentKey + '/' + timestamp).set(message);
+  document.getElementById("sendSound").play().catch(()=>{});
+}
+
+/* ===== Override send button to allow sending text or GIF/image URLs typed in ===== */
+document.getElementById('sendBtn').addEventListener('click', sendReply);
+
+const originalSendReply = window.sendReply || function(){};
+window.sendReply = function(){
+  const txtEl = document.getElementById('replyInput');
+  const text = (txtEl.value || '').trim();
+  if(!currentKey) return;
+  if(!text && !replyToText) return; // nothing to send
+  // if text is a direct image/GIF URL, send as media
+  if(text.match(/^https?:\/\/.*\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || text.includes('giphy.com')) {
+    sendMediaMessage({ type: 'gif', url: text });
+    txtEl.value = '';
+    return;
+  }
+  // else send as regular text
+  const timestamp = Date.now();
+  const message = { text, from:'brother' };
+  if(replyToText){message.replyTo = replyToText.msgKey; replyToText=null; replyPreviewContainer.innerHTML='';}
+  db.ref('chats/'+currentKey+'/'+timestamp).set(message);
+  db.ref("status/brother/typing").set(false);
+  try{ document.getElementById("sendSound").play(); }catch(e){}
+  txtEl.value='';
+  txtEl.style.height="auto";
+  txtEl.focus();
+};
+
+/* ===== Render GIF / image in message bubble =====
+   Modify your existing buildMessageBubble to handle `val.type === 'gif'` or `val.type === 'image'`.
+   If you already have buildMessageBubble defined above, replace the rendering part with the snippet below.
+*/
+const originalBuildMessageBubble = window.buildMessageBubble;
+window.buildMessageBubble = function(msgKey, val){
+  // call original to preserve reply/tails etc, but then adjust content if type present
+  // If originalBuildMessageBubble exists and uses messageStore, we can recreate here for clarity.
+  const div = document.createElement('div');
+  div.className = 'bubble ' + (val.from==='user' ? 'from-user':'from-brother');
+  const arrow = document.createElement('div');
+  arrow.className = 'reply-arrow';
+  arrow.innerHTML = '↩';
+  div.appendChild(arrow);
+  attachSwipeHandlers(div,msgKey,val.text || '');
+
+  if(val.replyTo && messageStore[val.replyTo]){
+    const replyDiv = document.createElement('div');
+    replyDiv.className = 'reply-box';
+    replyDiv.textContent = messageStore[val.replyTo] && messageStore[val.replyTo].text ? messageStore[val.replyTo].text : '';
+    div.prepend(replyDiv);
+  }
+
+  if(val.type === 'gif' || val.type === 'image'){
+    const media = document.createElement('img');
+    media.style.maxWidth = '260px';
+    media.style.maxHeight = '260px';
+    media.style.borderRadius = '8px';
+    media.style.display = 'block';
+    media.style.marginBottom = '6px';
+    media.src = val.url;
+    media.alt = val.type;
+    div.appendChild(media);
+    if(val.text) {
+      const textNode = document.createElement('div');
+      textNode.textContent = val.text;
+      div.appendChild(textNode);
+    }
+  } else {
+    const textNode = document.createElement('div');
+    textNode.textContent = val.text || '';
+    div.appendChild(textNode);
+  }
+
+  const timeNode = document.createElement('div');
+  timeNode.className = 'msg-time';
+  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true});
+  div.appendChild(timeNode);
+  return div;
+};
+
+/* ===== Make sure messages area resizes text area rows automatically (optional helper) ===== */
+const ta = document.getElementById('replyInput');
+ta.addEventListener('input', () => {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(120, ta.scrollHeight) + 'px';
+  // typing status to DB
+  db.ref("status/brother/typing").set( ta.value.trim().length > 0 );
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => { db.ref("status/brother/typing").set(false); }, 1500);
+});
+</script>
 
 </body>
 </html>
