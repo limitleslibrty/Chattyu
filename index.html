@@ -23,6 +23,81 @@
 
 <style>
 
+/* Keep input area fully transparent */
+#inputArea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px;
+  background: transparent;
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+}
+
+/* textarea with slight transparent background for visibility */
+#inputControls textarea,
+#replyInput {
+  background: rgba(255, 255, 255, 0.85);  /* almost solid white */
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 20px;
+  padding: 8px 12px;
+  color: #000;
+  font-size: 15px;
+  line-height: 1.3;
+  flex: 1;
+  resize: none;
+}
+
+/* buttons with subtle background */
+#inputControls button,
+#gifBtn, #attachBtn, #sendBtn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: grey;
+}
+
+/* reply preview */
+.reply-preview {
+  background: rgba(255, 255, 255, 0.85);
+  border-left: 4px solid #4caf50;
+  color: #333;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+}
+
+/* dark mode overrides */
+body.dark #inputControls textarea,
+body.dark #replyInput {
+  background: rgba(42,42,42,0.9);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+body.dark #inputControls button {
+  background: rgba(42,42,42,0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+body.dark .reply-preview {
+  background: rgba(42,42,42,0.85);
+  color: #e5e5e5;
+}
+
+
+
 /* Compact WhatsApp-like icon buttons for GIF & Attach */
 #inputControls {
   display: flex;
@@ -265,11 +340,16 @@
       border-radius: 4px;
     }
 
-    #inputArea {
-      flex-shrink: 0;
-      display: flex; padding: 10px; background: #fff; border-top: 1px solid #ccc;
-      flex-direction: column;
-    }
+  #inputArea {
+  flex-shrink: 0;
+  display: flex;
+  padding: 10px;
+  background: transparent; /* ✅ transparent background */
+  border-top: none;        /* ✅ no border */
+  flex-direction: column;
+  backdrop-filter: none;   /* ✅ no blur, fully clear */
+}
+
     .reply-preview {
       display: flex;
       justify-content: space-between;
@@ -326,7 +406,7 @@ body.dark .from-brother::after {
       flex: 1;
       padding: 8px 12px;
       
-      border: 1px solid #ccc;
+      border: 1px solid #979595;
       border-radius: 20px;
       resize: none;
       overflow: hidden;
@@ -335,12 +415,12 @@ body.dark .from-brother::after {
       max-height: 80px;
     }
     #inputControls textarea:focus {
-      border-color: #bbb;
+      border-color: #979595;
       outline: none;
     }
     #inputControls button {
       margin-left: 5px; 
-      border: 1px solid #ccc;
+      border: 1px solid #979595;
       background: #fff; color: #fff; border-radius: 20px;
     }
 
@@ -467,23 +547,8 @@ body.dark .reply-box {
   background: rgba(255,255,255,0.08);  /* soft white overlay */
   border-left: 3px solid #3b82f6;      /* nice blue accent */
 }
-/* Input area */
-body.dark #inputArea {
-  background: #1e1e1e !important;
-}
 
-body.dark #inputControls textarea {
-  
-  background: #2a2a2a !important;
-  color: #ffffff !important;
-  border: 1px solid #444 !important;
-}
 
-body.dark #inputControls button {
-  background: #2a2a2a !important;
-  color: #ffffff !important;
-  border: 1px solid #444 !important;
-}
     /* Reply preview (dark mode) */
 body.dark .reply-preview {
   background: rgba(255, 255, 255, 0.08);  /* soft overlay on dark */
@@ -790,6 +855,32 @@ window.addEventListener('popstate', function(event) {
 
 
 let _presenceHeartbeat = null;
+
+
+function adjustMessagesPadding(){
+  const input = document.getElementById('inputArea');
+  const messages = document.getElementById('messages');
+  if(!input || !messages) return;
+  // add extra spacing for safe area
+  const extra = 16;
+  messages.style.paddingBottom = (input.offsetHeight + extra) + 'px';
+}
+
+// run on load and whenever window resizes or input changes
+window.addEventListener('load', adjustMessagesPadding);
+window.addEventListener('resize', adjustMessagesPadding);
+
+// if your textarea auto-resizes, call adjustMessagesPadding on input
+const txt = document.getElementById('replyInput');
+if(txt){
+  txt.addEventListener('input', function(){ 
+    // if you have an auto-height script, run it first then adjust
+    setTimeout(adjustMessagesPadding, 60);
+  });
+}
+
+
+
 
 function setPresence(userKey) {
   if (!userKey) return;
