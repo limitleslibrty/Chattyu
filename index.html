@@ -591,11 +591,29 @@ body.dark #darkModeToggle {
   transform: scale(1.05);
 }
     
+    
+    
+/* Light mode: flat grey highlight */
+.bubble.message-highlight {
+  background-color: #A1B790 !important;
+}
 
-    
-    
-    
-    
+/* Make the bubble tail match the highlight color (light) */
+.bubble.message-highlight.from-user::after,
+.bubble.message-highlight.from-brother::after {
+  background-color: #A1B790 !important;
+}
+
+/* Dark mode: flat orange highlight */
+body.dark .bubble.message-highlight {
+  background-color: #E6A23ECC !important;
+}
+
+/* Make the bubble tail match the highlight color (dark) */
+body.dark .bubble.message-highlight.from-user::after,
+body.dark .bubble.message-highlight.from-brother::after {
+  background-color: #E6A23ECC !important;
+}
     
     
   </style>
@@ -1076,7 +1094,46 @@ function createDateDivider(label){
 }
 
 
-
+function highlightAndScrollTo(msgKey) {
+  if (!msgKey) return;
+  // prefer id format first
+  const id = 'msg_' + msgKey;
+  let target = document.getElementById(id);
+  if (!target) {
+    // fallback to data attribute
+    target = document.querySelector('[data-msg-key="' + msgKey + '"]');
+  }
+  if (!target) {
+    // If message not rendered yet, try small retry (best-effort)
+    let tries = 0;
+    const retry = setInterval(() => {
+      tries++;
+      let t = document.getElementById(id) || document.querySelector('[data-msg-key="' + msgKey + '"]');
+      if (t) {
+        clearInterval(retry);
+        t.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        t.classList.add('message-highlight');
+        setTimeout(() => t.classList.remove('message-highlight'), 2200);
+      } else if (tries > 8) {
+        clearInterval(retry);
+        console.warn('Referenced message not found in DOM:', msgKey);
+      }
+    }, 150);
+    return;
+  }
+  
+  // scroll and highlight
+  try {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (e) {
+    target.scrollIntoView();
+  }
+  target.classList.add('message-highlight');
+  // remove highlight after a short while
+  setTimeout(() => {
+    target && target.classList.remove('message-highlight');
+  }, 2200);
+}
 
 function buildMessageBubble(msgKey, val) {
   // create bubble wrapper & classes
@@ -1463,7 +1520,10 @@ db.ref('chats').on('child_changed', snap => {
 <script>
 /* ===== Configuration ===== */
 // Add your GIPHY API key here:
-const GIPHY_API_KEY = "e68mngd8xYdq05iTwWRZPlbK92CIPhMB"; // <-- get one at https://developers.giphy.com/ (free)
+/* ===== Tenor configuration ===== */
+// Get a Tenor API key: (Google Cloud Console -> enable Tenor API & create key)
+const TENOR_API_KEY = "AIzaSyB_R_WfxdRYAnMCykNpxDAAJRqKkjpgUTs"; // <-- replace with your key
+const TENOR_CLIENT_KEY = "brother dashboard"; // optional string identifying your app (use same value for all calls) // <-- get one at https://developers.giphy.com/ (free)
 
 /* ===== Emoji picker setup using emoji-button ===== */
 const { EmojiButton } = window;
@@ -1507,16 +1567,9 @@ const gifResults = document.getElementById('gifResults');
 const gifCloseBtn = document.getElementById('gifCloseBtn');
 
 gifBtn.addEventListener('click', () => {
-  if(!GIPHY_API_KEY || GIPHY_API_KEY.includes("PUT_YOUR")) {
-    alert("Please set GIPHY_API_KEY in the code to use GIF search (free key at developers.giphy.com).");
-    return;
-  }
+  console.log("GIF button clicked");
   gifModal.style.display = 'flex';
-  gifModal.setAttribute('aria-hidden','false');
-  gifResults.innerHTML = '';
-  gifSearch.value = '';
-  // show trending by default
-  searchGiphy('trending');
+  searchTenor('trending');
 });
 
 gifCloseBtn.addEventListener('click', () => {
@@ -1526,42 +1579,74 @@ gifCloseBtn.addEventListener('click', () => {
 
 gifSearchBtn.addEventListener('click', () => {
   const q = gifSearch.value.trim();
-  if(!q) return;
-  searchGiphy(q);
+  if (!q) return;
+  searchTenor(q);
 });
 
-async function searchGiphy(query){
+async function searchTenor(query) {
   gifResults.innerHTML = 'Loading…';
   try {
     let url;
-    if (query === 'trending') {
-      url = `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=25&rating=pg`;
+    const encoded = encodeURIComponent(query || '');
+    // Trending / featured
+    if (query === 'trending' || !query) {
+      url = `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&limit=25&contentfilter=low`;
     } else {
-      url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=25&rating=pg`;
+      // Search endpoint
+      url = `https://tenor.googleapis.com/v2/search?q=${encoded}&key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&limit=25&contentfilter=low`;
     }
+    
     const res = await fetch(url);
+    if (!res.ok) throw new Error('Tenor fetch failed: ' + res.status);
     const json = await res.json();
+    
     gifResults.innerHTML = '';
-    (json.data || []).forEach(g => {
-      // use fixed_width_small url for thumbnails
-      const thumb = g.images && (g.images.fixed_width_small || g.images.fixed_width) ;
-      const full = g.images && (g.images.fixed_width || g.images.original);
-      if(!thumb) return;
+    
+    const results = json.results || [];
+    results.forEach(r => {
+      // defensive: pick a small preview format first (nanogif / tinygif), then fallback
+      const mf = r.media_formats || {};
+      const preview =
+        (mf.nanogif && mf.nanogif.url) ||
+        (mf.tinygif && mf.tinygif.url) ||
+        (mf.nanowebp && mf.nanowebp.url) ||
+        (mf.gif && mf.gif.url) ||
+        null;
+      
+      // pick the share/full url (prefer full gif)
+      const full =
+        (mf.gif && mf.gif.url) ||
+        (mf.mediumgif && mf.mediumgif.url) ||
+        (mf.nanowebp && mf.nanowebp.url) ||
+        preview;
+      
+      if (!preview) return; // no usable preview -> skip
+      
       const img = document.createElement('img');
       img.className = 'gif-thumb';
-      img.src = thumb.url;
-      img.alt = g.title || 'gif';
+      img.src = preview;
+      img.alt = r.content_description || r.id || 'gif';
+      
       img.addEventListener('click', () => {
-        // When user selects a GIF -> send as message
-        const gifUrl = full.url || thumb.url;
-        sendMediaMessage({ type: 'gif', url: gifUrl });
+        // send selected GIF as media message (your existing helper)
+        sendMediaMessage({ type: 'gif', url: full });
+        
+        // optional: register the share with Tenor to improve search relevancy
+        // (don't block UI on this; fire-and-forget)
+        try {
+          fetch(`https://tenor.googleapis.com/v2/registershare?id=${r.id}&key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&q=${encoded}`)
+            .catch(() => {});
+        } catch (e) {}
+        
         gifModal.style.display = 'none';
       });
+      
       gifResults.appendChild(img);
     });
-    if((json.data||[]).length===0) gifResults.innerHTML = 'No GIFs found.';
-  } catch(err){
-    console.error(err);
+    
+    if (results.length === 0) gifResults.innerHTML = 'No GIFs found.';
+  } catch (err) {
+    console.error('Tenor search error', err);
     gifResults.innerHTML = 'Search failed.';
   }
 }
@@ -1833,26 +1918,39 @@ window.sendReply = function(){
    Modify your existing buildMessageBubble to handle `val.type === 'gif'` or `val.type === 'image'`.
    If you already have buildMessageBubble defined above, replace the rendering part with the snippet below.
 */
-const originalBuildMessageBubble = window.buildMessageBubble;
-window.buildMessageBubble = function(msgKey, val){
-  // call original to preserve reply/tails etc, but then adjust content if type present
-  // If originalBuildMessageBubble exists and uses messageStore, we can recreate here for clarity.
+window.buildMessageBubble = function(msgKey, val) {
+  // create bubble wrapper
   const div = document.createElement('div');
-  div.className = 'bubble ' + (val.from==='user' ? 'from-user':'from-brother');
+  div.className = 'bubble ' + (val.from === 'user' ? 'from-user' : 'from-brother');
+  
+  // set identifier so we can locate it later
+  div.setAttribute('data-msg-key', String(msgKey));
+  div.id = 'msg_' + String(msgKey);
+  
+  // reply arrow (swipe UI)
   const arrow = document.createElement('div');
   arrow.className = 'reply-arrow';
   arrow.innerHTML = '↩';
   div.appendChild(arrow);
-  attachSwipeHandlers(div,msgKey,val.text || '');
-
-  if(val.replyTo && messageStore[val.replyTo]){
+  attachSwipeHandlers(div, msgKey, val.text || '');
+  
+  // reply preview if present
+  if (val.replyTo && messageStore[val.replyTo]) {
     const replyDiv = document.createElement('div');
     replyDiv.className = 'reply-box';
-    replyDiv.textContent = messageStore[val.replyTo] && messageStore[val.replyTo].text ? messageStore[val.replyTo].text : '';
+    // show short snippet of referenced text if present
+    const referenced = messageStore[val.replyTo];
+    replyDiv.textContent = referenced && referenced.text ? (referenced.text.length > 120 ? referenced.text.slice(0, 120) + '…' : referenced.text) : '[media]';
+    // make the reply preview clickable to jump to original message
+    replyDiv.addEventListener('click', (e) => {
+      e.stopPropagation();
+      highlightAndScrollTo(val.replyTo);
+    });
     div.prepend(replyDiv);
   }
-
-  if(val.type === 'gif' || val.type === 'image'){
+  
+  // media (gif/image)
+  if (val.type === 'gif' || val.type === 'image') {
     const media = document.createElement('img');
     media.style.maxWidth = '100%';
     media.style.maxHeight = '260px';
@@ -1862,7 +1960,7 @@ window.buildMessageBubble = function(msgKey, val){
     media.src = val.url;
     media.alt = val.type;
     div.appendChild(media);
-    if(val.text) {
+    if (val.text) {
       const textNode = document.createElement('div');
       textNode.textContent = val.text;
       div.appendChild(textNode);
@@ -1872,10 +1970,10 @@ window.buildMessageBubble = function(msgKey, val){
     textNode.textContent = val.text || '';
     div.appendChild(textNode);
   }
-
+  
   const timeNode = document.createElement('div');
   timeNode.className = 'msg-time';
-  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true});
+  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   div.appendChild(timeNode);
   return div;
 };
@@ -1890,6 +1988,25 @@ ta.addEventListener('input', () => {
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => { db.ref("status/brother/typing").set(false); }, 1500);
 });
+</script>
+<script>
+  //highlight reply bubble 
+  
+  
+  function highlightAndScrollTo(msgKey) {
+  if (!msgKey) return;
+  const id = 'msg_' + msgKey;
+  let target = document.getElementById(id) || document.querySelector('[data-msg-key="'+msgKey+'"]');
+  if (!target) return;
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Apply grey/orange highlight temporarily
+  target.classList.add('message-highlight');
+  setTimeout(() => {
+    target.classList.remove('message-highlight');
+  }, 2000);
+}
 </script>
 
 </body>
