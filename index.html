@@ -1571,19 +1571,194 @@ const attachBtn = document.getElementById('attachBtn');
 const attachFile = document.getElementById('attachFile');
 
 attachBtn.addEventListener('click', () => attachFile.click());
+
+
+/* ===== Image compression helper (compress to approx target size and return dataURL) ===== */
+
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function imageBitmapOrImgFromFile(file) {
+  // returns a Promise that resolves with an object {bitmap, width, height}
+  if (window.createImageBitmap) {
+    return createImageBitmap(file).then(bitmap => ({ bitmap, width: bitmap.width, height: bitmap.height }));
+  } else {
+    // fallback for older browsers
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        // draw into an offscreen canvas to create an ImageBitmap equivalent
+        resolve({ img, width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+}
+
+function canvasToBlob(canvas, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+  });
+}
+
+/**
+ * Compress a File/Blob image to an approximate target size (KB).
+ * Returns a Promise<string> resolving to a dataURL (JPEG).
+ *
+ * @param {File|Blob} file - source image file
+ * @param {number} targetKb - desired max size in kilobytes (e.g. 200)
+ * @param {object} opts - optional { maxWidth, maxHeight, minQuality }
+ */
+async function compressImageFile(file, targetKb = 200, opts = {}) {
+  const maxWidth = opts.maxWidth || 1920;
+  const maxHeight = opts.maxHeight || 1920;
+  const minQuality = (opts.minQuality !== undefined) ? opts.minQuality : 0.45;
+  
+  // Load image (bitmap or img)
+  const imgObj = await imageBitmapOrImgFromFile(file);
+  let srcWidth = imgObj.width;
+  let srcHeight = imgObj.height;
+  
+  // compute initial scale to fit maxWidth/maxHeight
+  let scale = Math.min(1, maxWidth / srcWidth, maxHeight / srcHeight);
+  let targetWidth = Math.round(srcWidth * scale);
+  let targetHeight = Math.round(srcHeight * scale);
+  
+  // create canvas
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // helper to draw (bitmap or img) into canvas with current dims
+  function drawToCanvas() {
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    // if we have a bitmap use drawImage(bitmap,...)
+    if (imgObj.bitmap) {
+      ctx.drawImage(imgObj.bitmap, 0, 0, targetWidth, targetHeight);
+    } else if (imgObj.img) {
+      ctx.drawImage(imgObj.img, 0, 0, targetWidth, targetHeight);
+    }
+  }
+  
+  // iterative quality reduction loop, optionally downscale if quality floor hits
+  let quality = 0.92;
+  let blob = null;
+  let dataUrl = null;
+  const targetBytes = targetKb * 1024;
+  
+  // try multiple attempts: reduce quality first, then scale down if needed
+  for (let attempt = 0; attempt < 8; attempt++) {
+    drawToCanvas();
+    blob = await canvasToBlob(canvas, quality);
+    if (!blob) break;
+    if (blob.size <= targetBytes || quality <= minQuality) {
+      dataUrl = await blobToDataURL(blob);
+      if (blob.size <= targetBytes) return dataUrl;
+      // if we hit minQuality but still too big — we'll scale down image and try again
+    }
+    
+    // if blob is too big, reduce quality
+    if (blob.size > targetBytes) {
+      // lower quality step
+      quality = quality - 0.12;
+      if (quality < minQuality) quality = minQuality;
+    }
+    
+    // if at minimum quality and still large, scale down the dimensions by 0.85 and retry
+    if (quality <= minQuality && blob.size > targetBytes) {
+      targetWidth = Math.max(200, Math.round(targetWidth * 0.85));
+      targetHeight = Math.max(200, Math.round(targetHeight * 0.85));
+      // reset quality to a reasonable value for next loop
+      quality = Math.max(minQuality, 0.82);
+    }
+  }
+  
+  // final fallback: return the last generated dataURL even if slightly larger than target
+  if (blob) dataUrl = await blobToDataURL(blob);
+  return dataUrl;
+}
+
+/* ===== Replace attachFile handling to compress before sending ===== */
 attachFile.addEventListener('change', async (e) => {
   const f = e.target.files[0];
-  if(!f) return;
-  // Simple client-side preview / send as base64 (not recommended for big files)
-  const reader = new FileReader();
-  reader.onload = function(ev){
-    // send as image message with data URL (if small). Ideally upload to Firebase Storage and send storage URL.
-    const dataUrl = ev.target.result;
-    sendMediaMessage({ type: 'image', url: dataUrl });
-  };
-  reader.readAsDataURL(f);
+  if (!f) return;
+  // Only compress images (not gifs/videos). GIFs you may want to pass through as-is.
+  if (!f.type.startsWith('image/')) {
+    // fallback: send as-is (or handle video differently)
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      sendMediaMessage({ type: 'image', url: ev.target.result });
+    };
+    reader.readAsDataURL(f);
+    attachFile.value = '';
+    return;
+  }
+  
+  try {
+    // compress to ~200 KB
+    const compressedDataUrl = await compressImageFile(f, 200, { maxWidth: 1600, maxHeight: 1600 });
+    if (compressedDataUrl) {
+      sendMediaMessage({ type: 'image', url: compressedDataUrl });
+    } else {
+      // fallback if compression failed
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        sendMediaMessage({ type: 'image', url: ev.target.result });
+      };
+      reader.readAsDataURL(f);
+    }
+  } catch (err) {
+    console.error('Image compression failed', err);
+    // fallback send original as dataURL (beware of DB size)
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      sendMediaMessage({ type: 'image', url: ev.target.result });
+    };
+    reader.readAsDataURL(f);
+  }
   attachFile.value = '';
 });
+
+/* ===== Paste handler: compress pasted image blob before sending ===== */
+document.addEventListener('paste', async (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.kind === 'file') {
+      const blob = it.getAsFile();
+      if (blob && blob.type.startsWith('image/')) {
+        try {
+          const compressed = await compressImageFile(blob, 200, { maxWidth: 1600, maxHeight: 1600 });
+          if (compressed) sendMediaMessage({ type: 'image', url: compressed });
+        } catch (err) {
+          console.error('Paste compression failed', err);
+          // fallback to sending original
+          const reader = new FileReader();
+          reader.onload = (ev) => sendMediaMessage({ type: 'image', url: ev.target.result });
+          reader.readAsDataURL(blob);
+        }
+        e.preventDefault();
+        return;
+      }
+    }
+    if (it.kind === 'string' && it.type === 'text/plain') {
+      it.getAsString(str => {
+        if (str.match(/\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || str.includes('giphy.com')) {
+          // unchanged for URLs
+          sendMediaMessage({ type: 'gif', url: str });
+        }
+      });
+    }
+  }
+});
+
 
 /* ===== Paste handler for image/GIF URLs or direct images ===== */
 document.addEventListener('paste', (e) => {
