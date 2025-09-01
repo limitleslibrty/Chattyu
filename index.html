@@ -1334,27 +1334,71 @@ function sendReply(){
 
 
 // --- Swipe & reply handlers ---
-function attachSwipeHandlers(bubbleEl,msgKey,text){
-  let startX=0,startY=0,currentX=0,dragging=false,vibrated=false;
-  bubbleEl.addEventListener('touchstart',e=>{startX=e.touches[0].clientX; startY=e.touches[0].clientY; dragging=true; vibrated=false; bubbleEl.style.transition="none";});
-  bubbleEl.addEventListener('touchmove',e=>{
-    if(!dragging) return; currentX=e.touches[0].clientX-startX; const dy=e.touches[0].clientY-startY; if(Math.abs(dy)>30) return;
-    const offset=Math.sign(currentX)*Math.min(Math.abs(currentX),120);
-    bubbleEl.style.transform=`translateX(${offset}px)`;
-    if(Math.abs(offset)>50 && !bubbleEl.classList.contains("show-arrow")){
-      bubbleEl.classList.add("show-arrow");
-      if(!vibrated && navigator.vibrate){navigator.vibrate([80,50,80]);vibrated=true;}
-    } else bubbleEl.classList.remove("show-arrow");
-  });
-  bubbleEl.addEventListener('touchend',()=>{
-    dragging=false; bubbleEl.style.transition="transform 0.2s ease"; bubbleEl.classList.remove("show-arrow");
-    if(Math.abs(currentX)>80){
-      replyToText={msgKey,text};
-      replyPreviewContainer.innerHTML=`<div class="reply-preview"><div class="reply-preview-text">${text}</div><button onclick="cancelReply()">✖</button></div>`;
+function attachSwipeHandlers(bubbleEl, msgKey, text) {
+  if (bubbleEl._swipeAttached) return;
+  bubbleEl._swipeAttached = true;
+
+  let startX = 0, startY = 0, currentX = 0, dragging = false, vibrated = false;
+
+  function onDown(clientX, clientY) {
+    startX = clientX; startY = clientY;
+    currentX = 0; dragging = true; vibrated = false;
+    bubbleEl.style.transition = 'none';
+  }
+  function onMove(clientX, clientY) {
+    if (!dragging) return;
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    // let scroll happen if vertical drag is bigger
+    if (Math.abs(dy) > 30 && Math.abs(dy) > Math.abs(dx)) {
+      bubbleEl.style.transform = '';
+      bubbleEl.classList.remove('show-arrow');
+      return;
+    }
+
+    const offset = Math.sign(dx) * Math.min(Math.abs(dx), 120);
+    currentX = offset;
+    bubbleEl.style.transform = `translateX(${offset}px)`;
+
+    if (Math.abs(offset) > 50) {
+      bubbleEl.classList.add('show-arrow');
+      if (navigator.vibrate && !vibrated) { navigator.vibrate(80); vibrated = true; }
+    } else {
+      bubbleEl.classList.remove('show-arrow');
+    }
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    bubbleEl.style.transition = 'transform 200ms ease';
+    bubbleEl.classList.remove('show-arrow');
+
+    if (Math.abs(currentX) > 80) {
+      replyToText = { msgKey, text };
+      replyPreviewContainer.innerHTML =
+        `<div class="reply-preview"><div class="reply-preview-text">${escapeHtml(text)}</div><button onclick="cancelReply()">✖</button></div>`;
       replyInput.focus();
     }
-    bubbleEl.style.transform="translateX(0px)"; currentX=0;
-  });
+    bubbleEl.style.transform = 'translateX(0px)';
+    currentX = 0;
+  }
+
+  // pointer events preferred
+  if (window.PointerEvent) {
+    let activeId = null;
+    bubbleEl.addEventListener('pointerdown', e => { if (e.isPrimary) { activeId = e.pointerId; onDown(e.clientX, e.clientY); } });
+    bubbleEl.addEventListener('pointermove', e => { if (e.pointerId === activeId) onMove(e.clientX, e.clientY); });
+    bubbleEl.addEventListener('pointerup',   e => { if (e.pointerId === activeId) { activeId = null; onUp(); } });
+    bubbleEl.addEventListener('pointercancel', () => { activeId = null; onUp(); });
+  } else {
+    bubbleEl.addEventListener('touchstart', e => onDown(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    bubbleEl.addEventListener('touchmove', e => onMove(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    bubbleEl.addEventListener('touchend', onUp, { passive: true });
+    bubbleEl.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+    document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+    document.addEventListener('mouseup', onUp);
+  }
 }
 
 function cancelReply(){replyToText=null; replyPreviewContainer.innerHTML=''; replyInput.placeholder='Type a message…';}
@@ -2039,28 +2083,48 @@ window.buildMessageBubble = function(msgKey, val) {
     div.appendChild(textNode);
     
     // long press support
-    let pressTimer;
-    const startPress = (e) => {
-      if (e.target.closest('.reply-box')) return; // ignore clicks on reply preview
-      e.preventDefault();
-      pressTimer = setTimeout(() => {
-        if (confirm('Delete this message?')) {
-          const chatKey = currentKey;
-          db.ref('chats/' + chatKey + '/' + msgKey).remove()
-            .then(() => console.log('Text deleted:', msgKey))
-            .catch(err => console.error('Failed to delete text:', err));
-        }
-      }, 700);
-    };
-    const cancelPress = () => clearTimeout(pressTimer);
     
-    div.addEventListener('mousedown', startPress);
-    div.addEventListener('mouseup', cancelPress);
-    div.addEventListener('mouseleave', cancelPress);
-    div.addEventListener('touchstart', startPress);
-    div.addEventListener('touchend', cancelPress);
-    div.addEventListener('touchmove', cancelPress);
+  let pressTimer = null;
+  let startX = 0, startY = 0;
+
+  const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
+
+  function onDown(ev) {
+    const x = ev.clientX ?? ev.touches?.[0]?.clientX ?? 0;
+    const y = ev.clientY ?? ev.touches?.[0]?.clientY ?? 0;
+    startX = x; startY = y;
+
+    pressTimer = setTimeout(async () => {
+      pressTimer = null;
+      if (confirm('Delete this message?')) {
+        await db.ref('chats/' + currentKey + '/' + msgKey).remove();
+      }
+    }, 700);
   }
+
+  function onMove(ev) {
+    if (!pressTimer) return;
+    const x = ev.clientX ?? ev.touches?.[0]?.clientX ?? 0;
+    const y = ev.clientY ?? ev.touches?.[0]?.clientY ?? 0;
+    if (Math.hypot(x - startX, y - startY) > 12) cancel(); // cancel if finger moves
+  }
+
+  function onUp() { cancel(); }
+
+  if (window.PointerEvent) {
+    div.addEventListener('pointerdown', onDown);
+    div.addEventListener('pointermove', onMove);
+    div.addEventListener('pointerup', onUp);
+    div.addEventListener('pointercancel', onUp);
+  } else {
+    div.addEventListener('touchstart', onDown, { passive: true });
+    div.addEventListener('touchmove', onMove, { passive: true });
+    div.addEventListener('touchend', onUp, { passive: true });
+    div.addEventListener('mousedown', onDown);
+    div.addEventListener('mousemove', onMove);
+    div.addEventListener('mouseup', onUp);
+  }
+}
   
   // timestamp
   const timeNode = document.createElement('div');
