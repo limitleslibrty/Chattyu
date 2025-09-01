@@ -1964,6 +1964,7 @@ window.buildMessageBubble = function(msgKey, val) {
   div.className = 'bubble ' + (val.from === 'user' ? 'from-user' : 'from-brother');
   div.setAttribute('data-msg-key', String(msgKey));
   div.id = 'msg_' + String(msgKey);
+  div.style.position = 'relative'; // needed for media menu
   
   // reply arrow
   const arrow = document.createElement('div');
@@ -1980,10 +1981,13 @@ window.buildMessageBubble = function(msgKey, val) {
     replyDiv.textContent = referenced && referenced.text ?
       (referenced.text.length > 120 ? referenced.text.slice(0, 120) + '…' : referenced.text) :
       '[media]';
+    
     replyDiv.addEventListener('click', (e) => {
       e.stopPropagation();
+      e.stopImmediatePropagation(); // prevent long-press interference
       highlightAndScrollTo(val.replyTo);
     });
+    
     div.prepend(replyDiv);
   }
   
@@ -1999,7 +2003,7 @@ window.buildMessageBubble = function(msgKey, val) {
     media.alt = val.type;
     div.appendChild(media);
     
-    // ⋮ menu for images & gifs
+    // ⋮ menu for media
     const menuBtn = document.createElement('button');
     menuBtn.innerHTML = '⋮';
     menuBtn.className = 'menu-btn';
@@ -2020,7 +2024,6 @@ window.buildMessageBubble = function(msgKey, val) {
     });
     
     document.addEventListener('click', () => { menu.style.display = 'none'; });
-    div.style.position = 'relative';
     div.appendChild(menuBtn);
     
     if (val.text) {
@@ -2035,10 +2038,10 @@ window.buildMessageBubble = function(msgKey, val) {
     textNode.textContent = val.text || '';
     div.appendChild(textNode);
     
-    // long press support (desktop & mobile)
+    // long press support
     let pressTimer;
-    
     const startPress = (e) => {
+      if (e.target.closest('.reply-box')) return; // ignore clicks on reply preview
       e.preventDefault();
       pressTimer = setTimeout(() => {
         if (confirm('Delete this message?')) {
@@ -2049,16 +2052,11 @@ window.buildMessageBubble = function(msgKey, val) {
         }
       }, 700);
     };
-    
-    const cancelPress = () => {
-      clearTimeout(pressTimer);
-    };
+    const cancelPress = () => clearTimeout(pressTimer);
     
     div.addEventListener('mousedown', startPress);
     div.addEventListener('mouseup', cancelPress);
     div.addEventListener('mouseleave', cancelPress);
-    
-    // touch events for mobile
     div.addEventListener('touchstart', startPress);
     div.addEventListener('touchend', cancelPress);
     div.addEventListener('touchmove', cancelPress);
@@ -2073,7 +2071,7 @@ window.buildMessageBubble = function(msgKey, val) {
   return div;
 };
 
-// helper function to create delete popup menu for media
+// helper to create delete menu for media
 function createDeleteMenu(msgKey) {
   const menu = document.createElement('div');
   menu.className = 'menu-popup';
