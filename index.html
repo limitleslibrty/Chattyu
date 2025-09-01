@@ -258,7 +258,11 @@ body.dark .reply-preview {
     }
 
     #messages {
-      flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column;
+      
+ user-select: none;        /* Standard */
+  -webkit-user-select: none; /* Safari/iOS */
+  -ms-user-select: none;    /* Old IE/Edge */
+  flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column;
       background-color: #BBBBBB;
       background-size: 110% 110%;
       background-repeat: no-repeat;
