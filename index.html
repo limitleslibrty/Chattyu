@@ -1960,29 +1960,26 @@ window.sendReply = function(){
    If you already have buildMessageBubble defined above, replace the rendering part with the snippet below.
 */
 window.buildMessageBubble = function(msgKey, val) {
-  // create bubble wrapper
   const div = document.createElement('div');
   div.className = 'bubble ' + (val.from === 'user' ? 'from-user' : 'from-brother');
-  
-  // set identifier so we can locate it later
   div.setAttribute('data-msg-key', String(msgKey));
   div.id = 'msg_' + String(msgKey);
   
-  // reply arrow (swipe UI)
+  // reply arrow
   const arrow = document.createElement('div');
   arrow.className = 'reply-arrow';
   arrow.innerHTML = '↩';
   div.appendChild(arrow);
   attachSwipeHandlers(div, msgKey, val.text || '');
   
-  // reply preview if present
+  // reply preview
   if (val.replyTo && messageStore[val.replyTo]) {
     const replyDiv = document.createElement('div');
     replyDiv.className = 'reply-box';
-    // show short snippet of referenced text if present
     const referenced = messageStore[val.replyTo];
-    replyDiv.textContent = referenced && referenced.text ? (referenced.text.length > 120 ? referenced.text.slice(0, 120) + '…' : referenced.text) : '[media]';
-    // make the reply preview clickable to jump to original message
+    replyDiv.textContent = referenced && referenced.text ?
+      (referenced.text.length > 120 ? referenced.text.slice(0, 120) + '…' : referenced.text) :
+      '[media]';
     replyDiv.addEventListener('click', (e) => {
       e.stopPropagation();
       highlightAndScrollTo(val.replyTo);
@@ -1990,7 +1987,7 @@ window.buildMessageBubble = function(msgKey, val) {
     div.prepend(replyDiv);
   }
   
-  // media (gif/image)
+  // media (image/gif)
   if (val.type === 'gif' || val.type === 'image') {
     const media = document.createElement('img');
     media.style.maxWidth = '100%';
@@ -2001,34 +1998,116 @@ window.buildMessageBubble = function(msgKey, val) {
     media.src = val.url;
     media.alt = val.type;
     div.appendChild(media);
+    
+    // ⋮ menu for images & gifs
+    const menuBtn = document.createElement('button');
+    menuBtn.innerHTML = '⋮';
+    menuBtn.className = 'menu-btn';
+    menuBtn.style.position = 'absolute';
+    menuBtn.style.top = '6px';
+    menuBtn.style.right = '6px';
+    menuBtn.style.background = 'transparent';
+    menuBtn.style.border = 'none';
+    menuBtn.style.fontSize = '18px';
+    menuBtn.style.cursor = 'pointer';
+    
+    const menu = createDeleteMenu(msgKey);
+    div.appendChild(menu);
+    
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+    });
+    
+    document.addEventListener('click', () => { menu.style.display = 'none'; });
+    div.style.position = 'relative';
+    div.appendChild(menuBtn);
+    
     if (val.text) {
       const textNode = document.createElement('div');
       textNode.textContent = val.text;
       div.appendChild(textNode);
     }
+    
   } else {
+    // text message
     const textNode = document.createElement('div');
     textNode.textContent = val.text || '';
     div.appendChild(textNode);
+    
+    // long press support (desktop & mobile)
+    let pressTimer;
+    
+    const startPress = (e) => {
+      e.preventDefault();
+      pressTimer = setTimeout(() => {
+        if (confirm('Delete this message?')) {
+          const chatKey = currentKey;
+          db.ref('chats/' + chatKey + '/' + msgKey).remove()
+            .then(() => console.log('Text deleted:', msgKey))
+            .catch(err => console.error('Failed to delete text:', err));
+        }
+      }, 700);
+    };
+    
+    const cancelPress = () => {
+      clearTimeout(pressTimer);
+    };
+    
+    div.addEventListener('mousedown', startPress);
+    div.addEventListener('mouseup', cancelPress);
+    div.addEventListener('mouseleave', cancelPress);
+    
+    // touch events for mobile
+    div.addEventListener('touchstart', startPress);
+    div.addEventListener('touchend', cancelPress);
+    div.addEventListener('touchmove', cancelPress);
   }
   
+  // timestamp
   const timeNode = document.createElement('div');
   timeNode.className = 'msg-time';
   timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   div.appendChild(timeNode);
+  
   return div;
 };
 
-/* ===== Make sure messages area resizes text area rows automatically (optional helper) ===== */
-const ta = document.getElementById('replyInput');
-ta.addEventListener('input', () => {
-  ta.style.height = 'auto';
-  ta.style.height = Math.min(120, ta.scrollHeight) + 'px';
-  // typing status to DB
-  db.ref("status/brother/typing").set( ta.value.trim().length > 0 );
-  clearTimeout(typingTimeout);
-  typingTimeout = setTimeout(() => { db.ref("status/brother/typing").set(false); }, 1500);
-});
+// helper function to create delete popup menu for media
+function createDeleteMenu(msgKey) {
+  const menu = document.createElement('div');
+  menu.className = 'menu-popup';
+  menu.style.position = 'absolute';
+  menu.style.top = '28px';
+  menu.style.right = '6px';
+  menu.style.background = '#fff';
+  menu.style.border = '1px solid #ccc';
+  menu.style.borderRadius = '6px';
+  menu.style.padding = '4px 0';
+  menu.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  menu.style.display = 'none';
+  menu.style.zIndex = 100;
+  
+  const delOption = document.createElement('div');
+  delOption.textContent = 'Delete';
+  delOption.style.padding = '6px 12px';
+  delOption.style.cursor = 'pointer';
+  delOption.addEventListener('mouseover', () => { delOption.style.background = '#f0f0f0'; });
+  delOption.addEventListener('mouseout', () => { delOption.style.background = 'transparent'; });
+  
+  delOption.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.style.display = 'none';
+    if (!confirm('Delete this message?')) return;
+    const chatKey = currentKey;
+    db.ref('chats/' + chatKey + '/' + msgKey).remove()
+      .then(() => console.log('Deleted:', msgKey))
+      .catch(err => console.error('Failed to delete:', err));
+  });
+  
+  menu.appendChild(delOption);
+  return menu;
+}
 </script>
 <script>
   //highlight reply bubble 
