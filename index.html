@@ -1101,6 +1101,11 @@ let allChats = [];
 let replyToText = null;
 let searchTimeout;
 
+// --- Infinite scroll variables ---
+let isLoadingOlderMessages = false;
+let hasMoreMessages = true;
+let oldestLoadedTimestamp = null;
+
 // --- Infinite scroll ---
 let oldestLoadedKey = null;
 let isLoadingOlder = false;
@@ -1116,7 +1121,9 @@ let initialLoadDone = false;
 // --- Cache helpers ---
 function cacheChats(data) { localStorage.setItem('cachedChats', JSON.stringify(data)); }
 function getCachedChats() { const c = localStorage.getItem('cachedChats'); return c ? JSON.parse(c) : null; }
-function cacheMessages(chatKey, data) { localStorage.setItem('chat_' + chatKey, JSON.stringify(data)); }
+
+
+
 
 
 function getCachedMessages(chatKey) { const c = localStorage.getItem('chat_' + chatKey); return c ? JSON.parse(c) : null; }
@@ -1307,17 +1314,94 @@ function buildMessageBubble(msgKey, val) {
 buildMessageBubble = window.buildMessageBubble;
 
 // --- Render messages (fixed) ---
-function renderMessages(chatKey, messages) {
-  const sortedKeys = Object.keys(messages).map(Number).sort((a, b) => a - b).map(String);
-  const fragment = document.createDocumentFragment();
+
+
+
+
+// Replace your entire openChat function with this optimized version
+function openChat(key) {
+  listEl.classList.remove('active');
+  chatEl.classList.add('active');
   
-  sortedKeys.forEach(msgKey => {
-    if (messageStore[msgKey]) return; // already rendered
-    const val = messages[msgKey];
-    if (!val || (!(val.text) && !(val.type) && !(val.url))) return;
+  // Reset state
+  currentKey = key;
+  document.getElementById('chatTitle').textContent = "Babu😘";
+  history.pushState({screen: "chat"}, "Chat");
+
+  messageStore = {};
+  lastRenderedDate = null;
+  lastRenderedMsgTime = 0;
+  messagesEl.innerHTML = '';
+  initialLoadDone = false;
+  
+  // Reset infinite scroll variables
+  isLoadingOlderMessages = false;
+  hasMoreMessages = true;
+  oldestLoadedTimestamp = null;
+
+  // Show loading indicator
+  messagesEl.innerHTML = '<div class="loading-indicator">Loading messages...</div>';
+  
+  // Load cached messages first for immediate display
+  const cachedMsgs = getCachedMessages(key);
+  if (cachedMsgs) {
+    processAndRenderMessages(cachedMsgs);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  
+  // Set up real-time listener with optimized query
+  if (childListener) {
+    db.ref('chats/' + currentKey).off('value', childListener);
+  }
+  
+  childListener = db.ref('chats/' + currentKey)
+    .orderByKey()
+    .limitToLast(100) // Only get the most recent 100 messages initially
+    .on('value', snap => {
+      const msgs = snap.val();
+      if (msgs) {
+        cacheMessages(currentKey, msgs);
+        processAndRenderMessages(msgs);
+        
+        // Remove loading indicator if it exists
+        const loadingIndicator = messagesEl.querySelector('.loading-indicator');
+        if (loadingIndicator) {
+          messagesEl.removeChild(loadingIndicator);
+        }
+      }
+    });
+    
+  // Add scroll event listener for infinite scroll
+  messagesEl.addEventListener('scroll', handleScroll);
+}
+
+// Replace your renderMessages function with this optimized version
+function processAndRenderMessages(messages) {
+  if (!messages) return;
+  
+  // Convert to array and sort by timestamp
+  const messageArray = Object.entries(messages)
+    .map(([key, value]) => ({ key: Number(key), value }))
+    .sort((a, b) => a.key - b.key); // Sort by timestamp (ascending order)
+  
+  const fragment = document.createDocumentFragment();
+  let addedNewMessages = false;
+  
+  messageArray.forEach(({ key, value }) => {
+    const msgKey = String(key);
+    const val = value;
+    
+    if (!val || (!val.text && !val.type && !val.url)) return;
+    
+    // Check if this message is already rendered
+    const existingMsg = document.getElementById('msg_' + msgKey) || 
+                       document.querySelector('[data-msg-key="' + msgKey + '"]');
+    if (existingMsg) return;
+    
+    // Add to messageStore
     messageStore[msgKey] = val;
     
-    const msgDate = new Date(Number(msgKey));
+    const msgDate = new Date(key);
     const dateLabel = formatDateSeparator(msgKey);
     
     // Date divider
@@ -1328,50 +1412,165 @@ function renderMessages(chatKey, messages) {
     
     const div = buildMessageBubble(msgKey, val);
     fragment.appendChild(div);
+    addedNewMessages = true;
     
-    // 🔊 Play sound only for new incoming msgs (not history)
-    if (initialLoadDone && val.from === "user" && chatKey === currentKey && Number(msgKey) > lastRenderedMsgTime) {
+    // Play sound only for new incoming messages
+    if (initialLoadDone && val.from === "user" && key > lastRenderedMsgTime) {
       const snd = document.getElementById("receiveSound");
       if (snd) snd.play().catch(() => {});
     }
     
-    // update last seen
-    if (Number(msgKey) > lastRenderedMsgTime) {
-      lastRenderedMsgTime = Number(msgKey);
+    // Update last seen
+    if (key > lastRenderedMsgTime) {
+      lastRenderedMsgTime = key;
     }
   });
   
-  messagesEl.appendChild(fragment);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  if (addedNewMessages) {
+    messagesEl.appendChild(fragment);
+    
+    // Only scroll to bottom if we're not loading older messages and it's a new message
+    if (!isLoadingOlderMessages) {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  }
   
   // Mark first load as done
   initialLoadDone = true;
 }
 
-function openChat(key){
-  listEl.classList.remove('active'); chatEl.classList.add('active');
+// Update your cacheMessages function to maintain proper order
+function cacheMessages(chatKey, data) {
+  if (!data) return;
   
+  // Get all message keys and sort them (newest first)
+  const keys = Object.keys(data).map(Number).sort((a, b) => b - a);
   
-  currentKey = key; document.getElementById('chatTitle').textContent="Babu😘";
-  history.pushState({screen:"chat"},"Chat");
-
-  messageStore = {};
-  lastRenderedDate = null; // *** Reset date tracking when opening a new chat ***
-  messagesEl.innerHTML = '';
-
-  const cachedMsgs = getCachedMessages(key);
-  if(cachedMsgs) renderMessages(key,cachedMsgs);
-
-  if(childListener) db.ref('chats/'+currentKey).off('value',childListener);
-  childListener = db.ref('chats/'+currentKey)
-    .on('value', snap=>{
-      const msgs = snap.val();
-      if(msgs){
-        cacheMessages(currentKey,msgs);
-        renderMessages(currentKey,msgs);
-      }
-    });
+  // Take only the latest 300 messages but maintain order
+  if (keys.length > 300) {
+    const limitedData = {};
+    
+    // Get the 300 newest messages but store them in chronological order
+    keys.slice(0, 300)
+      .sort((a, b) => a - b) // Sort in ascending order for proper caching
+      .forEach(key => {
+        limitedData[key] = data[key];
+      });
+      
+    localStorage.setItem('chat_' + chatKey, JSON.stringify(limitedData));
+  } else {
+    localStorage.setItem('chat_' + chatKey, JSON.stringify(data));
+  }
 }
+
+// Optimized function to load older messages
+async function loadOlderMessages() {
+  if (!currentKey || isLoadingOlderMessages || !hasMoreMessages) return;
+  
+  isLoadingOlderMessages = true;
+  
+  try {
+    // Show loading indicator at the top
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-indicator';
+    loadingDiv.textContent = 'Loading older messages...';
+    messagesEl.insertBefore(loadingDiv, messagesEl.firstChild);
+    
+    // Get the oldest timestamp we have loaded
+    const messageKeys = Object.keys(messageStore).map(Number);
+    const oldestKey = oldestLoadedTimestamp || Math.min(...messageKeys);
+    
+    // Query Firebase for older messages
+    const snapshot = await db.ref('chats/' + currentKey)
+      .orderByKey()
+      .endBefore(String(oldestKey))
+      .limitToLast(50)
+      .once('value');
+    
+    const olderMessages = snapshot.val();
+    
+    if (!olderMessages || Object.keys(olderMessages).length === 0) {
+      hasMoreMessages = false;
+      loadingDiv.textContent = 'No older messages';
+      setTimeout(() => {
+        if (loadingDiv.parentNode === messagesEl) {
+          messagesEl.removeChild(loadingDiv);
+        }
+      }, 2000);
+      return;
+    }
+    
+    // Add older messages to messageStore
+    Object.assign(messageStore, olderMessages);
+    
+    // Render older messages at the top
+    renderOlderMessages(olderMessages);
+    
+    // Update oldest loaded timestamp
+    const olderKeys = Object.keys(olderMessages).map(Number);
+    oldestLoadedTimestamp = Math.min(...olderKeys);
+    
+    // Remove loading indicator
+    if (loadingDiv.parentNode === messagesEl) {
+      messagesEl.removeChild(loadingDiv);
+    }
+    
+  } catch (error) {
+    console.error('Error loading older messages:', error);
+    const loadingDiv = messagesEl.querySelector('.loading-indicator');
+    if (loadingDiv && loadingDiv.parentNode === messagesEl) {
+      loadingDiv.textContent = 'Error loading messages';
+      setTimeout(() => {
+        if (loadingDiv.parentNode === messagesEl) {
+          messagesEl.removeChild(loadingDiv);
+        }
+      }, 2000);
+    }
+  } finally {
+    isLoadingOlderMessages = false;
+  }
+}
+
+
+// Optimized function to render older messages
+function renderOlderMessages(messages) {
+  // Convert to array and sort by timestamp
+  const messageArray = Object.entries(messages)
+    .map(([key, value]) => ({ key: Number(key), value }))
+    .sort((a, b) => a.key - b.key); // Sort by timestamp (ascending order)
+  
+  const fragment = document.createDocumentFragment();
+  let currentDate = null;
+  
+  messageArray.forEach(({ key, value }) => {
+    const msgKey = String(key);
+    const val = value;
+    
+    if (!val || (!val.text && !val.type && !val.url)) return;
+    
+    const msgDate = new Date(key);
+    const dateLabel = formatDateSeparator(msgKey);
+    
+    // Date divider
+    if (currentDate !== msgDate.toDateString()) {
+      fragment.appendChild(createDateDivider(dateLabel));
+      currentDate = msgDate.toDateString();
+    }
+    
+    const div = buildMessageBubble(msgKey, val);
+    fragment.appendChild(div);
+  });
+  
+  // Get first child to insert before
+  const firstChild = messagesEl.firstChild;
+  messagesEl.insertBefore(fragment, firstChild);
+}
+//script set 
+
+
+
+
+
 
 // --- Send reply ---
 function sendReply(){
@@ -2294,8 +2493,56 @@ function createDeleteMenu(msgKey) {
       if(e.key==='ArrowRight') next();
     });
   })();
+  
+  
+  // Handle scroll events for infinite scroll
+function handleScroll() {
+  if (isLoadingOlderMessages || !hasMoreMessages) return;
+  
+  // Load more messages when scrolled to top
+  if (messagesEl.scrollTop < 100) {
+    loadOlderMessages();
+  }
+}
+
+// Function to load older messages
+
+
+// Function to render older messages at the top
+function renderOlderMessages(messages) {
+  const sortedKeys = Object.keys(messages).map(Number).sort((a, b) => a - b).map(String);
+  const fragment = document.createDocumentFragment();
+  
+  let currentDate = null;
+  
+  sortedKeys.forEach(msgKey => {
+    const val = messages[msgKey];
+    if (!val || (!val.text && !val.type && !val.url)) return;
+    
+    const msgDate = new Date(Number(msgKey));
+    const dateLabel = formatDateSeparator(msgKey);
+    
+    // Date divider
+    if (currentDate !== msgDate.toDateString()) {
+      fragment.appendChild(createDateDivider(dateLabel));
+      currentDate = msgDate.toDateString();
+    }
+    
+    const div = buildMessageBubble(msgKey, val);
+    fragment.appendChild(div);
+  });
+  
+  // Get first child to insert before
+  const firstChild = messagesEl.firstChild;
+  messagesEl.insertBefore(fragment, firstChild);
+}
+
+// Clean up scroll listener when changing chats
+const originalOnPopState = window.onpopstate;
+window.onpopstate = function(event) {
+  messagesEl.removeEventListener('scroll', handleScroll);
+  if (originalOnPopState) originalOnPopState(event);
+};
   </script>
-</body>
-</html>
 </body>
 </html>
