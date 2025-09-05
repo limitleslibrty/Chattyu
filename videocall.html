@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bubu-Dubu Fullscreen Call</title>
+  <style>
+    body, html {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #video-container {
+      width: 100%;
+      height: 100%;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="video-container">
+    <iframe 
+      src="https://whereby.com/bubu-dubu?embed=1&hideBranding=1" 
+      allow="camera; microphone; fullscreen; speaker; display-capture">
+    </iframe>
+  </div>
+</body>
+</html>
