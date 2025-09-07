@@ -658,6 +658,37 @@ body.dark .loading-indicator {
   color: #ccc;
 }
     
+    /* Styles for clickable links in messages */
+.message-link {
+  color: #069;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+body.dark .message-link {
+  color: #5ac8fa;
+}
+
+.message-link:hover {
+  text-decoration: underline;
+}
+
+/* For reply previews */
+.reply-box a,
+.reply-preview-text a {
+  color: #069;
+  text-decoration: none;
+}
+
+body.dark .reply-box a,
+body.dark .reply-preview-text a {
+  color: #5ac8fa;
+}
+
+.reply-box a:hover,
+.reply-preview-text a:hover {
+  text-decoration: underline;
+}
   </style>
 </head>
 <body>
@@ -1017,6 +1048,19 @@ if(txt){
 }
 
 
+function linkify(text) {
+  if (!text) return '';
+  
+  // Regular expression to match URLs
+  const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+  
+  // Replace URLs with anchor tags
+  return text.replace(urlRegex, function(url) {
+    // Shorten display text for long URLs (like WhatsApp does)
+    const displayUrl = url.length > 30 ? url.substring(0, 27) + '...' : url;
+    return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="message-link">' + displayUrl + '</a>';
+  });
+}
 
 
 function setPresence(userKey) {
@@ -1306,15 +1350,16 @@ function buildMessageBubble(msgKey, val) {
     });
     div.appendChild(media);
     if (val.text) {
-      const textNode = document.createElement('div');
-      textNode.textContent = val.text;
-      div.appendChild(textNode);
-    }
+  const textNode = document.createElement('div');
+  textNode.innerHTML = linkify(val.text);
+  div.appendChild(textNode);
+}
   } else {
     // regular text-only message
-    const textNode = document.createElement('div');
-    textNode.textContent = val.text || '';
-    div.appendChild(textNode);
+    // text message
+const textNode = document.createElement('div');
+textNode.innerHTML = linkify(val.text || '');
+div.appendChild(textNode);
   }
   
   // timestamp
@@ -2255,9 +2300,13 @@ window.buildMessageBubble = function(msgKey, val) {
     const replyDiv = document.createElement('div');
     replyDiv.className = 'reply-box';
     const referenced = messageStore[val.replyTo];
-    replyDiv.textContent = referenced && referenced.text ?
-      (referenced.text.length > 120 ? referenced.text.slice(0, 120) + '…' : referenced.text) :
-      '[media]';
+    if (referenced && referenced.text) {
+  const truncatedText = referenced.text.length > 120 ?
+    referenced.text.slice(0, 120) + '…' : referenced.text;
+  replyDiv.innerHTML = linkify(truncatedText);
+} else {
+  replyDiv.textContent = '[media]';
+}
     
     replyDiv.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -2304,17 +2353,18 @@ window.buildMessageBubble = function(msgKey, val) {
     div.appendChild(menuBtn);
     
     if (val.text) {
-      const textNode = document.createElement('div');
-      textNode.textContent = val.text;
-      div.appendChild(textNode);
-    }
+  const textNode = document.createElement('div');
+  textNode.innerHTML = linkify(val.text);
+  div.appendChild(textNode);
+}
     
   } else {
     // text message
-    const textNode = document.createElement('div');
-    textNode.textContent = val.text || '';
-    div.appendChild(textNode);
-    
+    // text message
+const textNode = document.createElement('div');
+textNode.innerHTML = linkify(val.text || '');
+div.appendChild(textNode);
+     
     // long press support
     let pressTimer;
     const startPress = (e) => {
