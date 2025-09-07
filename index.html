@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <link rel="manifest" href="./manifest.json">
@@ -660,6 +660,7 @@ body.dark .loading-indicator {
     
     /* Styles for clickable links in messages */
 .message-link {
+  pointer-events: auto;
   color: #069;
   text-decoration: none;
   word-break: break-all;
@@ -1658,10 +1659,29 @@ function sendReply(){
 // --- Swipe & reply handlers ---
 function attachSwipeHandlers(bubbleEl,msgKey,text){
   let startX=0,startY=0,currentX=0,dragging=false,vibrated=false;
-  bubbleEl.addEventListener('touchstart',e=>{startX=e.touches[0].clientX; startY=e.touches[0].clientY; dragging=true; vibrated=false; bubbleEl.style.transition="none";});
-  bubbleEl.addEventListener('touchmove',e=>{
-    if(!dragging) return; currentX=e.touches[0].clientX-startX; const dy=e.touches[0].clientY-startY; if(Math.abs(dy)>30) return;
-    const offset=Math.sign(currentX)*Math.min(Math.abs(currentX),120);
+  bubbleEl.addEventListener('touchstart',e=>{
+    // Don't start swipe if clicking on a link
+    if (e.target.closest('.message-link')) return;
+    
+    startX=e.touches[0].clientX; 
+    startY=e.touches[0].clientY; 
+    dragging=true; 
+    vibrated=false; 
+    bubbleEl.style.transition="none";
+  });
+  bubbleEl.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      
+      // Don't process swipe if clicking on a link
+      if (e.target.closest('.message-link')) {
+        dragging = false;
+        return;
+      }
+      
+      currentX = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dy) > 30) return;  
+      const offset=Math.sign(currentX)*Math.min(Math.abs(currentX),120);
     bubbleEl.style.transform=`translateX(${offset}px)`;
     if(Math.abs(offset)>50 && !bubbleEl.classList.contains("show-arrow")){
       bubbleEl.classList.add("show-arrow");
@@ -2358,27 +2378,28 @@ window.buildMessageBubble = function(msgKey, val) {
   div.appendChild(textNode);
 }
     
-  } else {
-    // text message
-    // text message
-const textNode = document.createElement('div');
-textNode.innerHTML = linkify(val.text || '');
-div.appendChild(textNode);
-     
-    // long press support
-    let pressTimer;
-    const startPress = (e) => {
-      if (e.target.closest('.reply-box')) return; // ignore clicks on reply preview
-      e.preventDefault();
-      pressTimer = setTimeout(() => {
-        if (confirm('Delete this message?')) {
-          const chatKey = currentKey;
-          db.ref('chats/' + chatKey + '/' + msgKey).remove()
-            .then(() => console.log('Text deleted:', msgKey))
-            .catch(err => console.error('Failed to delete text:', err));
-        }
-      }, 700);
-    };
+} else {
+  // text message
+  const textNode = document.createElement('div');
+  textNode.innerHTML = linkify(val.text || '');
+  div.appendChild(textNode);
+  
+  // long press support - modified to ignore link clicks
+  let pressTimer;
+  const startPress = (e) => {
+    // Don't start long press if clicking on a link or reply box
+    if (e.target.closest('.message-link') || e.target.closest('.reply-box')) return;
+    
+    e.preventDefault();
+    pressTimer = setTimeout(() => {
+      if (confirm('Delete this message?')) {
+        const chatKey = currentKey;
+        db.ref('chats/' + chatKey + '/' + msgKey).remove()
+          .then(() => console.log('Text deleted:', msgKey))
+          .catch(err => console.error('Failed to delete text:', err));
+      }
+    }, 700);
+  };
     const cancelPress = () => clearTimeout(pressTimer);
     
     div.addEventListener('mousedown', startPress);
