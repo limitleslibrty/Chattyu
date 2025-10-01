@@ -1139,7 +1139,7 @@ replyInput.addEventListener("input", () => {
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => {
     db.ref("status/brother/typing").set(false);
-  }, 2000);
+  }, 900);
 });
 const searchBox = document.getElementById('searchBox');
 const replyPreviewContainer = document.getElementById('replyPreviewContainer');
