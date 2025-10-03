@@ -1,15 +1,15 @@
 // firebase-config.js
 const firebaseConfig = {
-  apiKey: "AIzaSyBrpVslfly1LKOkPi-SLBkbRvTHKi9-FS0",
-  authDomain: "hhjkk-faaa8.firebaseapp.com",
-  databaseURL: "https://hhjkk-faaa8-default-rtdb.firebaseio.com",
-  projectId: "hhjkk-faaa8",
-  storageBucket: "hhjkk-faaa8.appspot.com",  // Fixed small typo: it was `.firebasestorage.app` (wrong)
-  messagingSenderId: "472968904632",
-  appId: "1:472968904632:web:e107e37a9bc20af6b4994d",
-  measurementId: "G-LC113Y0X00"
+  apiKey: "AIzaSyAz7rvTyqiGYca63jV1diMa_nlpPh2E35w",
+  authDomain: "multi-chat-21ea3.firebaseapp.com",
+  databaseURL: "https://multi-chat-21ea3-default-rtdb.firebaseio.com", // Added for Realtime DB
+  projectId: "multi-chat-21ea3",
+  storageBucket: "multi-chat-21ea3.appspot.com", // fixed: should be .appspot.com (not .firebasestorage.app)
+  messagingSenderId: "32564475349",
+  appId: "1:32564475349:web:e255c4b2c7bedc4163b95c",
+  measurementId: "G-VHXHHFEFXV"
 };
 
-// Initialize Firebase
+// Initialize Firebase (v8 syntax)
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
