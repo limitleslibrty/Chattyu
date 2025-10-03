@@ -254,7 +254,14 @@ body.dark .reply-preview {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body, html { height: 100%; font-family: 'Segoe UI', sans-serif; background: #f2f3f7; overflow-x: hidden; }
 
-    #list, #chat { display: none; height: 100%; width: 100%; }
+    #list, #chat {
+  display: none; 
+  height: 100%; 
+  width: 100%;
+  background: #DDF2ED; /* Same as messages background for light mode */
+}
+
+
     #list.active, 
     
     #chat.active {
@@ -263,6 +270,11 @@ body.dark .reply-preview {
   height: 100%;
 }
 
+
+
+body.dark #chat{
+  background: #13221F !important; /* Same as dark mode messages background */
+}
     #messages { overflow-x: hidden; }
 
     #inboxHeader {
@@ -321,6 +333,7 @@ body.dark .reply-preview {
 
 
     #chatHeader {
+      height:70px;
   border: none !important;
   flex-shrink: 0;
   background: #DDF2ED;
@@ -329,12 +342,15 @@ body.dark .reply-preview {
   font-weight: 400;
   font-size: 18px;
   display: flex;
+  
   align-items: center;
   box-shadow: none !important;
   outline: none !important;
 }
 
     #messages {
+      border-top-left-radius: 33px;
+      border-top-right-radius: 33px;
       flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column;
       background-color: #E9FEF9;
       background-size: 110% 110%;
