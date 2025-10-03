@@ -21,6 +21,45 @@
 <!-- Emoji picker -->
 <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.2/dist/index.min.js"></script>
 
+  <!--for bottom gesture navigation bar removing-->
+  <style>
+  /* Remove gesture navigation bar border */
+body {
+  overscroll-behavior-y: none !important;
+}
+
+/* For Android Chrome/Samsung Internet */
+#inputArea {
+  border-top: none !important;
+}
+
+/* Hide the navigation bar line */
+html {
+  scrollbar-width: none !important; /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Edge */
+}
+
+/* Prevent the navigation bar from showing a border */
+#inputArea, #inputControls {
+  border-top: none !important;
+  box-shadow: none !important;
+}
+
+/* Additional method to hide navigation bar indicators */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+  
+  #inputArea {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  }
+}
+</style>
+
 <style>
 
 .lightbox {
