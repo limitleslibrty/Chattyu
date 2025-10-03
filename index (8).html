@@ -376,20 +376,41 @@ body.dark .reply-preview {
     }
 
 .reply-box {
+  min-width: 120px;
   font-size: 15px;
   color: #555;
   background: #E9FEF9;
-  padding: 8px 12px;
-  margin: -4px -8px 8px -8px; /* Fixed top margin */
-  border-radius: 0;
-  width: calc(100% + 16px);
-  border-top-left-radius: 8px; /* Add top radius only */
-  border-top-right-radius: 8px;
-  border-bottom-left-radius:4px;
-  border-bottom-right-radius:4px;
+  width: calc(100%);
+border: 10px solid #DDF2ED;
+}
+body.dark .reply-box{
+  border: 10px solid #13221F !important;
+}
+
+/* Remove all padding from bubbles with replies */
+.bubble:has(.reply-box) {
+  padding: 0 !important;
+}
+
+/* Top part (reply box) - no padding */
+.reply-box {
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  border-radius: 16px 16px 0 0 !important;
   
 }
 
+/* Message text area - minimal bottom padding */
+.bubble:has(.reply-box) > div:not(.reply-box):not(.msg-time) {
+  padding: 12px 16px 4px 16px !important; /* Very small bottom padding */
+  border-radius: 0 0 16px 16px !important;
+}
+
+/* Timestamp - remove all top margin and stick to message */
+.bubble:has(.reply-box) .msg-time {
+  margin-top: 0px !important;
+  padding: 0px 16px 8px 16px !important; /* Padding only at bottom */
+}
 
   #inputArea {
   flex-shrink: 0;
@@ -441,15 +462,15 @@ body.dark .reply-preview {
 
 /* Dark mode divider */
 body.dark .date-divider {
-  background: #2a2a2a;
+  background: #13221F;
   color: #ddd;
 }
   
   body.dark .from-user::after {
-  background: #2a2a2a; /* matches dark bubble */
+  background: #13221F; /*tail matches dark bubble */
 }
 body.dark .from-brother::after {
-  background: #056162; /* matches dark brother bubble */
+  background: #005047; /*tail matches dark brother bubble */
 }
     
     #inputControls { display: flex; align-items: flex-end; }
@@ -561,24 +582,24 @@ body.dark .chat-item .preview {
 
 /* Chat header */
 body.dark #chatHeader {
-  background: #1e1e1e !important;
+  background: #13221F !important;
   color: #ffffff !important;
 }
 
 /* Messages area */
 body.dark #messages {
-  background: #121212 !important;
+  background: #031813!important;
 }
 
 /* User bubbles */
 body.dark .from-user {
-  background: #2a2a2a !important;
+  background: #13221F !important;
   color: #ffffff !important;
 }
 
 /* Brother bubbles */
 body.dark .from-brother {
-  background: #056162 !important;
+  background: #005047 !important;
   color: #ffffff !important;
 }
 
@@ -595,8 +616,7 @@ body.dark .msg-time {
 /* Reply box (dark mode) */
 body.dark .reply-box {
   color: #e5e5e5;
-  background: rgba(255,255,255,0.08);  /* soft white overlay */
-  border-left: 3px solid #3b82f6;      /* nice blue accent */
+  background:#031813;
 }
 
 
@@ -1731,7 +1751,7 @@ const themeMeta = document.getElementById("theme-color-meta");
 
 function updateThemeColor() {
   if (document.body.classList.contains("dark")) {
-    themeMeta.setAttribute("content", "#121212"); // dark mode color
+    themeMeta.setAttribute("content", "#13221F"); // dark mode color
   } else {
     themeMeta.setAttribute("content", "#DDF2ED"); // light mode color
   }
