@@ -819,6 +819,7 @@ border:none"
     <line x1="19" y1="12" x2="5" y2="12"/>
     <polyline points="12 19 5 12 12 5"/>
   </svg>
+  
 </button>
  <img id="userLogo" src="chat_logo.png"
      style="width:45px; height:45px; border:3px solid orange; border-radius:50%;
@@ -1964,19 +1965,14 @@ db.ref('chats').on('child_changed', snap => {
   // When going back to inbox, badges will already be updated
 </script>
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').then((reg) => {
-    reg.onupdatefound = () => {
-      const newWorker = reg.installing;
-      newWorker.onstatechange = () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          console.log('New version detected, refreshing...');
-          window.location.reload();
-        }
-      };
-    };
-  });
-}
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./service-worker.js")
+        .then((reg) => console.log("Service Worker registered:", reg.scope))
+        .catch((err) => console.error("Service Worker failed:", err));
+    });
+  }
 </script>
   <script>
     // Prevent pinch zoom

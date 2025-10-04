@@ -1,6 +1,6 @@
-const CACHE_NAME = "chattyu-cache-v2";
+const CACHE_NAME = "chattyu-cache-v1";
 const ASSETS = [
-  "./",
+  "./",               // homepage
   "./index.html",
   "./manifest.json",
   "./icon-192.png",
@@ -10,54 +10,43 @@ const ASSETS = [
   "./send.mp3",
   "./chat_logo.png",
   "./firebase-config.js",
-  "./logo.png",
-  // add other static assets like "./style.css", "./app.js"
+  "./logo.png"
+  // add your CSS/JS files here, e.g. "./style.css", "./app.js"
 ];
 
-// INSTALL — cache core assets
+// Install event - cache files
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // Activate new SW immediately
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-// ACTIVATE — clear old caches and take control
+// Activate event - clear old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    caches.keys().then((keys) => {
+      return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
-      )
-    ).then(() => self.clients.claim())
+      );
+    })
   );
 });
 
-// FETCH — network-first for dynamic data, cache-first for static
+// Fetch event - serve from cache first, then network
 self.addEventListener("fetch", (event) => {
-  const url = event.request.url;
-  
-  // 👇 always fetch chat/message data live
-  if (url.includes("/messages") || url.includes("/api/")) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
-    return;
-  }
-  
-  // Default: cache-first for static assets
   event.respondWith(
     caches.match(event.request).then((response) => {
       return (
         response ||
-        fetch(event.request).then((fetchRes) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, fetchRes.clone());
-            return fetchRes;
-          });
-        }).catch(() => caches.match("./index.html"))
+        fetch(event.request).catch(() =>
+          caches.match("./index.html") // fallback when offline
+        )
       );
     })
   );
