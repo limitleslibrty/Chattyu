@@ -1090,7 +1090,7 @@ function formatLastSeen(ts) {
 
   const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
-  if (d.toDateString() === today.toDateString()) return 'Today at ' + timeStr;
+  if (d.toDateString() === today.toDateString()) return 'today at ' + timeStr;
   if (d.toDateString() === yesterday.toDateString()) return 'yesterday at ' + timeStr;
   return '' + d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) + ' at ' + timeStr;
 }
