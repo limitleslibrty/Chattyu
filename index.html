@@ -1964,14 +1964,19 @@ db.ref('chats').on('child_changed', snap => {
   // When going back to inbox, badges will already be updated
 </script>
 <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./service-worker.js")
-        .then((reg) => console.log("Service Worker registered:", reg.scope))
-        .catch((err) => console.error("Service Worker failed:", err));
-    });
-  }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then((reg) => {
+    reg.onupdatefound = () => {
+      const newWorker = reg.installing;
+      newWorker.onstatechange = () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          console.log('New version detected, refreshing...');
+          window.location.reload();
+        }
+      };
+    };
+  });
+}
 </script>
   <script>
     // Prevent pinch zoom
