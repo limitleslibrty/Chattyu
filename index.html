@@ -328,7 +328,35 @@ body.dark #chat{
       font-size: 12px; color: #888;
     }
     
+/* Bubble pop animation */
+@keyframes bubblePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
+.bubble {
+  animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: bottom;
+}
+
+/* For user bubbles (left) */
+.from-user {
+  transform-origin: bottom left;
+}
+
+/* For brother bubbles (right) */
+.from-brother {
+  transform-origin: bottom right;
+}
 
     #chatHeader {
       height:70px;
@@ -1485,6 +1513,13 @@ function buildMessageBubble(msgKey, val) {
   // create bubble wrapper & classes
   const div = document.createElement('div');
   div.className = 'bubble ' + (val.from === 'user' ? 'from-user' : 'from-brother');
+  
+  
+  // Apply enhanced animation to new messages
+  if (isNewMessage) {
+    div.classList.add('enhanced-pop');
+  }
+
   
   // reply arrow (swipe UI)
   const arrow = document.createElement('div');
