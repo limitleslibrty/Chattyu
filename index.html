@@ -1274,8 +1274,6 @@ let initialLoadDone = false;
 // global tracker// *** FIX: Track last date divider ***
 
 // --- Cache helpers ---
-function cacheChats(data) { localStorage.setItem('cachedChats', JSON.stringify(data)); }
-function getCachedChats() { const c = localStorage.getItem('cachedChats'); return c ? JSON.parse(c) : null; }
 
 
 
@@ -1284,14 +1282,81 @@ function getCachedChats() { const c = localStorage.getItem('cachedChats'); retur
 function getCachedMessages(chatKey) { const c = localStorage.getItem('chat_' + chatKey); return c ? JSON.parse(c) : null; }
 
 // --- Load cached chats ---
-const cached = getCachedChats();
-if (cached) renderChats(cached);
+// --- Load cached chat list (optimized) ---
+function getCachedChatList() {
+  const c = localStorage.getItem('cachedChatList');
+  return c ? JSON.parse(c) : null;
+}
 
+function cacheChatList(chatListData) {
+  localStorage.setItem('cachedChatList', JSON.stringify(chatListData));
+}
+
+// Optimized: Only cache last message for each chat
+function renderChatsOptimized(chatListData) {
+  chatList.innerHTML = '';
+  allChats = [];
+  
+  const sortedKeys = Object.keys(chatListData).sort((a, b) =>
+    chatListData[b].lastTimestamp - chatListData[a].lastTimestamp
+  );
+  
+  sortedKeys.forEach(chatKey => {
+    const { lastMessage, lastTimestamp } = chatListData[chatKey];
+    const lastTime = new Date(lastTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    
+    const item = document.createElement('div');
+    item.className = 'chat-item';
+    item.onclick = () => openChat(chatKey);
+    
+    const name = document.createElement('div');
+    name.className = 'chat-name';
+    name.textContent = chatKey.replace(/_/g, '.');
+    
+    const preview = document.createElement('div');
+    preview.className = 'chat-preview';
+    preview.textContent = lastMessage.text || '[Media]';
+    
+    const time = document.createElement('div');
+    time.className = 'chat-time';
+    time.textContent = lastTime;
+    
+    item.appendChild(name);
+    item.appendChild(preview);
+    item.appendChild(time);
+    chatList.appendChild(item);
+    
+    allChats.push({ key: chatKey, element: item, preview: lastMessage.text });
+  });
+}
+
+// Load optimized chat list
+const cachedChatList = getCachedChatList();
+if (cachedChatList) renderChatsOptimized(cachedChatList);
+
+// Only cache last messages for chat list, not all messages
 db.ref('chats').on('value', snapshot => {
   const chats = snapshot.val();
-  if (chats) { cacheChats(chats); renderChats(chats); }
+  if (!chats) return;
+  
+  const chatListData = {};
+  
+  Object.keys(chats).forEach(chatKey => {
+    const messages = chats[chatKey];
+    const messageKeys = Object.keys(messages).map(Number);
+    
+    if (messageKeys.length > 0) {
+      const lastKey = Math.max(...messageKeys);
+      chatListData[chatKey] = {
+        lastMessage: messages[lastKey],
+        lastTimestamp: lastKey
+      };
+    }
+  });
+  
+  cacheChatList(chatListData);
+  renderChatsOptimized(chatListData);
 });
-
 
 // use the correct brotherKey
 function renderChats(chats) {
@@ -1326,17 +1391,16 @@ window.dispatchEvent(event);
 }
 
 // --- Search ---
-function filterChats(){
+function filterChats() {
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(()=>{
+  searchTimeout = setTimeout(() => {
     const term = searchBox.value.toLowerCase();
-    allChats.forEach(chat=>{
+    allChats.forEach(chat => {
       chat.element.style.display =
         chat.key.toLowerCase().includes(term) || chat.preview.toLowerCase().includes(term) ? '' : 'none';
     });
-  },200);
+  }, 200);
 }
-
 
 
 
@@ -1932,7 +1996,7 @@ openChat = function(key) {
   unreadCounts[key] = 0;
   lastSeen[key] = Date.now();
   saveLastSeen();
-  renderChats(getCachedChats() || {});
+  renderChatsOptimized(getCachedChatList() || {});
   oldOpenChat(key);
 };
 
@@ -1946,7 +2010,7 @@ db.ref('chats').on('child_added', snap => {
 
   if (lastMsg.from === 'user' && lastKey > seenTime && chatKey !== currentKey) {
     unreadCounts[chatKey] = (unreadCounts[chatKey] || 0) + 1;
-    renderChats(getCachedChats() || {});
+    renderChatsOptimized(getCachedChatList() || {});
   }
 });
 
@@ -1959,7 +2023,7 @@ db.ref('chats').on('child_changed', snap => {
 
   if (lastMsg.from === 'user' && lastKey > seenTime && chatKey !== currentKey) {
     unreadCounts[chatKey] = (unreadCounts[chatKey] || 0) + 1;
-    renderChats(getCachedChats() || {});
+    renderChatsOptimized(getCachedChatList() || {});
   }
 });
   // When going back to inbox, badges will already be updated
