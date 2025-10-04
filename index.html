@@ -93,21 +93,54 @@ left:70%; top: 14%; transform: translateY(-50%); }
 }
 
 /* RCS Input Area */
-#inputArea {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 12px 16px;
-  background: transparent;
-  border-top: none;
+/* Modern messenger-style input area */
+/* Send button - positioned outside the input area */
+#sendBtn {
+  position: fixed; /* Changed from absolute to fixed */
+  right: 15px;
+  bottom: 13px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
-  z-index: 1000;
-  backdrop-filter: none;
+  align-items: center;
+  justify-content: center;
+  background: #DDF2ED;
+  border: none!important;
+  cursor: pointer;
+  color: white;
+  
+  transition: all 0.2s ease;
+  z-index: 1001;
 }
 
-/* Main input container */
+/* Light mode send button */
+body:not(.dark) #sendBtn {
+  background: #DDF2ED;
+
+}
+body.dark #sendBtn {
+  background: #202C28;
+  
+}
+/* Send button states */
+#sendBtn:not(.active) {
+  opacity: 1;
+  transform: scale(0.9);
+}
+
+#sendBtn.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#sendBtn:hover {
+  transform: scale(1.05);
+
+}
+
+
+/* Adjust input controls to not overlap with send button */
 #inputControls {
   display: flex;
   align-items: flex-end;
@@ -116,117 +149,30 @@ left:70%; top: 14%; transform: translateY(-50%); }
   padding: 8px 12px;
   border-radius: 24px;
   min-height: 52px;
-
-  
   transition: all 0.2s ease;
+  margin-right: 60px; /* Add space for the send button */
 }
 
 /* Light mode */
 body:not(.dark) #inputControls {
   background: #DDF2ED;
   border: none;
+  margin-right: 60px; /* Add space for the send button */
+}
+
+/* Remove the margin from inputArea since we're using fixed positioning */
+#inputArea {
+  margin-right: 0;
+}
+
+/* Light mode send button */
+body:not(.dark) #sendBtn {
+  background: #DDF2ED;
   
 }
 
-/* Text input container */
-.text-input-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-height: 36px;
-}
-
-/* Text input */
-#replyInput {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #e8f3f1;
-  font-size: 16px;
-  line-height: 1.4;
-  padding: 8px 4px;
-  resize: none;
-  min-height: 20px;
-  max-height: 120px;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  caret-color: #00afa0;
-}
-
-/* Light mode text input */
-body:not(.dark) #replyInput {
-  color: #1a1a1a;
-  caret-color: #00897b;
-}
-
-#replyInput::placeholder {
-  color: #9ab4ad;
-}
-
-body:not(.dark) #replyInput::placeholder {
-  color: #9e9e9e;
-}
-
-/* RCS buttons */
-.rcs-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #9ab4ad;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-  margin: 0;
-  padding: 0;
-}
-
-.rcs-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.05);
-}
-
-body:not(.dark) .rcs-btn {
-  color: #757575;
-}
-
-body:not(.dark) .rcs-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
 
 
-/* Send button states */
-#sendBtn {
-  opacity: 0.6;
-  transform: scale(0.95);
-}
-
-#inputControls:has(#replyInput:not(:placeholder-shown)) #sendBtn {
-  opacity: 1;
-  transform: scale(1);
-  color: #00afa0;
-  background: rgba(0, 175, 160, 0.1);
-}
-
-body:not(.dark) #inputControls:has(#replyInput:not(:placeholder-shown)) #sendBtn {
-  color: #00897b;
-  background: rgba(0, 137, 123, 0.1);
-}
-
-#inputControls:has(#replyInput:not(:placeholder-shown)) #sendBtn:hover {
-  background: #00afa0;
-  color: white;
-}
-
-body:not(.dark) #inputControls:has(#replyInput:not(:placeholder-shown)) #sendBtn:hover {
-  background: #00897b;
-  color: white;
-}
 
 /* Hide GIF and emoji buttons when typing */
 #inputControls:has(#replyInput:not(:placeholder-shown)) #gifBtn,
@@ -234,44 +180,11 @@ body:not(.dark) #inputControls:has(#replyInput:not(:placeholder-shown)) #sendBtn
   display: none;
 }
 
-/* Reply preview */
-.reply-preview {
-  background: rgba(255, 255, 255, 0.1);
-  border-left: 4px solid #00afa0;
-  color: #e8f3f1;
-  border-radius: 12px;
-  font-size: 14px;
-  margin-bottom: 8px;
-  padding: 10px 14px;
-  backdrop-filter: blur(10px);
-}
-
-body:not(.dark) .reply-preview {
-  background: rgba(0, 0, 0, 0.05);
-  color: #333;
-  border-left: 4px solid #00897b;
-}
-
-/* Adjust messages padding */
+/* Adjust messages padding to account for floating send button */
 #messages {
-  padding-bottom: 100px !important;
+  padding-bottom: 120px !important;
 }
 
-/* Remove old input styles */
-#inputControls textarea,
-#replyInput {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-#inputControls button,
-#gifBtn, #attachBtn, #sendBtn {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  margin: 0 !important;
-}
 
 
 /* GIF picker modal */
@@ -593,27 +506,30 @@ body.dark .from-brother::after {
   background: #005047; /*tail matches dark brother bubble */
 }
     
-    #inputControls { display: flex; align-items: flex-end; }
+  
     #inputControls textarea {
       flex: 1;
       padding: 8px 12px;
-      
-      border: 1px solid #979595;
+  border:none!important;
+  background: transparent;
       border-radius: 20px;
       resize: none;
+      outline: none!important;
       overflow: hidden;
       font-size: 15px;
       line-height: 1.3;
       max-height: 80px;
+      color: inherit;
     }
-    #inputControls textarea:focus {
-      border-color: #979595;
-      outline: none;
-    }
+    
+    
     #inputControls button {
-      margin-left: 5px; 
-      border: 1px solid #979595;
-      background: #fff; color: #fff; border-radius: 20px;
+      margin-left: 5px;
+      border: none;
+      background: transparent; 
+      color: #fff; 
+      
+      border-radius: 50px;
     }
 
     .reply-arrow {
@@ -916,7 +832,7 @@ margin-top: 8px;
   <div id="replyPreviewContainer"></div>
   <div id="inputControls">
     
-    <button id="gifBtn" title="GIF" >
+    <button id="gifBtn" title="GIF" style="height:35px;">
       
       
       
@@ -944,7 +860,8 @@ margin-top: 8px;
     </button>
     <!-- optional file attach (works locally; to upload to Firebase Storage add storage SDK) -->
     <input id="attachFile" type="file" accept="image/*,video/gif" style="display:none" />
-    <button id="attachBtn" title="Attach">
+    <button id="attachBtn" title="Attach"
+    style="height:35px;">
   <svg xmlns="http://www.w3.org/2000/svg" 
        width="24" height="24" 
        fill="none" 
@@ -2853,6 +2770,30 @@ window.onpopstate = function(event) {
   messagesEl.removeEventListener('scroll', handleScroll);
   if (originalOnPopState) originalOnPopState(event);
 };
+  </script>
+  
+  <script>
+    // Add active state to send button when there's text
+replyInput.addEventListener('input', function() {
+  const sendBtn = document.getElementById('sendBtn');
+  if (this.value.trim() !== '') {
+    sendBtn.classList.add('active');
+  } else {
+    sendBtn.classList.remove('active');
+  }
+});
+
+// Initialize send button state
+document.addEventListener('DOMContentLoaded', function() {
+  const sendBtn = document.getElementById('sendBtn');
+  const replyInput = document.getElementById('replyInput');
+  
+  if (replyInput.value.trim() !== '') {
+    sendBtn.classList.add('active');
+  } else {
+    sendBtn.classList.remove('active');
+  }
+});
   </script>
 </body>
 </html>
