@@ -519,10 +519,17 @@ body.dark .from-brother::after {
       font-size: 15px;
       line-height: 1.3;
       max-height: 80px;
-      color: inherit;
+    
     }
     
-    
+    /* Light mode input area text color */
+body:not(.dark) #inputControls textarea {
+  color: #666666;
+}
+body.dark #inputControls textarea {
+  color: #DDF2ED;
+}
+
     #inputControls button {
       margin-left: 5px;
       border: none;
