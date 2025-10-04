@@ -27,6 +27,9 @@
 body {
   overscroll-behavior-y: none !important;
 }
+
+
+
 /* SVG Color Variables */
 :root {
   --svg-color: #3A4F4A; /* Light mode color */
@@ -41,7 +44,10 @@ svg {
   stroke: var(--svg-color) !important;
   
 }
-
+/* Custom color ONLY for call button in light mode */
+body:not(.dark) #chatHeader a[href="videocall.html"] svg {
+  fill:#3A4F4A !important; /* Custom blue color for call button in light mode */
+}
 
 
 /* For Android Chrome/Samsung Internet */
@@ -472,12 +478,20 @@ body.dark .reply-box{
 }
 
     .reply-preview {
+      
+      
+  background: rgba(255, 255, 255, 0.2); /* translucent layer */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 10px;
+  padding: 20px;
+
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f0f0f0;
+      
       padding: 6px 10px;
-      border-left: 4px solid #4caf50;
+      border-left: 4px solid #005047;
       border-radius: 6px;
       font-size: 13px;
       margin-bottom: 6px;
@@ -682,7 +696,8 @@ body.dark .reply-box {
     /* Reply preview (dark mode) */
 body.dark .reply-preview {
   background: rgba(255, 255, 255, 0.08);  /* soft overlay on dark */
-  border-left: 4px solid #3b82f6;         /* blue accent */
+  border-left: 
+  4px solid #005047; /* blue accent */
   color: #e5e5e5;
 }
 
