@@ -272,20 +272,18 @@ body.dark #chat{
 }
     #messages { overflow-x: hidden; }
 
-    #inboxHeader {
-      padding: 25px 20px 10px;
-      font-size: 28px;
-      font-weight: 700;
-      
-      background: #ffffff;
-      background-clip: text;
-      color: transparent;
-      background-image: linear-gradient(to right, #2563eb, #7c3aed);
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      
-    }
+   #inboxHeader {
+  padding: 25px 20px 10px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2563eb; /* Solid blue color for light mode */
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
+body.dark #inboxHeader {
+  color: #9333ea; /* Solid purple color for dark mode */
+}
     #searchBox {
       background: #EAFDF9;
       margin: 12px 20px 0;
@@ -631,12 +629,6 @@ body.dark #searchBox::placeholder {
 
 
 
-/* Inbox header */
-body.dark #inboxHeader {
-  background-image: linear-gradient(to right, #9333ea, #3b82f6) !important;
-  color: #B7CAC6 !important;
-}
-
 
 
 
@@ -866,9 +858,7 @@ border:none"
   </svg>
   
 </button>
- <img id="userLogo" src="chat_logo.png"
-     style="width:45px; height:45px; border:3px solid orange; border-radius:50%;
-     margin-left: 10px;" />
+<img id="userLogo" src="chat_logo.png" style="width:45px; height:45px; border-radius:50%; margin-left: 10px;" />
 
       
 <div style="margin-left:10px; display:flex; flex-direction:column;">
@@ -1310,24 +1300,22 @@ function subscribeToPresenceFor(chatKey) {
     }
 
     // Show in same div
-    if (typing) {
-      typingEl.style.display = 'block';
-      typingEl.textContent = 'typing…';
-      typingEl.style.color = ''; // inherit or keep your css
-      if (userLogo) userLogo.style.border = '3px solid green';
-    } else {
-      // not typing: online or last seen
-      typingEl.style.display = 'block';
-      if (state === 'online') {
-        typingEl.textContent = 'online';
-        typingEl.style.color = ''; // use CSS color or inline if you like
-        if (userLogo) userLogo.style.border = '3px solid green';
-      } else {
-        typingEl.textContent = formatLastSeen(last_changed);
-        typingEl.style.color = '';
-        if (userLogo) userLogo.style.border = '3px solid orange';
-      }
-    }
+    // Show in same div
+if (typing) {
+  typingEl.style.display = 'block';
+  typingEl.textContent = 'typing…';
+  updateProfilePictureBorder(true); // Typing implies online
+} else {
+  // not typing: online or last seen
+  typingEl.style.display = 'block';
+  if (state === 'online') {
+    typingEl.textContent = 'online';
+    updateProfilePictureBorder(true);
+  } else {
+    typingEl.textContent = formatLastSeen(last_changed);
+    updateProfilePictureBorder(false);
+  }
+}
   };
 
   statusListener = { ref: statusRef, callback };
@@ -3188,31 +3176,61 @@ let currentMode = 'light'; // Track which mode we're customizing
 
 // Default color schemes
 // Default color schemes
+// Default color schemes
 const defaultColors = {
   light: {
     userBubble: '#DDF2ED',
     brotherBubble: '#006B61',
-    chatHeader: '#DDF2ED', // This will apply to both header and chat background
+    chatHeader: '#DDF2ED',
     inputArea: '#DDF2ED',
     messagesBg: '#E9FEF9',
     chatListBg: '#DFF2EC',
     chatItemBg: '#EAFDF9',
     textColor: '#000000',
-    previewText: '#666666'
+    previewText: '#666666',
+    // NEW COLOR OPTIONS
+    stalkColor: '#2563eb',
+    bubuTextColor: '#000000',
+    lastSeenColor: '#666666',
+    onlineColor: '#25D366',
+    typingColor: '#25D366',
+    picBorderOnline: '#25D366',
+    picBorderOffline: '#FFA500',
+    svgColor: '#3A4F4A',
+    brotherTextColor: '#FFFFFF',
+    brotherTimeColor: '#E5E5E5',
+    brotherPreviewColor: '#E5E5E5',
+    userTextColor: '#000000',
+    userTimeColor: '#666666',
+    userPreviewColor: '#666666'
   },
   dark: {
     userBubble: '#13221F',
     brotherBubble: '#005047',
-    chatHeader: '#13221F', // This will apply to both header and chat background
+    chatHeader: '#13221F',
     inputArea: '#13221F',
     messagesBg: '#031813',
     chatListBg: '#12221F',
     chatItemBg: '#061613',
     textColor: '#B7CAC6',
-    previewText: '#B7CAC6'
+    previewText: '#B7CAC6',
+    // NEW COLOR OPTIONS
+    stalkColor: '#B7CAC6',
+    bubuTextColor: '#B7CAC6',
+    lastSeenColor: '#B7CAC6',
+    onlineColor: '#25D366',
+    typingColor: '#25D366',
+    picBorderOnline: '#25D366',
+    picBorderOffline: '#FFA500',
+    svgColor: '#B7CAC6',
+    brotherTextColor: '#FFFFFF',
+    brotherTimeColor: '#E5E5E5',
+    brotherPreviewColor: '#E5E5E5',
+    userTextColor: '#B7CAC6',
+    userTimeColor: '#B7CAC6',
+    userPreviewColor: '#B7CAC6'
   }
 };
-// Load custom colors from localStorage
 let customColors = JSON.parse(localStorage.getItem('customColors')) || {
   light: {...defaultColors.light},
   dark: {...defaultColors.dark}
@@ -3288,7 +3306,22 @@ function openColorCustomization(mode) {
   chatListBg: 'Chat List Background',
   chatItemBg: 'Chat Item Background',
   textColor: 'Main Text Color',
-  previewText: 'Preview Text Color'
+  previewText: 'Preview Text Color',
+  // NEW LABELS
+  stalkColor: 'S talk Text Color',
+  bubuTextColor: 'Bubu Text Color',
+  lastSeenColor: 'Last Seen Text Color',
+  onlineColor: 'Online Text Color',
+  typingColor: 'Typing Text Color',
+  picBorderOnline: 'Pic Border (Online)',
+  picBorderOffline: 'Pic Border (Offline)',
+  svgColor: 'SVG Icons Color',
+  brotherTextColor: 'Brother Messages Text',
+  brotherTimeColor: 'Brother Messages Time',
+  brotherPreviewColor: 'Brother Preview Text',
+  userTextColor: 'Your Messages Text',
+  userTimeColor: 'Your Messages Time',
+  userPreviewColor: 'Your Preview Text'
 };
   Object.keys(colors).forEach(key => {
     const optionDiv = document.createElement('div');
@@ -3342,6 +3375,8 @@ saveColorBtn.addEventListener('click', () => {
 });
 // Helper function to update pseudo-element styles
 // Helper function to update pseudo-element styles
+// Helper function to update pseudo-element styles
+// Helper function to update pseudo-element styles - FIXED VERSION
 function updatePseudoElementStyles(mode, colors) {
   // Remove existing style element if it exists
   const existingStyle = document.getElementById('custom-colors-style');
@@ -3355,15 +3390,25 @@ function updatePseudoElementStyles(mode, colors) {
   
   // Add comprehensive styles for all elements
   style.textContent = `
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #inboxHeader {
+      color: ${colors.stalkColor} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #chatTitle {
+      color: ${colors.bubuTextColor} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #typingIndicator {
+      color: ${colors.lastSeenColor} !important;
+    }
     ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-user {
       background: ${colors.userBubble} !important;
+      color: ${colors.userTextColor} !important;
     }
     ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-user::after {
       background: ${colors.userBubble} !important;
     }
     ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-brother {
       background: ${colors.brotherBubble} !important;
-      color: white !important;
+      color: ${colors.brotherTextColor} !important;
     }
     ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-brother::after {
       background: ${colors.brotherBubble} !important;
@@ -3395,17 +3440,36 @@ function updatePseudoElementStyles(mode, colors) {
     ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .chat-preview {
       color: ${colors.previewText} !important;
     }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} svg {
+      stroke: ${colors.svgColor} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-user .msg-time {
+      color: ${colors.userTimeColor} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-brother .msg-time {
+      color: ${colors.brotherTimeColor} !important;
+    }
     
     /* Light mode specific overrides */
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #inboxHeader {
+      color: ${colors.stalkColor} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #chatTitle {
+      color: ${colors.bubuTextColor} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #typingIndicator {
+      color: ${colors.lastSeenColor} !important;
+    }
     ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-user {
       background: ${colors.userBubble} !important;
+      color: ${colors.userTextColor} !important;
     }
     ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-user::after {
       background: ${colors.userBubble} !important;
     }
     ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-brother {
       background: ${colors.brotherBubble} !important;
-      color: white !important;
+      color: ${colors.brotherTextColor} !important;
     }
     ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-brother::after {
       background: ${colors.brotherBubble} !important;
@@ -3437,9 +3501,28 @@ function updatePseudoElementStyles(mode, colors) {
     ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .chat-preview {
       color: ${colors.previewText} !important;
     }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} svg {
+      stroke: ${colors.svgColor} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-user .msg-time {
+      color: ${colors.userTimeColor} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-brother .msg-time {
+      color: ${colors.brotherTimeColor} !important;
+    }
   `;
   
   document.head.appendChild(style);
+}
+// Function to update profile picture border based on status
+// Function to update profile picture border based on status
+function updateProfilePictureBorder(isOnline) {
+  const userLogo = document.getElementById('userLogo');
+  if (userLogo) {
+    const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
+    const colors = customColors[currentMode];
+    userLogo.style.border = `3px solid ${isOnline ? colors.picBorderOnline : colors.picBorderOffline}`;
+  }
 }
 // Apply custom colors to the UI
 // Apply custom colors to the UI - FIXED VERSION
@@ -3510,6 +3593,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Apply custom colors
   const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
   applyCustomColors(currentMode);
+});
+
+// Initialize profile picture border on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Set initial border color (offline by default)
+  updateProfilePictureBorder(false);
 });
 </script>
   
