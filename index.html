@@ -1308,18 +1308,25 @@ openChat = function(key) {
 
 // Optional: cleanup listener when going back to inbox
 const oldPop = window.onpopstate;
+// Simple fix - replace your current popstate listener with this:
 window.addEventListener('popstate', function(event) {
-  // remove presence listener when leaving chat view
-  if (statusListener && statusListener.ref) {
-    try { statusListener.ref.off('value', statusListener.callback); } catch(e) {}
-    statusListener = null;
+  if (chatEl.classList.contains('active')) {
+    chatEl.classList.remove('active');
+    listEl.classList.add('active');
+    currentKey = null;
+    
+    // Clean up any active listeners
+    if (childListener) {
+      db.ref('chats/' + currentKey).off('value', childListener);
+      childListener = null;
+    }
   }
-  // also hide the typingIndicator when leaving
-  const typingEl = document.getElementById('typingIndicator');
-  if (typingEl) typingEl.style.display = 'none';
-
-  if (typeof oldPop === 'function') oldPop(event);
 });
+
+// And ensure your goBackToList function calls history.back():
+function goBackToList() {
+  history.back();
+}
 
 /* ===== improved presence helper =====
    Replace your current setPresence(...) function with this.
@@ -1468,6 +1475,8 @@ let allChats = [];
 let replyToText = null;
 let searchTimeout;
 
+// Fix for system back button functionality
+let isInChatView = false;
 // --- Infinite scroll variables ---
 let isLoadingOlderMessages = false;
 let hasMoreMessages = true;
@@ -2972,15 +2981,17 @@ function handleScroll() {
 // Function for back button of chat header 
 
 // Improved back button function
+// Improved back button function
 function goBackToList() {
   console.log('Back button clicked');
   
   // Hide chat, show list
-  listEl.classList.add('active');
   chatEl.classList.remove('active');
+  listEl.classList.add('active');
   
   // Clear current chat state
   currentKey = null;
+  isInChatView = false;
   
   // Clean up listeners
   if (childListener) {
@@ -3004,16 +3015,10 @@ function goBackToList() {
   if (typingEl) typingEl.style.display = 'none';
   
   // Use history management
-  if (history.state && history.state.screen === "chat") {
-    history.back();
-  } else {
-    // Fallback: manually manage state
-    history.replaceState({ screen: "list" }, "Inbox");
-  }
+  history.back();
   
   console.log('Returned to list view');
 }
-
 // Improved history state management
 window.addEventListener('popstate', function(event) {
   console.log('Popstate event triggered', event.state);
@@ -3048,9 +3053,11 @@ window.addEventListener('popstate', function(event) {
 });
 
 // Update the openChat function to properly manage history
+// Override the openChat function to properly manage state
 const originalOpenChat = openChat;
 openChat = function(key) {
   originalOpenChat(key);
+  isInChatView = true;
   
   // Push state to history when opening a chat
   history.pushState({ screen: "chat", chatKey: key }, "Chat", "");
