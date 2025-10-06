@@ -3,10 +3,7 @@
 <head>
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#ffffff" id="theme-color-meta">
-
-  
-  
-  <meta charset="utf-8">
+<meta charset="utf-8">
   <title>Brother Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 
@@ -271,7 +268,7 @@ body:not(.dark) #sendBtn {
 
 
 body.dark #chat{
-  background: #13221F !important; /* Same as dark mode messages background */
+  background: #13221F; /* Same as dark mode messages background */
 }
     #messages { overflow-x: hidden; }
 
@@ -683,7 +680,7 @@ body.dark .chat-item .preview {
 
 /* Chat header */
 body.dark #chatHeader {
-  background: #13221F !important;
+  background: #13221F;
   color: #B7CAC6 !important;
 }
 
@@ -694,13 +691,13 @@ body.dark #messages {
 
 /* User bubbles */
 body.dark .from-user {
-  background: #13221F !important;
+  background: #13221F;
   color: #B7CAC6 !important;
 }
 
 /* Brother bubbles */
 body.dark .from-brother {
-  background: #005047 !important;
+  background: #005047;
   color: #B7CAC6 !important;
 }
 
@@ -848,7 +845,7 @@ body.dark .reply-preview-text a {
 
   <div id="list" class="active">
     <div id="inboxHeader" style="margin-left: 10px;">S talk</div>
-    <input type="text" id="searchBox" placeholder="Search chats..." oninput="filterChats()" />
+  <input type="text" id="searchBox" placeholder="Search chats..." oninput="filterChats()" />
     <div id="chatList"></div>
   </div>
 
@@ -880,17 +877,180 @@ border:none"
 
 <a href="videocall.html"
 style="margin-left: auto;
-margin-right: 5px;
+margin-right: 8px;
 margin-top: 8px;
-"> <!-- WhatsApp-like call icon (original) -->
+">
 <!-- WhatsApp-like call icon (transparent background) -->
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#B7CAC6">
   <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.11-.21c1.2.48 2.53.73 3.88.73a1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1C12.07 22 2 11.93 2 3.5a1 1 0 0 1 1-1H6.5a1 1 0 0 1 1 1c0 1.35.25 2.68.73 3.88a1 1 0 0 1-.21 1.11l-2.2 2.2z" />
 </svg></a>
-      <button id="darkModeToggle" >
-  🌙
-</button>
+<!-- Replace the existing dark mode toggle button with this -->
+<div style="position: relative;">
+  <button id="settingsToggle" title="Settings" style="
+    margin-left: auto;
+    margin-right: 10px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 26px;
+    font-weight: 600;
+    background: transparent;
+    color: #111;
+  ">
+    
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 6 20"
+     width="6" height="18"
+     preserveAspectRatio="xMidYMid meet"
+     role="img" aria-label="Tiny vertical three dots">
+  <!-- Tiny dots using stroke for fill -->
+  <circle cx="3" cy="3"  r="1" fill="none" stroke="" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="3" cy="10"  r="1" fill="none" stroke="" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="3" cy="18" r="1" fill="none" stroke="" stroke-width="2" stroke-linecap="round"/>
+</svg>
+  </button>
+  
+  <!-- Settings dropdown menu -->
+  <div id="settingsMenu" style="
+    position: absolute;
+    top: 100%;
+    right: 10px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 8px 0;
+    min-width: 200px;
+    z-index: 1000;
+    display: none;
+    border: 1px solid rgba(0,0,0,0.1);
+  ">
+    <style>
+    /* Settings menu styles */
+#settingsToggle:hover {
 
+}
+
+body.dark #settingsToggle {
+  
+  color: #B7CAC6;
+  
+}
+
+.menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+/* Color customization modal */
+.color-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.color-modal.open {
+  display: flex;
+}
+
+.color-modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .color-modal-content {
+  background: #13221F;
+  color: #B7CAC6;
+}
+
+.color-option {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-option label {
+  min-width: 180px;
+  font-weight: 500;
+}
+
+.color-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+body.dark .color-input {
+  background: #061613;
+  color: #B7CAC6;
+  border-color: #2A3A36;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.modal-btn.primary {
+  background: #2563eb;
+  color: white;
+}
+
+.modal-btn.secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+body.dark .modal-btn.secondary {
+  background: #2A3A36;
+  color: #B7CAC6;
+}
+
+.modal-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+    </style>
+    <div class="menu-item" data-action="toggle-dark">🌙 Dark Mode</div>
+    <div class="menu-item" data-action="toggle-light">☀️ Light Mode</div>
+    <div class="menu-item" data-action="customize-dark">🎨 Customize Dark Mode</div>
+    <div class="menu-item" data-action="customize-light">🎨 Customize Light Mode</div>
+    <div class="menu-item" data-action="reset-colors">🔄 Reset to Default</div>
+  </div>
+</div>
 
     </div>
     <div id="messages"></div>
@@ -2805,10 +2965,91 @@ function handleScroll() {
 
 // Function for back button of chat header 
 
+// Improved back button function
 function goBackToList() {
-  history.back();
+  console.log('Back button clicked');
+  
+  // Hide chat, show list
+  listEl.classList.add('active');
+  chatEl.classList.remove('active');
+  
+  // Clear current chat state
+  currentKey = null;
+  
+  // Clean up listeners
+  if (childListener) {
+    db.ref('chats/' + currentKey).off('value', childListener);
+    childListener = null;
+  }
+  
+  // Remove scroll listener
+  messagesEl.removeEventListener('scroll', handleScroll);
+  
+  // Clear presence listener
+  if (statusListener && statusListener.ref) {
+    try {
+      statusListener.ref.off('value', statusListener.callback);
+    } catch (e) {}
+    statusListener = null;
+  }
+  
+  // Hide typing indicator
+  const typingEl = document.getElementById('typingIndicator');
+  if (typingEl) typingEl.style.display = 'none';
+  
+  // Use history management
+  if (history.state && history.state.screen === "chat") {
+    history.back();
+  } else {
+    // Fallback: manually manage state
+    history.replaceState({ screen: "list" }, "Inbox");
+  }
+  
+  console.log('Returned to list view');
 }
-// Function to render older messages at the top
+
+// Improved history state management
+window.addEventListener('popstate', function(event) {
+  console.log('Popstate event triggered', event.state);
+  
+  // If going back to list view
+  if (!event.state || event.state.screen === "list") {
+    listEl.classList.add('active');
+    chatEl.classList.remove('active');
+    currentKey = null;
+    
+    // Clean up listeners
+    if (childListener) {
+      db.ref('chats/' + currentKey).off('value', childListener);
+      childListener = null;
+    }
+    
+    // Remove scroll listener
+    messagesEl.removeEventListener('scroll', handleScroll);
+    
+    // Clear presence listener
+    if (statusListener && statusListener.ref) {
+      try {
+        statusListener.ref.off('value', statusListener.callback);
+      } catch (e) {}
+      statusListener = null;
+    }
+    
+    // Hide typing indicator
+    const typingEl = document.getElementById('typingIndicator');
+    if (typingEl) typingEl.style.display = 'none';
+  }
+});
+
+// Update the openChat function to properly manage history
+const originalOpenChat = openChat;
+openChat = function(key) {
+  originalOpenChat(key);
+  
+  // Push state to history when opening a chat
+  history.pushState({ screen: "chat", chatKey: key }, "Chat", "");
+  console.log('Opened chat, history state pushed');
+};
 function renderOlderMessages(messages) {
   const sortedKeys = Object.keys(messages).map(Number).sort((a, b) => a - b).map(String);
   const fragment = document.createDocumentFragment();
@@ -2868,5 +3109,360 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
   </script>
+
+    <!-- Color Customization Modal -->
+<div id="colorModal" class="color-modal" aria-hidden="true">
+  <div class="color-modal-content">
+    <h3 id="colorModalTitle" style="margin-bottom: 20px;">Customize Colors</h3>
+    
+    <div id="colorOptions">
+      <!-- Color options will be dynamically inserted here -->
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn secondary" id="cancelColorBtn">Cancel</button>
+      <button class="modal-btn primary" id="saveColorBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+<script>
+  // Settings menu functionality
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsMenu = document.getElementById('settingsMenu');
+const colorModal = document.getElementById('colorModal');
+const colorModalTitle = document.getElementById('colorModalTitle');
+const colorOptions = document.getElementById('colorOptions');
+const cancelColorBtn = document.getElementById('cancelColorBtn');
+const saveColorBtn = document.getElementById('saveColorBtn');
+
+let currentMode = 'light'; // Track which mode we're customizing
+
+// Default color schemes
+// Default color schemes
+const defaultColors = {
+  light: {
+    userBubble: '#DDF2ED',
+    brotherBubble: '#006B61',
+    chatHeader: '#DDF2ED', // This will apply to both header and chat background
+    inputArea: '#DDF2ED',
+    messagesBg: '#E9FEF9',
+    chatListBg: '#DFF2EC',
+    chatItemBg: '#EAFDF9',
+    textColor: '#000000',
+    previewText: '#666666'
+  },
+  dark: {
+    userBubble: '#13221F',
+    brotherBubble: '#005047',
+    chatHeader: '#13221F', // This will apply to both header and chat background
+    inputArea: '#13221F',
+    messagesBg: '#031813',
+    chatListBg: '#12221F',
+    chatItemBg: '#061613',
+    textColor: '#B7CAC6',
+    previewText: '#B7CAC6'
+  }
+};
+// Load custom colors from localStorage
+let customColors = JSON.parse(localStorage.getItem('customColors')) || {
+  light: {...defaultColors.light},
+  dark: {...defaultColors.dark}
+};
+
+// Toggle settings menu
+settingsToggle.addEventListener('click', (e) => {
+  e.stopPropagation();
+  settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+});
+
+// Close settings menu when clicking outside
+document.addEventListener('click', () => {
+  settingsMenu.style.display = 'none';
+});
+
+// Settings menu actions
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    const action = e.target.dataset.action;
+    
+    switch(action) {
+      case 'toggle-dark':
+        enableDarkMode();
+        break;
+      case 'toggle-light':
+        disableDarkMode();
+        break;
+      case 'customize-dark':
+        openColorCustomization('dark');
+        break;
+      case 'customize-light':
+        openColorCustomization('light');
+        break;
+      case 'reset-colors':
+        resetColorsToDefault();
+        break;
+    }
+    
+    settingsMenu.style.display = 'none';
+  });
+});
+
+// Dark mode functions
+function enableDarkMode() {
+  document.body.classList.add('dark');
+  localStorage.setItem('darkMode', 'enabled');
+  applyCustomColors('dark');
+}
+
+function disableDarkMode() {
+  document.body.classList.remove('dark');
+  localStorage.setItem('darkMode', 'disabled');
+  applyCustomColors('light');
+}
+
+// Open color customization modal
+function openColorCustomization(mode) {
+  currentMode = mode;
+  colorModalTitle.textContent = `Customize ${mode === 'dark' ? 'Dark' : 'Light'} Mode Colors`;
+  
+  // Clear previous options
+  colorOptions.innerHTML = '';
+  
+  // Create color options based on mode
+  const colors = customColors[mode];
+  const colorLabels = {
+  userBubble: 'Your Messages Color',
+  brotherBubble: 'Brother Messages Color',
+  chatHeader: 'Header & Chat Background',
+  inputArea: 'Input Area Color',
+  messagesBg: 'Messages Background',
+  chatListBg: 'Chat List Background',
+  chatItemBg: 'Chat Item Background',
+  textColor: 'Main Text Color',
+  previewText: 'Preview Text Color'
+};
+  Object.keys(colors).forEach(key => {
+    const optionDiv = document.createElement('div');
+    optionDiv.className = 'color-option';
+    
+    const label = document.createElement('label');
+    label.textContent = colorLabels[key] || key;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'color-input';
+    input.value = colors[key];
+    input.dataset.colorKey = key;
+    input.placeholder = 'Enter color name or hex';
+    
+    optionDiv.appendChild(label);
+    optionDiv.appendChild(input);
+    colorOptions.appendChild(optionDiv);
+  });
+  
+  colorModal.classList.add('open');
+}
+
+// Close color modal
+cancelColorBtn.addEventListener('click', () => {
+  colorModal.classList.remove('open');
+});
+
+// Save color changes
+saveColorBtn.addEventListener('click', () => {
+  // Collect all color values
+  const inputs = colorOptions.querySelectorAll('.color-input');
+  inputs.forEach(input => {
+    const key = input.dataset.colorKey;
+    const value = input.value.trim();
+    
+    // Only update if value is not empty
+    if (value) {
+      customColors[currentMode][key] = value;
+    }
+  });
+  
+  // Save to localStorage
+  localStorage.setItem('customColors', JSON.stringify(customColors));
+  
+  // Apply the changes
+  applyCustomColors(currentMode);
+  
+  // Close modal
+  colorModal.classList.remove('open');
+});
+// Helper function to update pseudo-element styles
+// Helper function to update pseudo-element styles
+function updatePseudoElementStyles(mode, colors) {
+  // Remove existing style element if it exists
+  const existingStyle = document.getElementById('custom-colors-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  // Create new style element
+  const style = document.createElement('style');
+  style.id = 'custom-colors-style';
+  
+  // Add comprehensive styles for all elements
+  style.textContent = `
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-user {
+      background: ${colors.userBubble} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-user::after {
+      background: ${colors.userBubble} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-brother {
+      background: ${colors.brotherBubble} !important;
+      color: white !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .from-brother::after {
+      background: ${colors.brotherBubble} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #chatHeader {
+      background: ${colors.chatHeader} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #chat {
+      background: ${colors.chatHeader} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #inputControls {
+      background: ${colors.inputArea} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #sendBtn {
+      background: ${colors.inputArea} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #messages {
+      background: ${colors.messagesBg} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #list {
+      background: ${colors.chatListBg} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .chat-item {
+      background: ${colors.chatItemBg} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} body {
+      color: ${colors.textColor} !important;
+    }
+    ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .chat-preview {
+      color: ${colors.previewText} !important;
+    }
+    
+    /* Light mode specific overrides */
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-user {
+      background: ${colors.userBubble} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-user::after {
+      background: ${colors.userBubble} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-brother {
+      background: ${colors.brotherBubble} !important;
+      color: white !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .from-brother::after {
+      background: ${colors.brotherBubble} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #chatHeader {
+      background: ${colors.chatHeader} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #chat {
+      background: ${colors.chatHeader} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #inputControls {
+      background: ${colors.inputArea} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #sendBtn {
+      background: ${colors.inputArea} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #messages {
+      background: ${colors.messagesBg} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} #list {
+      background: ${colors.chatListBg} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .chat-item {
+      background: ${colors.chatItemBg} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} body {
+      color: ${colors.textColor} !important;
+    }
+    ${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .chat-preview {
+      color: ${colors.previewText} !important;
+    }
+  `;
+  
+  document.head.appendChild(style);
+}
+// Apply custom colors to the UI
+// Apply custom colors to the UI - FIXED VERSION
+// Apply custom colors to the UI - SIMPLIFIED VERSION
+function applyCustomColors(mode) {
+  const colors = customColors[mode];
+  
+  // Set dark mode class
+  if (mode === 'dark') {
+    document.body.classList.add('dark');
+  } else {
+    document.body.classList.remove('dark');
+  }
+  
+  // Update all styles via CSS
+  updatePseudoElementStyles(mode, colors);
+  
+  // Update theme color meta tag
+  updateThemeColor();
+  
+  // Force a re-render of any existing messages
+  if (currentKey && Object.keys(messageStore).length > 0) {
+    const tempStore = { ...messageStore };
+    messageStore = {};
+    messagesEl.innerHTML = '';
+    lastRenderedDate = null;
+    processAndRenderMessages(tempStore);
+  }
+}
+
+// Reset all colors to default
+function resetColorsToDefault() {
+  if (confirm('Are you sure you want to reset all colors to default?')) {
+    customColors = {
+      light: {...defaultColors.light},
+      dark: {...defaultColors.dark}
+    };
+    
+    localStorage.setItem('customColors', JSON.stringify(customColors));
+    
+    // Apply default colors based on current mode
+    const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
+    applyCustomColors(currentMode);
+    
+    alert('Colors have been reset to default.');
+  }
+}
+
+// Update theme color meta tag
+function updateThemeColor() {
+  const themeMeta = document.getElementById('theme-color-meta');
+  const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
+  
+  if (currentMode === 'dark') {
+    themeMeta.setAttribute('content', customColors.dark.chatHeader);
+  } else {
+    themeMeta.setAttribute('content', customColors.light.chatHeader);
+  }
+}
+
+// Initialize colors on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if dark mode is enabled
+  if (localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark');
+  }
+  
+  // Apply custom colors
+  const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
+  applyCustomColors(currentMode);
+});
+</script>
+  
 </body>
 </html>
