@@ -986,21 +986,63 @@ body.dark .color-modal-content {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0; /* Prevents flex items from overflowing */
 }
 
 .color-option label {
-  min-width: 180px;
+  min-width: 140px; /* Reduced from 180px */
   font-weight: 500;
+  font-size: 14px;
+  flex-shrink: 0; /* Prevents label from shrinking */
 }
 
 .color-input {
   flex: 1;
+  min-width: 0; /* Allows input to shrink properly */
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
+/* Ensure modal content doesn't cause horizontal scroll */
+.color-modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  box-sizing: border-box;
+}
+
+/* For dark mode */
+body.dark .color-input {
+  background: #061613;
+  color: #B7CAC6;
+  border-color: #2A3A36;
+}
+
+/* Ensure modal content doesn't cause horizontal scroll */
+.color-modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+body.dark .color-modal-content {
+  background: #13221F;
+  color: #B7CAC6;
+}
 body.dark .color-input {
   background: #061613;
   color: #B7CAC6;
