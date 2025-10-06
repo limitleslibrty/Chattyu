@@ -763,23 +763,26 @@ body.dark #darkModeToggle {
     
     
     
-/* Light mode: flat grey highlight */
+/* Change this: */
 .bubble.message-highlight {
   background-color: #A1B790 !important;
 }
 
-/* Make the bubble tail match the highlight color (light) */
-.bubble.message-highlight.from-user::after,
-.bubble.message-highlight.from-brother::after {
+/* To this: */
+body:not(.dark) .bubble.message-highlight {
   background-color: #A1B790 !important;
 }
 
-/* Dark mode: flat orange highlight */
+body:not(.dark) .bubble.message-highlight.from-user::after,
+body:not(.dark) .bubble.message-highlight.from-brother::after {
+  background-color: #A1B790 !important;
+}
+
+/* Keep dark mode as is */
 body.dark .bubble.message-highlight {
   background-color: #E6A23ECC !important;
 }
 
-/* Make the bubble tail match the highlight color (dark) */
 body.dark .bubble.message-highlight.from-user::after,
 body.dark .bubble.message-highlight.from-brother::after {
   background-color: #E6A23ECC !important;
