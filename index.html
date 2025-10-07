@@ -955,16 +955,7 @@ margin-top: 8px;
   display: flex;
 }
 
-.color-modal-content {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
+
 
 body.dark .color-modal-content {
   background: #13221F;
@@ -991,23 +982,13 @@ body.dark .color-modal-content {
   min-width: 0; /* Allows input to shrink properly */
   padding: 8px 12px;
   border-radius: 8px;
+  background: #DDF2ED;
   border: 1px solid #ccc;
   font-size: 14px;
   box-sizing: border-box;
 }
 
-/* Ensure modal content doesn't cause horizontal scroll */
-.color-modal-content {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  box-sizing: border-box;
-}
+
 
 /* For dark mode */
 body.dark .color-input {
@@ -1018,7 +999,7 @@ body.dark .color-input {
 
 /* Ensure modal content doesn't cause horizontal scroll */
 .color-modal-content {
-  background: white;
+  background: #E9FEF9;
   border-radius: 16px;
   padding: 20px;
   width: 90%;
@@ -1061,7 +1042,7 @@ body.dark .color-input {
 }
 
 .modal-btn.secondary {
-  background: #e5e7eb;
+  background: #DDF2ED;
   color: #374151;
 }
 
@@ -3761,6 +3742,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .tab-btn {
+
   flex: 1;
   padding: 10px;
   background: none;
@@ -3812,6 +3794,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .size-input, .setting-item select {
+  background: #DDF2ED;
   width: 80px;
   padding: 6px 8px;
   border: 1px solid #ccc;
@@ -3832,6 +3815,9 @@ body.dark .settings-group {
 
 body.dark .settings-group h4 {
   color: #5ac8fa;
+}
+body.dark .tab-btn{
+  color:#B7CAC6;
 }
 
 body.dark .size-input, 
