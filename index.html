@@ -1080,7 +1080,7 @@ body.dark .modal-btn.secondary {
     <div class="menu-item" data-action="customize-dark">🎨 Customize Dark Mode</div>
     <div class="menu-item" data-action="customize-light">🎨 Customize Light Mode</div>
     <div class="menu-item" data-action="reset-colors">🔄 Reset to Default</div>
-    <div class="menu-item">⚙️ Setting</div>
+    <div class="menu-item" data-action="advanced-settings">⚙️ Setting</div>
   </div>
 </div>
 
@@ -3601,6 +3601,556 @@ document.addEventListener('DOMContentLoaded', function() {
   updateProfilePictureBorder(false);
 });
 </script>
+  <!-- Add this to your existing HTML, preferably near the other modals -->
+<div id="advancedSettingsModal" class="color-modal" aria-hidden="true">
+  <div class="color-modal-content">
+    <h3 id="advancedSettingsTitle" style="margin-bottom: 20px;">Advanced Settings</h3>
+    
+    <div class="settings-tabs">
+      <button class="tab-btn active" data-tab="sizes">Sizes</button>
+      <button class="tab-btn" data-tab="animations">Animations</button>
+      <button class="tab-btn" data-tab="layout">Layout</button>
+    </div>
+    
+    <div id="sizesTab" class="tab-content active">
+      <div class="settings-group">
+        <h4>Header Text Sizes</h4>
+        <div class="setting-item">
+          <label>Stalk Text Size</label>
+          <input type="number" id="stalkSize" min="10" max="40" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Bubu Text Size</label>
+          <input type="number" id="bubuSize" min="10" max="30" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Status Text Size</label>
+          <input type="number" id="statusSize" min="8" max="20" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+      </div>
+      
+      <div class="settings-group">
+        <h4>Message Text Sizes</h4>
+        <div class="setting-item">
+          <label>User Message Text</label>
+          <input type="number" id="userTextSize" min="12" max="24" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>User Message Time</label>
+          <input type="number" id="userTimeSize" min="8" max="16" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Brother Message Text</label>
+          <input type="number" id="brotherTextSize" min="12" max="24" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Brother Message Time</label>
+          <input type="number" id="brotherTimeSize" min="8" max="16" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+      </div>
+      
+      <div class="settings-group">
+        <h4>Chat List Sizes</h4>
+        <div class="setting-item">
+          <label>Chat Name Size</label>
+          <input type="number" id="chatNameSize" min="12" max="24" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Chat Preview Size</label>
+          <input type="number" id="chatPreviewSize" min="10" max="20" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="animationsTab" class="tab-content">
+      <div class="settings-group">
+        <h4>Message Animations</h4>
+        <div class="setting-item">
+          <label>Animation Duration</label>
+          <input type="number" id="animationDuration" min="0.1" max="2" step="0.1" class="size-input">
+          <span class="unit">s</span>
+        </div>
+        <div class="setting-item">
+          <label>Animation Type</label>
+          <select id="animationType">
+            <option value="bubblePop">Bubble Pop</option>
+            <option value="fadeIn">Fade In</option>
+            <option value="slideUp">Slide Up</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Highlight Duration</label>
+          <input type="number" id="highlightDuration" min="0.5" max="5" step="0.5" class="size-input">
+          <span class="unit">s</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="layoutTab" class="tab-content">
+      <div class="settings-group">
+        <h4>Border Radius</h4>
+        <div class="setting-item">
+          <label>Messages Container</label>
+          <input type="number" id="messagesRadius" min="0" max="50" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Message Bubbles</label>
+          <input type="number" id="bubbleRadius" min="0" max="30" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Input Area</label>
+          <input type="number" id="inputRadius" min="0" max="30" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Chat Items</label>
+          <input type="number" id="chatItemRadius" min="0" max="30" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+      </div>
+      
+      <div class="settings-group">
+        <h4>Message Width</h4>
+        <div class="setting-item">
+          <label>Max Message Width</label>
+          <input type="number" id="messageMaxWidth" min="50" max="90" step="1" class="size-input">
+          <span class="unit">%</span>
+        </div>
+      </div>
+      
+      <div class="settings-group">
+        <h4>Spacing</h4>
+        <div class="setting-item">
+          <label>Message Spacing</label>
+          <input type="number" id="messageSpacing" min="2" max="20" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+        <div class="setting-item">
+          <label>Input Area Height</label>
+          <input type="number" id="inputHeight" min="40" max="120" step="1" class="size-input">
+          <span class="unit">px</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn secondary" id="cancelAdvancedBtn">Cancel</button>
+      <button class="modal-btn secondary" id="resetAdvancedBtn">Reset to Default</button>
+      <button class="modal-btn primary" id="saveAdvancedBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+<style>
+  /* Settings Tabs */
+.settings-tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  border-bottom: 2px solid #2563eb;
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Settings Groups */
+.settings-group {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.settings-group h4 {
+  margin-bottom: 15px;
+  color: #2563eb;
+  font-size: 16px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.setting-item label {
+  flex: 1;
+  min-width: 160px;
+  font-size: 14px;
+}
+
+.size-input, .setting-item select {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.unit {
+  width: 30px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Dark mode adjustments */
+body.dark .settings-group {
+  border-bottom-color: #2A3A36;
+}
+
+body.dark .settings-group h4 {
+  color: #5ac8fa;
+}
+
+body.dark .size-input, 
+body.dark .setting-item select {
+  background: #061613;
+  color: #B7CAC6;
+  border-color: #2A3A36;
+}
+
+body.dark .unit {
+  color: #B7CAC6;
+}
+</style>
+<script>
+// Advanced settings functionality
+const advancedSettingsModal = document.getElementById('advancedSettingsModal');
+const cancelAdvancedBtn = document.getElementById('cancelAdvancedBtn');
+const saveAdvancedBtn = document.getElementById('saveAdvancedBtn');
+const resetAdvancedBtn = document.getElementById('resetAdvancedBtn');
+
+// Default settings values
+const defaultSettings = {
+  // Sizes
+  stalkSize: 28,
+  bubuSize: 18,
+  statusSize: 12,
+  userTextSize: 18,
+  userTimeSize: 10,
+  brotherTextSize: 18,
+  brotherTimeSize: 10,
+  chatNameSize: 16,
+  chatPreviewSize: 14,
   
+  // Animations
+  animationDuration: 0.3,
+  animationType: 'bubblePop',
+  highlightDuration: 2.2,
+  
+  // Layout
+  messagesRadius: 33,
+  bubbleRadius: 16,
+  inputRadius: 24,
+  chatItemRadius: 16,
+  messageMaxWidth: 75,
+  messageSpacing: 6,
+  inputHeight: 52
+};
+
+// Load settings from localStorage or use defaults
+let currentSettings = JSON.parse(localStorage.getItem('advancedSettings')) || {...defaultSettings};
+
+// Tab functionality
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Remove active class from all tabs and contents
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    // Add active class to clicked tab and corresponding content
+    btn.classList.add('active');
+    const tabId = btn.dataset.tab + 'Tab';
+    document.getElementById(tabId).classList.add('active');
+  });
+});
+
+// Open advanced settings
+function openAdvancedSettings() {
+  // Populate form with current settings
+  populateSettingsForm();
+  advancedSettingsModal.classList.add('open');
+}
+
+// Populate form with current settings
+function populateSettingsForm() {
+  // Sizes
+  document.getElementById('stalkSize').value = currentSettings.stalkSize;
+  document.getElementById('bubuSize').value = currentSettings.bubuSize;
+  document.getElementById('statusSize').value = currentSettings.statusSize;
+  document.getElementById('userTextSize').value = currentSettings.userTextSize;
+  document.getElementById('userTimeSize').value = currentSettings.userTimeSize;
+  document.getElementById('brotherTextSize').value = currentSettings.brotherTextSize;
+  document.getElementById('brotherTimeSize').value = currentSettings.brotherTimeSize;
+  document.getElementById('chatNameSize').value = currentSettings.chatNameSize;
+  document.getElementById('chatPreviewSize').value = currentSettings.chatPreviewSize;
+  
+  // Animations
+  document.getElementById('animationDuration').value = currentSettings.animationDuration;
+  document.getElementById('animationType').value = currentSettings.animationType;
+  document.getElementById('highlightDuration').value = currentSettings.highlightDuration;
+  
+  // Layout
+  document.getElementById('messagesRadius').value = currentSettings.messagesRadius;
+  document.getElementById('bubbleRadius').value = currentSettings.bubbleRadius;
+  document.getElementById('inputRadius').value = currentSettings.inputRadius;
+  document.getElementById('chatItemRadius').value = currentSettings.chatItemRadius;
+  document.getElementById('messageMaxWidth').value = currentSettings.messageMaxWidth;
+  document.getElementById('messageSpacing').value = currentSettings.messageSpacing;
+  document.getElementById('inputHeight').value = currentSettings.inputHeight;
+}
+
+// Save advanced settings
+function saveAdvancedSettings() {
+  // Collect all settings from form
+  const newSettings = {
+    // Sizes
+    stalkSize: parseInt(document.getElementById('stalkSize').value) || defaultSettings.stalkSize,
+    bubuSize: parseInt(document.getElementById('bubuSize').value) || defaultSettings.bubuSize,
+    statusSize: parseInt(document.getElementById('statusSize').value) || defaultSettings.statusSize,
+    userTextSize: parseInt(document.getElementById('userTextSize').value) || defaultSettings.userTextSize,
+    userTimeSize: parseInt(document.getElementById('userTimeSize').value) || defaultSettings.userTimeSize,
+    brotherTextSize: parseInt(document.getElementById('brotherTextSize').value) || defaultSettings.brotherTextSize,
+    brotherTimeSize: parseInt(document.getElementById('brotherTimeSize').value) || defaultSettings.brotherTimeSize,
+    chatNameSize: parseInt(document.getElementById('chatNameSize').value) || defaultSettings.chatNameSize,
+    chatPreviewSize: parseInt(document.getElementById('chatPreviewSize').value) || defaultSettings.chatPreviewSize,
+    
+    // Animations
+    animationDuration: parseFloat(document.getElementById('animationDuration').value) || defaultSettings.animationDuration,
+    animationType: document.getElementById('animationType').value || defaultSettings.animationType,
+    highlightDuration: parseFloat(document.getElementById('highlightDuration').value) || defaultSettings.highlightDuration,
+    
+    // Layout
+    messagesRadius: parseInt(document.getElementById('messagesRadius').value) || defaultSettings.messagesRadius,
+    bubbleRadius: parseInt(document.getElementById('bubbleRadius').value) || defaultSettings.bubbleRadius,
+    inputRadius: parseInt(document.getElementById('inputRadius').value) || defaultSettings.inputRadius,
+    chatItemRadius: parseInt(document.getElementById('chatItemRadius').value) || defaultSettings.chatItemRadius,
+    messageMaxWidth: parseInt(document.getElementById('messageMaxWidth').value) || defaultSettings.messageMaxWidth,
+    messageSpacing: parseInt(document.getElementById('messageSpacing').value) || defaultSettings.messageSpacing,
+    inputHeight: parseInt(document.getElementById('inputHeight').value) || defaultSettings.inputHeight
+  };
+  
+  // Update current settings
+  currentSettings = {...newSettings};
+  
+  // Save to localStorage
+  localStorage.setItem('advancedSettings', JSON.stringify(currentSettings));
+  
+  // Apply the settings
+  applyAdvancedSettings();
+  
+  // Close modal
+  advancedSettingsModal.classList.remove('open');
+}
+
+// Reset to default settings
+function resetAdvancedSettings() {
+  if (confirm('Are you sure you want to reset all advanced settings to default?')) {
+    currentSettings = {...defaultSettings};
+    localStorage.setItem('advancedSettings', JSON.stringify(currentSettings));
+    applyAdvancedSettings();
+    populateSettingsForm();
+    alert('Advanced settings have been reset to default.');
+  }
+}
+
+// Apply advanced settings to the UI
+function applyAdvancedSettings() {
+  // Remove existing style element if it exists
+  const existingStyle = document.getElementById('advanced-settings-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  // Create new style element
+  const style = document.createElement('style');
+  style.id = 'advanced-settings-style';
+  
+  // Build CSS based on current settings
+  let css = `
+    /* Header Text Sizes */
+    #inboxHeader {
+      font-size: ${currentSettings.stalkSize}px !important;
+    }
+    #chatTitle {
+      font-size: ${currentSettings.bubuSize}px !important;
+    }
+    #typingIndicator {
+      font-size: ${currentSettings.statusSize}px !important;
+    }
+    
+    /* Message Text Sizes */
+    .from-user > div:not(.reply-box):not(.msg-time) {
+      font-size: ${currentSettings.userTextSize}px !important;
+    }
+    .from-user .msg-time {
+      font-size: ${currentSettings.userTimeSize}px !important;
+    }
+    .from-brother > div:not(.reply-box):not(.msg-time) {
+      font-size: ${currentSettings.brotherTextSize}px !important;
+    }
+    .from-brother .msg-time {
+      font-size: ${currentSettings.brotherTimeSize}px !important;
+    }
+    
+    /* Chat List Sizes */
+    .chat-name {
+      font-size: ${currentSettings.chatNameSize}px !important;
+    }
+    .chat-preview {
+      font-size: ${currentSettings.chatPreviewSize}px !important;
+    }
+    
+    /* Layout Settings */
+    #messages {
+      border-top-left-radius: ${currentSettings.messagesRadius}px !important;
+      border-top-right-radius: ${currentSettings.messagesRadius}px !important;
+    }
+    .bubble {
+      border-radius: ${currentSettings.bubbleRadius}px !important;
+      max-width: ${currentSettings.messageMaxWidth}% !important;
+      margin: ${currentSettings.messageSpacing}px 0 !important;
+    }
+    #inputControls {
+      border-radius: ${currentSettings.inputRadius}px !important;
+      min-height: ${currentSettings.inputHeight}px !important;
+    }
+    .chat-item {
+      border-radius: ${currentSettings.chatItemRadius}px !important;
+    }
+    
+    /* Animation Settings */
+    .bubble {
+      animation-duration: ${currentSettings.animationDuration}s !important;
+    }
+    .message-highlight {
+      animation-duration: ${currentSettings.highlightDuration}s !important;
+    }
+  `;
+  
+  // Add animation-specific styles
+  if (currentSettings.animationType === 'fadeIn') {
+    css += `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .bubble {
+        animation-name: fadeIn !important;
+      }
+    `;
+  } else if (currentSettings.animationType === 'slideUp') {
+    css += `
+      @keyframes slideUp {
+        from { 
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .bubble {
+        animation-name: slideUp !important;
+      }
+    `;
+  } else if (currentSettings.animationType === 'none') {
+    css += `
+      .bubble {
+        animation: none !important;
+      }
+    `;
+  }
+  
+  style.textContent = css;
+  document.head.appendChild(style);
+  
+  // Update bubble tail positions based on new radius
+  updateBubbleTails();
+}
+
+// Update bubble tail positions based on current border radius
+function updateBubbleTails() {
+  // Remove existing tail styles
+  const existingTailStyle = document.getElementById('bubble-tail-style');
+  if (existingTailStyle) {
+    existingTailStyle.remove();
+  }
+  
+  const tailStyle = document.createElement('style');
+  tailStyle.id = 'bubble-tail-style';
+  
+  const tailSize = 12;
+  const borderRadius = currentSettings.bubbleRadius;
+  
+  tailStyle.textContent = `
+    .from-user::after {
+      border-bottom-left-radius: ${Math.min(borderRadius / 4, 4)}px !important;
+    }
+    .from-brother::after {
+      border-bottom-right-radius: ${Math.min(borderRadius / 4, 4)}px !important;
+    }
+  `;
+  
+  document.head.appendChild(tailStyle);
+}
+
+// Event listeners
+cancelAdvancedBtn.addEventListener('click', () => {
+  advancedSettingsModal.classList.remove('open');
+});
+
+saveAdvancedBtn.addEventListener('click', saveAdvancedSettings);
+
+resetAdvancedBtn.addEventListener('click', resetAdvancedSettings);
+
+// Initialize settings on page load
+document.addEventListener('DOMContentLoaded', () => {
+  applyAdvancedSettings();
+});
+
+// Add this menu item to your existing settings menu HTML:
+// <div class="menu-item" data-action="advanced-settings">⚙️ Advanced Settings</div>
+
+// And add this event listener to handle the new menu item:
+document.addEventListener('click', (e) => {
+  if (e.target.dataset.action === 'advanced-settings') {
+    openAdvancedSettings();
+  }
+});
+</script>
 </body>
 </html>
