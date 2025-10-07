@@ -20,6 +20,309 @@
 
   <!--for bottom gesture navigation bar removing-->
   <style>
+  /* Enhanced Animation System */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -8px, 0);
+  }
+  90% {
+    transform: translate3d(0,-2px,0);
+  }
+}
+
+@keyframes flip {
+  from {
+    transform: perspective(400px) rotate3d(0, 1, 0, -360deg);
+    animation-timing-function: ease-out;
+  }
+  40% {
+    transform: perspective(400px) translate3d(0, 0, 150px) rotate3d(0, 1, 0, -190deg);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: perspective(400px) translate3d(0, 0, 150px) rotate3d(0, 1, 0, -170deg);
+    animation-timing-function: ease-in;
+  }
+  80% {
+    transform: perspective(400px) scale3d(.95, .95, .95);
+    animation-timing-function: ease-in;
+  }
+  to {
+    transform: perspective(400px);
+    animation-timing-function: ease-in;
+  }
+}
+
+@keyframes zoom {
+  from {
+    opacity: 0;
+    transform: scale3d(.3, .3, .3);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes wave {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes swing {
+  20% { transform: rotate3d(0, 0, 1, 15deg); }
+  40% { transform: rotate3d(0, 0, 1, -10deg); }
+  60% { transform: rotate3d(0, 0, 1, 5deg); }
+  80% { transform: rotate3d(0, 0, 1, -5deg); }
+  to { transform: rotate3d(0, 0, 1, 0deg); }
+}
+
+@keyframes tada {
+  0% { transform: scale3d(1, 1, 1); }
+  10%, 20% { transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg); }
+  30%, 50%, 70%, 90% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg); }
+  40%, 60%, 80% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg); }
+  100% { transform: scale3d(1, 1, 1); }
+}
+
+@keyframes wobble {
+  0% { transform: none; }
+  15% { transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg); }
+  30% { transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg); }
+  45% { transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg); }
+  60% { transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg); }
+  75% { transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg); }
+  100% { transform: none; }
+}
+
+@keyframes jello {
+  0%, 11.1%, 100% { transform: none; }
+  22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); }
+  33.3% { transform: skewX(6.25deg) skewY(6.25deg); }
+  44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); }
+  55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); }
+  66.6% { transform: skewX(-0.78125deg) skewY(-0.78125deg); }
+  77.7% { transform: skewX(0.390625deg) skewY(0.390625deg); }
+  88.8% { transform: skewX(-0.1953125deg) skewY(-0.1953125deg); }
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+@keyframes rubberBand {
+  0% { transform: scale(1); }
+  30% { transform: scaleX(1.25) scaleY(0.75); }
+  40% { transform: scaleX(0.75) scaleY(1.25); }
+  60% { transform: scaleX(1.15) scaleY(0.85); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lightSpeed {
+  from {
+    transform: translate3d(100%, 0, 0) skewX(-30deg);
+    opacity: 0;
+  }
+  60% {
+    transform: skewX(20deg);
+    opacity: 1;
+  }
+  80% {
+    transform: skewX(-5deg);
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes rollIn {
+  from {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0) rotate3d(0, 0, 1, -120deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rotateIn {
+  from {
+    transform-origin: center;
+    transform: rotate3d(0, 0, 1, -200deg);
+    opacity: 0;
+  }
+  to {
+    transform-origin: center;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Chat List Animations */
+@keyframes chatItemFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chatItemSlideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes chatItemBounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Special Effects */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(0, 123, 255, 0.8); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes unreadPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Animation Classes */
+.bubble.animate-fadeIn { animation-name: fadeIn; }
+.bubble.animate-slideUp { animation-name: slideUp; }
+.bubble.animate-slideInLeft { animation-name: slideInLeft; }
+.bubble.animate-slideInRight { animation-name: slideInRight; }
+.bubble.animate-bounce { animation-name: bounce; }
+.bubble.animate-flip { animation-name: flip; }
+.bubble.animate-zoom { animation-name: zoom; }
+.bubble.animate-wave { animation-name: wave; }
+.bubble.animate-pulse { animation-name: pulse; }
+.bubble.animate-shake { animation-name: shake; }
+.bubble.animate-swing { animation-name: swing; }
+.bubble.animate-tada { animation-name: tada; }
+.bubble.animate-wobble { animation-name: wobble; }
+.bubble.animate-jello { animation-name: jello; }
+.bubble.animate-heartbeat { animation-name: heartbeat; }
+.bubble.animate-rubberBand { animation-name: rubberBand; }
+.bubble.animate-lightSpeed { animation-name: lightSpeed; }
+.bubble.animate-rollIn { animation-name: rollIn; }
+.bubble.animate-rotateIn { animation-name: rotateIn; }
+
+.chat-item.animate-fadeIn { animation-name: chatItemFadeIn; }
+.chat-item.animate-slideIn { animation-name: chatItemSlideIn; }
+.chat-item.animate-bounceIn { animation-name: chatItemBounceIn; }
+
+.bubble.ripple-effect::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s linear;
+}
+
+.bubble.glow-effect {
+  animation: glow 2s infinite;
+}
+
+.bubble.float-effect {
+  animation: float 3s ease-in-out infinite;
+}
+
+.unread-badge.pulse-effect {
+  animation: unreadPulse 1.5s infinite;
+}
   /* Remove gesture navigation bar border */
 body {
   overscroll-behavior-y: none !important;
@@ -3650,31 +3953,94 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
     
-    <div id="animationsTab" class="tab-content">
-      <div class="settings-group">
-        <h4>Message Animations</h4>
-        <div class="setting-item">
-          <label>Animation Duration</label>
-          <input type="number" id="animationDuration" min="0.1" max="2" step="0.1" class="size-input">
-          <span class="unit">s</span>
-        </div>
-        <div class="setting-item">
-          <label>Animation Type</label>
-          <select id="animationType">
-            <option value="bubblePop">Bubble Pop</option>
-            <option value="fadeIn">Fade In</option>
-            <option value="slideUp">Slide Up</option>
-            <option value="none">None</option>
-          </select>
-        </div>
-        <div class="setting-item">
-          <label>Highlight Duration</label>
-          <input type="number" id="highlightDuration" min="0.5" max="5" step="0.5" class="size-input">
-          <span class="unit">s</span>
-        </div>
-      </div>
+<div id="animationsTab" class="tab-content">
+  <div class="settings-group">
+    <h4>Message Animations</h4>
+    <div class="setting-item">
+      <label>Animation Duration</label>
+      <input type="number" id="animationDuration" min="0.1" max="2" step="0.1" class="size-input">
+      <span class="unit">s</span>
     </div>
-    
+    <div class="setting-item">
+      <label>Animation Type</label>
+      <select id="animationType">
+        <option value="bubblePop">Bubble Pop</option>
+        <option value="fadeIn">Fade In</option>
+        <option value="slideUp">Slide Up</option>
+        <option value="slideInLeft">Slide In Left</option>
+        <option value="slideInRight">Slide In Right</option>
+        <option value="bounce">Bounce</option>
+        <option value="flip">Flip</option>
+        <option value="zoom">Zoom</option>
+        <option value="typewriter">Typewriter</option>
+        <option value="wave">Wave Effect</option>
+        <option value="pulse">Pulse</option>
+        <option value="shake">Shake</option>
+        <option value="swing">Swing</option>
+        <option value="tada">Tada</option>
+        <option value="wobble">Wobble</option>
+        <option value="jello">Jello</option>
+        <option value="heartbeat">Heartbeat</option>
+        <option value="rubberBand">Rubber Band</option>
+        <option value="lightSpeed">Light Speed</option>
+        <option value="rollIn">Roll In</option>
+        <option value="rotateIn">Rotate In</option>
+        <option value="none">None</option>
+      </select>
+    </div>
+    <div class="setting-item">
+      <label>Highlight Duration</label>
+      <input type="number" id="highlightDuration" min="0.5" max="5" step="0.5" class="size-input">
+      <span class="unit">s</span>
+    </div>
+    <div class="setting-item">
+      <label>Stagger Messages</label>
+      <input type="checkbox" id="staggerMessages">
+    </div>
+    <div class="setting-item">
+      <label>Stagger Delay</label>
+      <input type="number" id="staggerDelay" min="0.05" max="0.5" step="0.05" class="size-input">
+      <span class="unit">s</span>
+    </div>
+  </div>
+  
+  <div class="settings-group">
+    <h4>Special Effects</h4>
+    <div class="setting-item">
+      <label>Enable Particle Effects</label>
+      <input type="checkbox" id="particleEffects">
+    </div>
+    <div class="setting-item">
+      <label>Enable Ripple Effect</label>
+      <input type="checkbox" id="rippleEffect">
+    </div>
+    <div class="setting-item">
+      <label>Enable Glow Effect</label>
+      <input type="checkbox" id="glowEffect">
+    </div>
+    <div class="setting-item">
+      <label>Enable Floating Animation</label>
+      <input type="checkbox" id="floatingAnimation">
+    </div>
+  </div>
+  
+  <div class="settings-group">
+    <h4>Chat List Animations</h4>
+    <div class="setting-item">
+      <label>Chat Item Animation</label>
+      <select id="chatItemAnimation">
+        <option value="none">None</option>
+        <option value="fadeIn">Fade In</option>
+        <option value="slideIn">Slide In</option>
+        <option value="bounceIn">Bounce In</option>
+      </select>
+    </div>
+    <div class="setting-item">
+      <label>Unread Pulse Effect</label>
+      <input type="checkbox" id="unreadPulse">
+    </div>
+  </div>
+</div>
     <div id="layoutTab" class="tab-content">
       <div class="settings-group">
         <h4>Border Radius</h4>
@@ -4134,6 +4500,424 @@ document.addEventListener('click', (e) => {
   if (e.target.dataset.action === 'advanced-settings') {
     openAdvancedSettings();
   }
+});
+</script>
+<script>
+// Enhanced Animation System - FIXED VERSION
+function applyMessageAnimation(bubble, animationType, duration, isUser) {
+  const animationClasses = [
+    'animate-fadeIn', 'animate-slideUp', 'animate-slideInLeft', 'animate-slideInRight',
+    'animate-bounce', 'animate-flip', 'animate-zoom', 'animate-wave', 'animate-pulse',
+    'animate-shake', 'animate-swing', 'animate-tada', 'animate-wobble', 'animate-jello',
+    'animate-heartbeat', 'animate-rubberBand', 'animate-lightSpeed', 'animate-rollIn', 'animate-rotateIn'
+  ];
+  
+  bubble.classList.remove(...animationClasses);
+  
+  if (animationType !== 'none') {
+    bubble.classList.add(`animate-${animationType}`);
+    bubble.style.animationDuration = `${duration}s`;
+    
+    // Special handling for directional animations
+    if ((animationType === 'slideInLeft' && !isUser) || 
+        (animationType === 'slideInRight' && isUser)) {
+      bubble.classList.remove(`animate-${animationType}`);
+      bubble.classList.add(`animate-${animationType === 'slideInLeft' ? 'slideInRight' : 'slideInLeft'}`);
+    }
+    
+    applySpecialEffects(bubble);
+  }
+}
+
+function applySpecialEffects(bubble) {
+  const settings = getCurrentAnimationSettings();
+  
+  bubble.classList.remove('ripple-effect', 'glow-effect', 'float-effect');
+  
+  if (settings.particleEffects) {
+    createParticleEffect(bubble);
+  }
+  
+  if (settings.rippleEffect) {
+    bubble.classList.add('ripple-effect');
+  }
+  
+  if (settings.glowEffect) {
+    bubble.classList.add('glow-effect');
+  }
+  
+  if (settings.floatingAnimation) {
+    bubble.classList.add('float-effect');
+  }
+}
+
+function createParticleEffect(element) {
+  const rect = element.getBoundingClientRect();
+  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+  
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const particle = document.createElement('div');
+      particle.style.cssText = `
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        left: ${rect.left + rect.width / 2}px;
+        top: ${rect.top + rect.height / 2}px;
+      `;
+      
+      document.body.appendChild(particle);
+      
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 20 + Math.random() * 30;
+      const duration = 0.5 + Math.random() * 0.5;
+      
+      particle.animate([
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`, opacity: 0 }
+      ], {
+        duration: duration * 1000,
+        easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+      }).onfinish = () => particle.remove();
+    }, i * 50);
+  }
+}
+
+function applyChatItemAnimation(chatItem, animationType, duration) {
+  if (animationType !== 'none') {
+    chatItem.classList.add(`animate-${animationType}`);
+    chatItem.style.animationDuration = `${duration}s`;
+  }
+}
+
+function applyUnreadPulseEffect(badge) {
+  const settings = getCurrentAnimationSettings();
+  if (settings.unreadPulse) {
+    badge.classList.add('pulse-effect');
+  } else {
+    badge.classList.remove('pulse-effect');
+  }
+}
+
+function getCurrentAnimationSettings() {
+  return {
+    animationType: currentSettings.animationType,
+    animationDuration: currentSettings.animationDuration,
+    staggerMessages: currentSettings.staggerMessages,
+    staggerDelay: currentSettings.staggerDelay,
+    particleEffects: currentSettings.particleEffects,
+    rippleEffect: currentSettings.rippleEffect,
+    glowEffect: currentSettings.glowEffect,
+    floatingAnimation: currentSettings.floatingAnimation,
+    chatItemAnimation: currentSettings.chatItemAnimation,
+    unreadPulse: currentSettings.unreadPulse
+  };
+}
+
+// Override the buildMessageBubble function to include animations
+const originalBuildMessageBubble = window.buildMessageBubble;
+window.buildMessageBubble = function(msgKey, val) {
+  const div = originalBuildMessageBubble(msgKey, val);
+  
+  const settings = getCurrentAnimationSettings();
+  const isUser = val.from === 'user';
+  
+  // Apply animation
+  if (settings.animationType !== 'none') {
+    applyMessageAnimation(div, settings.animationType, settings.animationDuration, isUser);
+  }
+  
+  // Apply stagger effect if enabled
+  if (settings.staggerMessages) {
+    const index = Object.keys(messageStore).indexOf(msgKey);
+    div.style.animationDelay = `${index * settings.staggerDelay}s`;
+  }
+  
+  // Handle typewriter animation
+  if (settings.animationType === 'typewriter' && val.text) {
+    handleTypewriterAnimation(div, val, settings);
+  }
+  
+  return div;
+};
+
+// Override renderChatsOptimized to include chat item animations
+const originalRenderChatsOptimized = renderChatsOptimized;
+renderChatsOptimized = function(chatListData) {
+  originalRenderChatsOptimized(chatListData);
+  
+  const settings = getCurrentAnimationSettings();
+  const chatItems = document.querySelectorAll('.chat-item');
+  
+  chatItems.forEach((item, index) => {
+    if (settings.chatItemAnimation !== 'none') {
+      applyChatItemAnimation(item, settings.chatItemAnimation, 0.5);
+      item.style.animationDelay = `${index * 0.1}s`;
+    }
+    
+    // Apply unread pulse effect
+    const badge = item.querySelector('.unread-badge');
+    if (badge) {
+      applyUnreadPulseEffect(badge);
+    }
+  });
+};
+
+// Typewriter animation handler
+function applyTypewriterAnimation(element, text, duration) {
+  const originalText = element.textContent;
+  element.textContent = '';
+  element.style.overflow = 'hidden';
+  element.style.whiteSpace = 'nowrap';
+  element.style.borderRight = '2px solid';
+  
+  const length = text.length;
+  const interval = duration / length;
+  let i = 0;
+  
+  const typeInterval = setInterval(() => {
+    if (i < length) {
+      element.textContent += text.charAt(i);
+      i++;
+    } else {
+      clearInterval(typeInterval);
+      setTimeout(() => {
+        element.style.borderRight = 'none';
+        element.style.whiteSpace = 'normal';
+        element.style.overflow = 'visible';
+      }, 500);
+    }
+  }, interval);
+}
+
+function handleTypewriterAnimation(div, val, settings) {
+  const textElement = div.querySelector('div:not(.reply-box):not(.msg-time)');
+  if (textElement) {
+    const text = textElement.textContent;
+    textElement.textContent = '';
+    setTimeout(() => {
+      applyTypewriterAnimation(textElement, text, settings.animationDuration);
+    }, 100);
+  }
+}
+
+// Enhanced applyAdvancedSettings function
+function applyAdvancedSettings() {
+  const existingStyle = document.getElementById('advanced-settings-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  const style = document.createElement('style');
+  style.id = 'advanced-settings-style';
+  
+  let css = `
+    /* Header Text Sizes */
+    #inboxHeader {
+      font-size: ${currentSettings.stalkSize}px !important;
+    }
+    #chatTitle {
+      font-size: ${currentSettings.bubuSize}px !important;
+    }
+    #typingIndicator {
+      font-size: ${currentSettings.statusSize}px !important;
+    }
+    
+    /* Message Text Sizes */
+    .from-user > div:not(.reply-box):not(.msg-time) {
+      font-size: ${currentSettings.userTextSize}px !important;
+    }
+    .from-user .msg-time {
+      font-size: ${currentSettings.userTimeSize}px !important;
+    }
+    .from-brother > div:not(.reply-box):not(.msg-time) {
+      font-size: ${currentSettings.brotherTextSize}px !important;
+    }
+    .from-brother .msg-time {
+      font-size: ${currentSettings.brotherTimeSize}px !important;
+    }
+    
+    /* Chat List Sizes */
+    .chat-name {
+      font-size: ${currentSettings.chatNameSize}px !important;
+    }
+    .chat-preview {
+      font-size: ${currentSettings.chatPreviewSize}px !important;
+    }
+    
+    /* Layout Settings */
+    #messages {
+      border-top-left-radius: ${currentSettings.messagesRadius}px !important;
+      border-top-right-radius: ${currentSettings.messagesRadius}px !important;
+    }
+    .bubble {
+      border-radius: ${currentSettings.bubbleRadius}px !important;
+      max-width: ${currentSettings.messageMaxWidth}% !important;
+      margin: ${currentSettings.messageSpacing}px 0 !important;
+    }
+    #inputControls {
+      border-radius: ${currentSettings.inputRadius}px !important;
+      min-height: ${currentSettings.inputHeight}px !important;
+    }
+    .chat-item {
+      border-radius: ${currentSettings.chatItemRadius}px !important;
+    }
+    
+    /* Animation Settings */
+    .bubble {
+      animation-duration: ${currentSettings.animationDuration}s !important;
+    }
+    
+    .message-highlight {
+      animation-duration: ${currentSettings.highlightDuration}s !important;
+    }
+    
+    /* Animation-specific styles */
+    ${currentSettings.animationType === 'fadeIn' ? `
+      .bubble { animation-name: fadeIn !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'slideUp' ? `
+      .bubble { animation-name: slideUp !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'slideInLeft' ? `
+      .bubble { animation-name: slideInLeft !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'slideInRight' ? `
+      .bubble { animation-name: slideInRight !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'bounce' ? `
+      .bubble { animation-name: bounce !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'flip' ? `
+      .bubble { animation-name: flip !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'zoom' ? `
+      .bubble { animation-name: zoom !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'wave' ? `
+      .bubble { animation-name: wave !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'pulse' ? `
+      .bubble { animation-name: pulse !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'shake' ? `
+      .bubble { animation-name: shake !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'swing' ? `
+      .bubble { animation-name: swing !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'tada' ? `
+      .bubble { animation-name: tada !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'wobble' ? `
+      .bubble { animation-name: wobble !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'jello' ? `
+      .bubble { animation-name: jello !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'heartbeat' ? `
+      .bubble { animation-name: heartbeat !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'rubberBand' ? `
+      .bubble { animation-name: rubberBand !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'lightSpeed' ? `
+      .bubble { animation-name: lightSpeed !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'rollIn' ? `
+      .bubble { animation-name: rollIn !important; }
+    ` : ''}
+    
+    ${currentSettings.animationType === 'rotateIn' ? `
+      .bubble { animation-name: rotateIn !important; }
+    ` : ''}
+    
+    /* Stagger animation delays */
+    ${currentSettings.staggerMessages ? `
+      .bubble:nth-child(n) {
+        animation-delay: calc(var(--stagger-index, 0) * ${currentSettings.staggerDelay}s);
+      }
+    ` : ''}
+  `;
+  
+  style.textContent = css;
+  document.head.appendChild(style);
+  
+  updateBubbleTails();
+  
+  // Re-render messages to apply new animations
+  if (currentKey && Object.keys(messageStore).length > 0) {
+    const tempStore = { ...messageStore };
+    messageStore = {};
+    messagesEl.innerHTML = '';
+    lastRenderedDate = null;
+    processAndRenderMessages(tempStore);
+  }
+}
+
+function updateBubbleTails() {
+  const existingTailStyle = document.getElementById('bubble-tail-style');
+  if (existingTailStyle) {
+    existingTailStyle.remove();
+  }
+  
+  const tailStyle = document.createElement('style');
+  tailStyle.id = 'bubble-tail-style';
+  
+  const tailSize = 12;
+  const borderRadius = currentSettings.bubbleRadius;
+  
+  tailStyle.textContent = `
+    .from-user::after {
+      border-bottom-left-radius: ${Math.min(borderRadius / 4, 4)}px !important;
+    }
+    .from-brother::after {
+      border-bottom-right-radius: ${Math.min(borderRadius / 4, 4)}px !important;
+    }
+  `;
+  
+  document.head.appendChild(tailStyle);
+}
+
+// Initialize animations on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Apply animations to existing messages
+  setTimeout(() => {
+    const bubbles = document.querySelectorAll('.bubble');
+    const settings = getCurrentAnimationSettings();
+    
+    bubbles.forEach((bubble, index) => {
+      const isUser = bubble.classList.contains('from-user');
+      if (settings.animationType !== 'none') {
+        applyMessageAnimation(bubble, settings.animationType, settings.animationDuration, isUser);
+      }
+      
+      if (settings.staggerMessages) {
+        bubble.style.animationDelay = `${index * settings.staggerDelay}s`;
+      }
+    });
+  }, 100);
 });
 </script>
 </body>
