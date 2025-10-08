@@ -822,7 +822,7 @@ window.onload = function() {
     trackPresence();
     
     const pass = prompt("Enter your password:");
-    if (pass !== "mahi@bholu") {
+    if (pass !== "mahi@123") {
       alert("Incorrect password!");
       localStorage.removeItem('userEmail');
       startEl.classList.add('active');
@@ -843,7 +843,7 @@ function startChat() {
   const pass = passInput.value.trim();
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailPattern.test(email)) { alert('Please enter a valid email'); return; }
-  if (pass !== 'mahi@bholu') { alert('Incorrect password!'); return; }
+  if (pass !== 'mahi@123') { alert('Incorrect password!'); return; }
   localStorage.setItem('userEmail', email);
   userKey = email.replace(/\./g, '_');
   startEl.classList.remove('active');
