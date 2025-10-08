@@ -2185,7 +2185,10 @@ function processAndRenderMessages(messages) {
   if (addedNewMessages) {
     messagesEl.appendChild(fragment);
     
-
+ // Only scroll to bottom if we're not loading older messages and it's a new message
+if (!isLoadingOlderMessages) {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
     
   }
   
