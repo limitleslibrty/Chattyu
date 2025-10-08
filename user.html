@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html> 
+<head>
+  <meta charset="utf-8">
+  <title>User feedback</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TYV1T063RV"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-TYV1T063RV', { 'anonymize_ip': true });
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { height: 100dvh; font-family: Arial, sans-serif; }
+
+    
+    #start, #chat { display: none; height: 100%; width: 100%; }
+    #start.active, #chat.active { display: flex; flex-direction: column; }
+    #start { justify-content: center; align-items: center; background: #ece5dd; }
+    #start input, #start button {
+      padding: 10px; font-size: 16px; border-radius: 8px;
+      width: 80%; max-width: 300px; margin-top: 10px;
+      border: 1px solid #ccc;
+    }
+    #start button { background: #075E54; color: white; border: none; }
+
+#chatHeader {
+  position: fixed;   /* pin to viewport */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #FFFFFF;
+  color: #191818;
+  padding: 4px 8px;
+  font-size: 19px;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  border-bottom: 1px solid #ccc;
+  /* ensure transforms behave smoothly */
+  will-change: transform;
+}
+
+
+    
+    #chatHeader img { margin-left: 8px; border-radius: 50%; height: 50px; width: 50px; }
+    #chatHeader #chatTitle {
+      margin-top: 14px;
+      margin-left: 12px; font-weight: 500; }
+
+/* media image/gif style */
+img.msg-media{
+  max-width:260px;
+  max-height:260px;
+  border-radius:8px;
+  display:block;
+  margin-bottom:6px;
+}
+#gifModal{
+  position:fixed;left:0;right:0;top:0;bottom:0;display:none;
+  align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999;
+}
+#gifModal .panel{width:92%;max-width:720px;background:#fff;border-radius:12px;padding:10px;max-height:80vh;overflow:auto;}
+#gifResults{display:flex;flex-wrap:wrap;gap:8px;}
+#gifResults img{width:120px;height:90px;object-fit:cover;border-radius:8px;cursor:pointer;}
+    /* Dark mode base */
+body.dark {
+  background: #121212;
+  color: #e0e0e0;
+}
+
+/* Chat background */
+body.dark #messages {
+  background: #0b141a;
+  background-image: none; /* hide chat.png if you want */
+}
+
+/* Chat header */
+body.dark #chatHeader {
+  background: #1f2c34;
+  color: #e0e0e0;
+  border-bottom: 1px solid #333;
+}
+
+/* Input area */
+body.dark #inputArea {
+  background: transparent;
+
+}
+body.dark #inputRow input {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #333;
+}
+body.dark #inputRow button {
+  background: transparent;
+}
+
+/* Bubbles */
+body.dark .from-user {
+  background: #056162;
+  color: #fff;
+}
+body.dark .from-brother {
+  background: #262d31;
+  color: #fff;
+}
+
+/* Date divider */
+body.dark .date-divider {
+  background: #2a3942;
+  color: #ccc;
+}
+
+
+/* Message time text */
+body.dark .msg-time {
+  color: #aaa; /* lighter gray for visibility */
+}
+
+/* Reply snippet inside bubbles */
+body.dark .reply-snippet {
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #34b7f1; /* WhatsApp-like cyan */
+  color: #ddd;
+}
+
+
+/* Three dots menu */
+.bubble-menu {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.bubble:hover .bubble-menu {
+  opacity: 1;
+}
+
+/* Context menu */
+.context-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.context-menu-item:hover {
+  background: #f0f0f0;
+}
+
+.context-menu-item.delete {
+  color: #ff4444;
+}
+
+body.dark .bubble-menu {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+body.dark .context-menu {
+  background: #2a3942;
+  border-color: #444;
+  color: white;
+}
+
+body.dark .context-menu-item:hover {
+  background: #1f2c34;
+}
+/* Dark Mode Toggle - Premium Style */
+/* Premium Toggle Base */
+#darkToggle {
+  margin-top: 14px;
+  margin-left: auto;
+  margin-right: 25px;
+  width: 50px;
+  height: 26px;
+  background: linear-gradient(145deg, #e0e0e0, #ffffff);
+  border-radius: 50px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.1), 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Circle inside toggle */
+#darkToggle::before {
+  content: "☀️";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.4s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Active Dark Mode (more premium look) */
+body.dark #darkToggle {
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+  border: 1px solid #444;
+  box-shadow: inset 0 0 10px rgba(0, 255, 170, 0.3), 0 0 8px rgba(0, 255, 170, 0.4);
+}
+
+/* Move circle to right and glow */
+body.dark #darkToggle::before {
+  left: 26px;
+  background: #222;
+  color: #00ff99; /* neon green moon */
+  content: "🌙";
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.8), 0 0 12px rgba(0, 255, 170, 0.6);
+}
+
+/* Fullscreen Media Preview */
+#mediaPreview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+#mediaPreview img {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+}
+
+#closePreview {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10001;
+}
+/* Optional: subtle glow when hovered */
+#darkToggle:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#darkToggle::before {
+  content: var(--toggle-icon, "☀️");
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+    
+    .bubble {
+      margin: 6px 0; padding: 10px 15px; border-radius: 8px;
+      max-width: 70%; position: relative; word-wrap: break-word;
+      display: flex; flex-direction: column;
+      transition: transform 0.2s ease;
+      will-change: transform;
+    }
+    .from-user { background: #dcf8c6; align-self: flex-end; }
+    .from-brother { background: #fff; align-self: flex-start; }
+
+    .reply-snippet {
+      background: rgba(0, 0, 0, 0.05);
+      border-left: 4px solid #075E54;
+      padding: 5px 10px;
+      font-size: 13px;
+      margin-bottom: 5px;
+      color: #333;
+      border-radius: 4px;
+    }
+
+  #replyBox {
+  display: none;
+  background:rgba(255, 255, 255, 0.85) ;
+  padding: 5px 10px;
+  border-left: 4px solid #075E54;
+  margin: 5px 10px;
+  font-style: italic;
+  font-size: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+ body.dark #replyBox {
+  background: #1F2C34BF;
+  border-left: 4px solid #34b7f1;
+  color: #fff;
+}
+
+  #messages {
+    background: lightgrey;
+  position: absolute;
+  top: 60px;         /* below header (match header height) */
+  left: 0;
+  right: 0;
+  bottom: 0;         /* let messages go all the way under the input */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+#inputArea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px;
+  background: transparent !important; /* messages will show behind */
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000; /* ensure input overlays messages */
+  pointer-events: auto; /* allow interaction */
+  /* optional: add subtle blur if you want better contrast:
+     backdrop-filter: blur(6px); - uncomment if desired */
+}
+
+/* textarea with slight transparent background for visibility */
+#inputRow textarea,
+#msgInput {
+  max-height: 100px;
+  background: rgba(255, 255, 255, 0.85); /* almost solid white */
+  border: 1px solid grey;
+  border-radius: 20px;
+  padding: 8px 12px;
+  color: #000;
+  font-size: 15px;
+  line-height: 1.3;
+  flex: 1;
+  resize: none;
+}
+
+/* buttons with subtle background */
+#inputRow button,
+#gifBtn, #attachBtn, #sendBtn {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid grey;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color:grey;
+}
+
+/* reply preview */
+.reply-preview {
+  background: #f0f0f0;
+  border-left: 4px solid #4caf50;
+  color: #333;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+}
+
+/* dark mode overrides */
+body.dark #inputRow textarea,
+body.dark #msgInput {
+  background: #1F2C34BF;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+body.dark #inputRow button {
+  background: #1F2C34BF;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+
+
+
+
+/* Compact WhatsApp-like icon buttons for GIF & Attach */
+#inputRow {
+  display: flex;
+  align-items: center;   /* center vertically */
+  gap: 2px;              /* small spacing between controls */
+}
+
+#inputRow button.icon-btn,
+#gifBtn, /* fallback selector if you don't change HTML */
+#attachBtn {
+  width: 36px;
+  height: 36px;
+  margin-right: 1px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;      /* icon / emoji size */
+  line-height: 1;
+  flex: 0 0 36px;       /* don't grow or shrink */
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(16,24,40,0.06);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+/* make sure textarea doesn’t push icons out on small screens */
+#inputRow textarea {
+  flex: 1 1 auto;    /* textarea grows, icons keep fixed size */
+  margin: 0;
+}
+
+/* slightly shrink the 'Send' button so it balances with icons */
+#inputRow button#sendBtn {
+  padding: 4px 6px;
+  border-radius: 18px;
+  margin-left: 2px;
+  flex: 0 0 auto;
+}
+
+
+/*comp*/
+  
+
+
+
+    
+
+
+    .msg-time {
+      font-size: 10px;
+      color: #555;
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+    
+    
+
+    .reply-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      color: #075E54;
+    }
+    .from-user .reply-indicator { left: -25px; }
+    .from-brother .reply-indicator { right: -25px; }
+
+    /* Date Divider */
+    .date-divider {
+      align-self: center;
+      background: #d3d3d3;
+      color: #333;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin: 10px 0;
+    }
+    
+    
+
+
+
+  </style>
+</head>
+<body>
+  <div id="start" class="active">
+    <input id="emailInput" placeholder="Enter your email..." />
+    <input id="passInput" placeholder="Enter password..." type="password" />
+    <button onclick="startChat()">Enter</button>
+  </div>
+
+  <div id="chat">
+    <div id="chatHeader">
+      <img src="chat_logo.png" alt="logo" />
+      <b><div 
+      id="chatTitle">Dudu😘</div></b>
+      
+      
+  <span id="statusIndicator" style="font-size:15px;
+  margin-top: 15.5px;
+  margin-left:8px;"></span>
+  <a href="videocall.html"
+style="margin-left: auto;
+margin-right: 5px;
+margin-top: 8px;"> <!-- WhatsApp-like call icon (original) -->
+<!-- WhatsApp-like call icon (transparent background) -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="38" height="30" viewBox="0 0 24 24" role="img" aria-labelledby="title desc">
+  <title id="title">Call</title>
+  <desc id="desc">Phone handset icon</desc>
+
+  <!-- handset only -->
+  <path d="M6.62 10.79
+           a15.466 15.466 0 006.59 6.59
+           l2.2-2.2
+           a1 1 0 01.95-.27
+           c1.05.27 2.2.42 3.4.42
+           a1 1 0 011 1V20
+           a1 1 0 01-1 1
+           C9.39 21 3 14.61 3 6
+           a1 1 0 011-1h2.5
+           a1 1 0 011 1
+           c0 1.2.15 2.35.42 3.4
+           .09.31.01.65-.27.95
+           l-2.03 2.03z"
+        fill="none" stroke="grey" stroke-width="1.3"
+        stroke-linecap="round" stroke-linejoin="round" />
+
+</svg></a>
+<span id="darkToggle" style="margin-left:auto;
+margin-right: 25px;
+background:none; border:none; font-size:25px; cursor:pointer;"></span>
+      
+      
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="inputArea">
+<div id="replyBox">
+  <span id="replyText"></span>
+  <button id="closeReply">
+    ✕
+  </button>
+</div>
+
+      <div id="inputRow" style="background: transparent;">
+        
+        <button id="gifBtn" type="button" onclick="openGifModal()">
+  <svg xmlns="http://www.w3.org/2000/svg" 
+     width="24" height="24" 
+     fill="none" 
+     stroke="grey" 
+     stroke-width="2" 
+     stroke-linecap="round" 
+     stroke-linejoin="round">
+
+  <!-- outer rounded square -->
+  <rect x="3" y="3" width="18" height="18" rx="6" ry="6"/>
+
+  <!-- eyes -->
+  <circle cx="9" cy="10" r="1"/>
+  <circle cx="15" cy="10" r="1"/>
+
+  <!-- mouth with folded corner -->
+  <path d="M8 15h4c1.5 0 3 1 3 2v1l3-3"/>
+</svg>
+  
+  
+</button>
+<input type="file" id="imgInput" accept="image/*" style="display:none;" onchange="sendImage(event)">
+<button onclick="document.getElementById('imgInput').click()">
+  
+    <svg xmlns="http://www.w3.org/2000/svg" 
+       width="24" height="24" 
+       fill="none" 
+       stroke="grey" 
+       stroke-width="2" 
+       stroke-linecap="round" 
+       stroke-linejoin="round">
+    <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a2 2 0 0 1-2.83-2.83l8.48-8.48" />
+  </svg>
+  
+</button>
+<textarea id="msgInput" placeholder="Type a message…" rows="1" ...></textarea>
+
+<button onclick="sendMessage()">
+  
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="grey" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5"></path>
+    <path d="M5 12l7-7 7 7"></path>
+  </svg>
+</button>
+      </div>
+    </div>
+  </div>
+  
+    
+
+  
+  
+<!-- GIF modal -->
+<div id="gifModal" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true">
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <input id="gifQuery" placeholder="Search GIFs (GIPHY)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ccc" />
+      <button id="gifSearchBtn" onclick="searchTenor()">Search</button>
+      <button id="gifCloseBtn" onclick="closeGifModal()">Close</button>
+    </div>
+    
+    <div id="gifResults">Type a query and press Search or click Close.</div>
+  </div>
+</div>
+  <script> 
+/* =========================
+   Firebase + DOM handles
+   ========================= */
+const db = firebase.database();
+const startEl    = document.getElementById('start');
+const chatEl     = document.getElementById('chat');
+const messagesEl = document.getElementById('messages');
+const msgInput   = document.getElementById('msgInput');
+const emailInput = document.getElementById('emailInput');
+const passInput  = document.getElementById('passInput');
+const replyBox   = document.getElementById('replyBox');
+// --- GIF config: set your GIPHY API key (get one at developers.giphy.com)
+/* ===== Tenor config =====
+   Get a Tenor API key from Google Cloud Console (enable Tenor API, create API key).
+   Docs: https://developers.google.com/tenor/guides/quickstart
+*/
+const TENOR_API_KEY = "AIzaSyB_R_WfxdRYAnMCykNpxDAAJRqKkjpgUTs"; // <-- REPLACE with your Tenor v2 API key
+const TENOR_CLIENT_KEY = "user feedback"; // optional, stable client identifier // replace if you have your own key
+const FRIEND_KEY = 'brother'; // set your peer's id/name used in DB (case-insensitive)
+
+let userKey = '';
+let replyTo = null;
+let messageListener = null;
+let messageMap = {};           // key -> message
+let lastDateForDivider = '';
+
+/* =========================
+   Presence
+   ========================= */
+// ---- presence + heartbeat (replace your existing trackPresence()) ----
+let __presenceRef = null;
+let __connectedListener = null;
+let __heartbeatTimer = null;
+const HEARTBEAT_MS = 3000; // update every 15s (tune as needed)
+
+function startHeartbeat() {
+  // ensure only one heartbeat runs
+  stopHeartbeat();
+  if (!__presenceRef) return;
+  __heartbeatTimer = setInterval(() => {
+    // use server timestamp to avoid client clock skew
+    __presenceRef.update({
+      last_changed: firebase.database.ServerValue.TIMESTAMP,
+      state: 'online'
+    }).catch(() => { /* ignore transient errors */ });
+  }, HEARTBEAT_MS);
+}
+
+function stopHeartbeat() {
+  if (__heartbeatTimer) {
+    clearInterval(__heartbeatTimer);
+    __heartbeatTimer = null;
+  }
+}
+
+function trackPresence() {
+  if (!userKey) return;
+  // clean previous listeners if any (helpful during reloads/dev)
+  if (__connectedListener) {
+    db.ref('.info/connected').off('value', __connectedListener);
+    __connectedListener = null;
+  }
+  // presence ref for this user
+  __presenceRef = db.ref('status/' + userKey);
+  
+  // Ensure onDisconnect sets offline with server timestamp
+  db.ref('.info/connected').on('value', __connectedListener = (snap) => {
+    if (snap.val() === true) {
+      try {
+        // set a reliable onDisconnect (server sets offline when connection closes)
+        __presenceRef.onDisconnect().set({
+          state: 'offline',
+          last_changed: firebase.database.ServerValue.TIMESTAMP
+        }).catch(() => {});
+        // immediately mark online and set last_changed via server timestamp
+        __presenceRef.set({
+          state: 'online',
+          last_changed: firebase.database.ServerValue.TIMESTAMP,
+          typing: false
+        }).catch(() => {});
+        // start regular heartbeat updates so last_seen stays fresh
+        startHeartbeat();
+      } catch (e) {
+        console.warn('Presence setup error', e);
+      }
+    } else {
+      // not connected — stop local heartbeat timers
+      stopHeartbeat();
+    }
+  });
+  
+  // When page hidden, mark as 'away' (optional)
+  document.addEventListener('visibilitychange', () => {
+    if (!__presenceRef) return;
+    if (document.visibilityState === 'hidden') {
+      __presenceRef.update({
+        state: 'away',
+        last_changed: firebase.database.ServerValue.TIMESTAMP
+      }).catch(() => {});
+      stopHeartbeat();
+    } else {
+      __presenceRef.update({
+        state: 'online',
+        last_changed: firebase.database.ServerValue.TIMESTAMP
+      }).catch(() => {});
+      startHeartbeat();
+    }
+  });
+  
+  // On page unload, rely on onDisconnect; optionally attempt a final set
+  window.addEventListener('pagehide', () => {
+    // stop heartbeat to avoid errors while unloading
+    stopHeartbeat();
+    if (__presenceRef) {
+      try {
+        // onDisconnect will take care of the final state,
+        // but attempt a quick set if the navigator supports sendBeacon or synchronous XHR:
+        __presenceRef.update({
+          last_changed: firebase.database.ServerValue.TIMESTAMP
+        }).catch(() => {});
+      } catch (e) {}
+    }
+  });
+}
+let typingTimeout;
+
+msgInput.addEventListener("input", () => {
+  if (!userKey) return;
+  
+  // Mark typing
+  db.ref("status/" + userKey).update({ typing: true });
+  
+  // Reset typing after 2s of no input
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    db.ref("status/" + userKey).update({ typing: false });
+  }, 900);
+});
+
+// When input loses focus, stop typing
+msgInput.addEventListener("blur", () => {
+  if (userKey) {
+    db.ref("status/" + userKey).update({ typing: false });
+  }
+});
+function listenToStatus(friendKey) {
+  const statusIndicator = document.getElementById("statusIndicator");
+  
+  db.ref("status/" + friendKey).on("value", (snapshot) => {
+    const status = snapshot.val();
+    
+    // Debug log
+    console.log("Status snapshot for", friendKey, status);
+    
+    if (!status) {
+      statusIndicator.textContent = "● Offline";
+      statusIndicator.style.color = "gray";
+      return;
+    }
+    
+    if (status.typing === true) {
+      statusIndicator.textContent = "typing...";
+      statusIndicator.style.color = "dodgerblue";
+    } else if (status.state === "online") {
+      statusIndicator.textContent = "● Online";
+      statusIndicator.style.color = "limegreen";
+    } else if (status.state === "offline") {
+      statusIndicator.textContent = "last seen " + formatLastSeen(status.last_changed);
+      statusIndicator.style.color = "gray";
+    } else {
+      statusIndicator.textContent = "● Unknown";
+      statusIndicator.style.color = "red";
+    }
+  });
+}
+/* =========================
+   Auth-ish gate
+   ========================= */
+window.onload = function() {
+  const savedEmail = localStorage.getItem('userEmail');
+  if (savedEmail) {
+    userKey = savedEmail.replace(/\./g, '_');
+    startEl.classList.remove('active');
+    chatEl.classList.add('active');
+    loadMessages();
+    trackPresence();
+    
+    const pass = prompt("Enter your password:");
+    if (pass !== "mahi@bholu") {
+      alert("Incorrect password!");
+      localStorage.removeItem('userEmail');
+      startEl.classList.add('active');
+      chatEl.classList.remove('active');
+    }
+    
+    // ✅ call here so DOM is ready
+    listenToStatus(FRIEND_KEY);
+    
+  } else {
+    startEl.classList.add('active');
+    chatEl.classList.remove('active');
+  }
+};
+
+function startChat() {
+  const email = emailInput.value.trim();
+  const pass = passInput.value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(email)) { alert('Please enter a valid email'); return; }
+  if (pass !== 'mahi@bholu') { alert('Incorrect password!'); return; }
+  localStorage.setItem('userEmail', email);
+  userKey = email.replace(/\./g, '_');
+  startEl.classList.remove('active');
+  chatEl.classList.add('active');
+  loadMessages();
+  trackPresence();
+}
+
+/* =========================
+   Load last 50 + stream new
+   ========================= */
+function loadMessages() {
+  // reset UI state
+  messagesEl.innerHTML = '';
+  messageMap = {};
+  lastDateForDivider = '';
+
+  // stop any prior listener
+  if (messageListener) messageListener.off();
+
+  // Use orderByKey since your keys are Date.now() timestamps (strings).
+  const listRef = db.ref('chats/' + userKey).orderByKey().limitToLast(50);
+
+  listRef.once('value', snapshot => {
+    const msgs = [];
+    snapshot.forEach(child => msgs.push({ key: child.key, ...child.val() }));
+
+    // Ensure correct chronological order
+    msgs.sort((a,b) => Number(a.key) - Number(b.key));
+
+    msgs.forEach(m => addSingleMessage(m));
+    scrollToBottom();
+
+    const lastKey = msgs.length ? msgs[msgs.length - 1].key : '0';
+
+    // Now listen for *newer* items. startAt(lastKey) will also emit the last item once;
+    // our messageMap guard prevents duplicates.
+    messageListener = db.ref('chats/' + userKey).orderByKey().startAt(lastKey);
+    messageListener.on('child_added', snap => {
+      const msg = { key: snap.key, ...snap.val() };
+      if (messageMap[msg.key]) return; // skip already rendered
+      addSingleMessage(msg);
+      scrollToBottom();
+    });
+  });
+}
+/**
+ * Compress an Image/File/Blob to a JPEG dataURL under maxKB (200 KB default).
+ * Returns a Promise that resolves to a dataURL string.
+ */
+function compressImageFile(fileOrBlob, maxKB = 200, maxWidth = 1280, maxHeight = 1280) {
+  return new Promise((resolve, reject) => {
+    // read file/blob as dataURL
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Invalid image file'));
+      img.onload = async () => {
+        try {
+          // compute target dimensions (fit within maxWidth/maxHeight)
+          let [w, h] = [img.naturalWidth, img.naturalHeight];
+          const ratio = Math.min(1, maxWidth / w, maxHeight / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // helper to get blob from canvas at given quality
+          function canvasToBlobPromise(quality) {
+            return new Promise(res => {
+              canvas.toBlob(blob => res(blob), 'image/jpeg', quality);
+            });
+          }
+
+          // first try with descending quality
+          let quality = 0.92;
+          let blob = await canvasToBlobPromise(quality);
+
+          // If already under target, return
+          const targetBytes = maxKB * 1024;
+
+          // Decrease quality in steps until target or minQuality
+          const minQuality = 0.40;
+          while (blob && blob.size > targetBytes && quality > minQuality) {
+            quality -= 0.07; // step down
+            if (quality < minQuality) quality = minQuality;
+            blob = await canvasToBlobPromise(quality);
+          }
+
+          // If still too big, progressively shrink dimensions and retry
+          let shrinkFactor = 0.9; // reduce to 90% each loop
+          while (blob && blob.size > targetBytes && (canvas.width > 300 && canvas.height > 300)) {
+            canvas.width = Math.round(canvas.width * shrinkFactor);
+            canvas.height = Math.round(canvas.height * shrinkFactor);
+            // redraw
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            // reset quality a bit
+            quality = Math.max(0.85, quality); // try decent quality first
+            blob = await canvasToBlobPromise(quality);
+
+            // if still large, reduce quality further
+            while (blob && blob.size > targetBytes && quality > minQuality) {
+              quality -= 0.07;
+              if (quality < minQuality) quality = minQuality;
+              blob = await canvasToBlobPromise(quality);
+            }
+            // loop until under target or image is very small
+          }
+
+          // fallback: if nothing worked, use the last blob (best effort)
+          if (!blob) return reject(new Error('Compression failed'));
+
+          // convert blob to dataURL
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result);
+          fr.onerror = () => reject(new Error('Failed to read compressed blob'));
+          fr.readAsDataURL(blob);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.src = reader.result;
+    };
+
+    // If input is a Blob or File, read it
+    reader.readAsDataURL(fileOrBlob);
+  });
+}
+
+/**
+ * Replaces your previous sendImage(event) to compress before sending.
+ * Call this on file input change: onchange="sendImage(event)"
+ */
+function sendImage(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const maxKB = 200; // target size in KB
+
+  // Provide UI feedback (optional)
+  const originalButton = event.target;
+  // compress
+  compressImageFile(file, maxKB).then(dataUrl => {
+    // payload shape matches your sendMediaMessage usage
+    sendMediaMessage({
+      type: 'image',
+      url: dataUrl,
+      filename: file.name
+    });
+  }).catch(err => {
+    console.error('Compression failed', err);
+    // fallback: send original as dataURL (may be large) - or notify user
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      sendMediaMessage({ type: 'image', url: ev.target.result, filename: file.name });
+    };
+    reader.readAsDataURL(file);
+  }).finally(() => {
+    // Reset file input so same file can be selected again
+    event.target.value = '';
+  });
+}
+
+/* Update paste handler so pasted image files are compressed before sending */
+document.addEventListener('paste', (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.kind === 'file') {
+      const blob = it.getAsFile();
+      // compress then send
+      compressImageFile(blob, 200).then(dataUrl => {
+        sendMediaMessage({ type: 'image', url: dataUrl });
+      }).catch(err => {
+        console.error('Paste compression failed', err);
+      });
+      e.preventDefault();
+      return;
+    }
+    if (it.kind === 'string' && it.type === 'text/plain') {
+      it.getAsString(str => {
+        if (str.match(/\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || str.includes('giphy.com')) {
+          sendMediaMessage({ type: 'gif', url: str });
+        }
+      });
+    }
+  }
+});
+
+// --- VisualViewport-aware layout adaptation (robust, avoid gaps) ---
+(function setupViewportAdjustments() {
+  const header = document.getElementById('chatHeader');
+  const inputArea = document.getElementById('inputArea');
+  const messages = document.getElementById('messages');
+
+  // helper to compute current input area height (reflow-safe)
+  function getInputHeight() {
+    // use offsetHeight (includes padding, border)
+    return inputArea.offsetHeight || 70;
+  }
+
+  function updateLayout() {
+    const vv = window.visualViewport;
+    const headerH = header.offsetHeight || 60;
+    const inputH = getInputHeight();
+
+    const viewH = vv ? vv.height : window.innerHeight;
+    const viewOffsetTop = vv ? vv.offsetTop : 0;
+
+    // keyboard height (0 when keyboard closed)
+    const offsetBottom = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
+
+    // place inputArea just above keyboard
+    inputArea.style.bottom = offsetBottom + "px";
+
+    // pin messages between header and input (avoid using fixed height)
+    messages.style.top = headerH + 'px';
+    // let messages go all the way to the bottom (so they appear behind the input),
+// but still account for on-screen keyboard offset so input stays above it.
+messages.style.bottom = offsetBottom + 'px';
+
+// reserve scroll padding so last message isn't hidden behind the input
+messages.style.paddingBottom = (inputH + 10) + 'px'; // 8px breathing room
+
+    // ensure header stays visually pinned if visualViewport shifted (keyboard)
+    header.style.transform = `translateY(${viewOffsetTop}px)`;
+  }
+
+  // if you have CSS that sets bottom: 70px on #messages, override it via JS above.
+  // OPTIONAL: remove any hardcoded bottom in CSS or set it to 0 there.
+
+  // listen for visualViewport and window events
+  window.addEventListener('resize', updateLayout);
+  window.addEventListener('orientationchange', updateLayout);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateLayout);
+    window.visualViewport.addEventListener('scroll', updateLayout);
+  }
+
+  // auto-grow support: if the textarea changes size, recalc layout
+  // (also makes sure expanding textarea doesn't create a gap)
+  msgInput.addEventListener('input', () => {
+    // simple auto-grow
+    msgInput.style.height = 'auto';
+    msgInput.style.height = (msgInput.scrollHeight) + 'px';
+    setTimeout(updateLayout, 0);
+  });
+
+  // also update on focus/blur to react to keyboard
+  msgInput.addEventListener('focus', () => {
+    setTimeout(() => { updateLayout(); scrollToBottom(); }, 50);
+  });
+  msgInput.addEventListener('blur', () => {
+    setTimeout(updateLayout, 50);
+  });
+
+  // initial layout
+  setTimeout(updateLayout, 50);
+
+  // expose for debugging if needed
+  window.__chatUpdateLayout = updateLayout;
+})();
+/* =========================
+   Sending messages
+   ========================= */
+function sendMessage() {
+  const raw = msgInput.value.trim();
+  if (raw === '') return;
+  
+  const isMediaUrl = raw.match(/^https?:\/\/.*\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || raw.includes('giphy.com');
+  
+  const key = String(Date.now());
+  const base = {
+    sender: userKey,
+    from: 'user',
+    to: FRIEND_KEY,
+    time: Number(key),
+    replyTo: replyTo ? replyTo.key : null
+  };
+  
+  if (isMediaUrl) {
+    // send as media message
+    const msg = Object.assign({}, base, { type: 'gif', url: raw });
+    db.ref('chats/' + userKey).child(key).set(msg);
+  } else {
+    const newMsg = Object.assign({}, base, { text: raw });
+    db.ref('chats/' + userKey).child(key).set(newMsg);
+  }
+  
+  msgInput.value = '';
+  msgInput.style.height = '40px';
+  replyTo = null;
+  replyBox.style.display = 'none';
+  msgInput.focus();
+}
+
+// --- GIF modal controls ---
+function openGifModal(){
+  document.getElementById('gifModal').style.display = 'flex';
+  document.getElementById('gifResults').innerHTML = '';
+  document.getElementById('gifQuery').value = '';
+  document.getElementById('gifQuery').focus();
+}
+function closeGifModal(){ document.getElementById('gifModal').style.display = 'none'; }
+
+// --- Search GIPHY and render thumbnails ---
+// --- Tenor search implementation (replaces searchGiphy) ---
+async function searchTenor(query) {
+  const resultsEl = document.getElementById('gifResults');
+  if (!resultsEl) return;
+  const q = (typeof query === 'undefined' || query === null) ? (document.getElementById('gifQuery').value || '') : query;
+  // If the caller passed explicit 'trending' -> use featured endpoint
+  const isTrending = (q === 'trending' || q.trim() === '');
+  resultsEl.innerHTML = 'Loading…';
+  
+  try {
+    let url;
+    const encoded = encodeURIComponent(q.trim());
+    if (isTrending) {
+      // featured (trending) endpoint — returns recent/popular items
+      url = `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&limit=24&contentfilter=low`;
+    } else {
+      // search endpoint
+      url = `https://tenor.googleapis.com/v2/search?q=${encoded}&key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&limit=24&contentfilter=low`;
+    }
+    
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Tenor fetch failed: ' + res.status);
+    const json = await res.json();
+    resultsEl.innerHTML = '';
+    
+    const items = json.results || [];
+    if (items.length === 0) {
+      resultsEl.innerHTML = 'No GIFs found.';
+      return;
+    }
+    
+    items.forEach(item => {
+      // Tenor v2 returns `media_formats` map with different size formats.
+      // Prefer small thumbnails (tinygif/nanogif/nanowebp) for grid thumbnails,
+      // and prefer `gif` or `mediumgif` when sending the selected GIF.
+      const mf = item.media_formats || {};
+      const preview =
+        (mf.tinygif && mf.tinygif.url) ||
+        (mf.nanogif && mf.nanogif.url) ||
+        (mf.tinywebp && mf.tinywebp.url) ||
+        (mf.nanowebp && mf.nanowebp.url) ||
+        (mf.gif && mf.gif.url) ||
+        null;
+      
+      const full =
+        (mf.gif && mf.gif.url) ||
+        (mf.mediumgif && mf.mediumgif.url) ||
+        (mf.raw && mf.raw.url) ||
+        preview;
+      
+      if (!preview) return; // skip if we don't have anything to show
+      
+      const img = document.createElement('img');
+      img.src = preview;
+      img.alt = item.content_description || item.id || 'gif';
+      img.title = item.content_description || '';
+      
+      img.addEventListener('click', () => {
+        // send selected GIF as media message (your existing helper)
+        sendMediaMessage({ type: 'gif', url: full });
+        // optional: call registershare (non-blocking) to help Tenor improve relevance
+        try {
+          const shareUrl = `https://tenor.googleapis.com/v2/registershare?id=${encodeURIComponent(item.id)}&key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}`;
+          // fire-and-forget
+          fetch(shareUrl).catch(() => {});
+        } catch (e) { /* ignore */ }
+        // close modal
+        closeGifModal();
+      });
+      
+      resultsEl.appendChild(img);
+    });
+    
+  } catch (err) {
+    console.error('Tenor search error', err);
+    resultsEl.innerHTML = 'Search failed.';
+  }
+}
+
+// --- Helper to send media message objects ---
+function sendMediaMessage(payload){
+  if (!userKey) { alert('Open chat first'); return; }
+  const key = String(Date.now());
+  const msg = {
+    sender: userKey,
+    from: 'user',
+    to: FRIEND_KEY,
+    time: Number(key),
+    type: payload.type || 'image',
+    url: payload.url || payload.mediaUrl || '',
+    replyTo: replyTo ? replyTo.key : null
+  };
+  db.ref('chats/' + userKey).child(key).set(msg);
+}
+/* =========================
+   Rendering helpers
+   ========================= */
+function addSingleMessage(msg) {
+  const ts = Number(msg.time || msg.key);
+  const msgDate = new Date(ts).toDateString();
+
+  if (msgDate !== lastDateForDivider) {
+    addDateDivider(msgDate);
+    lastDateForDivider = msgDate;
+  }
+  addBubble(msg);
+}
+
+function addDateDivider(dateStr) {
+  const div = document.createElement('div');
+  div.className = 'date-divider';
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (dateStr === today) div.innerText = "Today";
+  else if (dateStr === yesterday) div.innerText = "Yesterday";
+  else div.innerText = dateStr;
+  messagesEl.appendChild(div);
+}
+
+function isFromMe(m) {
+  // Primary rule: explicit sender id
+  if (m.sender) return m.sender === userKey;
+
+  // Fallback for older rows that only had "from"
+  const f = (m.from || '').toString().toLowerCase();
+  if (f === 'user') return true;                    // was "me" on this device
+  if (f === FRIEND_KEY.toLowerCase()) return false; // explicit peer
+  return false; // default to "received" if unknown
+}
+
+// --- make links clickable (minimal, safe-ish) ---
+const urlRegex = /((?:https?:\/\/|www\.)\S+)/gi;
+function makeLinkedMessage(text) {
+  const frag = document.createDocumentFragment();
+  if (!text) return frag;
+  let lastIndex = 0;
+  let match;
+  while ((match = urlRegex.exec(text)) !== null) {
+    // add text before match
+    if (match.index > lastIndex) {
+      frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+    }
+    // create link node
+    const raw = match[0];
+    const href = raw.startsWith('www.') ? 'http://' + raw : raw;
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = raw;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.style.cursor = 'pointer';
+    a.style.textDecoration = 'underline';
+    a.style.color = '#075E54'; // Whatsapp-like link color
+    frag.appendChild(a);
+    lastIndex = urlRegex.lastIndex;
+  }
+  // remaining text
+  if (lastIndex < text.length) {
+    frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  return frag;
+}
+
+function addBubble(data) {
+  const ts = Number(data.time || data.key);
+  const msgDate = new Date(ts).toDateString();
+  
+  if (msgDate !== lastDateForDivider) {
+    addDateDivider(msgDate);
+    lastDateForDivider = msgDate;
+  }
+  addBubbleWithMenu(data);
+}
+
+function addBubbleWithMenu(data) {
+  const div = document.createElement('div');
+  const mine = isFromMe(data);
+  div.classList.add('bubble', mine ? 'from-user' : 'from-brother');
+  
+  // Add message key as data attribute for precise identification
+  div.setAttribute('data-key', data.key);
+  
+  // Only add menu to user's own messages
+  if (mine) {
+    // Three dots menu button
+    const menuBtn = document.createElement('div');
+    menuBtn.className = 'bubble-menu';
+    menuBtn.innerHTML = '⋯'; // Three dots character
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showContextMenu(e, data);
+    });
+    div.appendChild(menuBtn);
+  }
+  
+  // Rest of your existing bubble content...
+  if (data.replyTo && messageMap[data.replyTo]) {
+    const replyDiv = document.createElement('div');
+    replyDiv.classList.add('reply-snippet');
+    replyDiv.innerText = messageMap[data.replyTo].text || '[' + (messageMap[data.replyTo].type || 'media') + ']';
+    div.appendChild(replyDiv);
+  }
+  
+  if (data.type === 'gif' || data.type === 'image' || data.url) {
+  const media = document.createElement('img');
+  media.className = 'msg-media';
+  media.src = data.url || data.mediaUrl || '';
+  media.alt = data.type || 'media';
+  media.style.cursor = 'pointer'; // Add pointer cursor
+  
+  // Make image clickable for fullscreen preview
+  media.addEventListener('click', () => {
+    openMediaPreview(data.url || data.mediaUrl || '');
+  });
+    media.addEventListener('error', () => {
+      const err = document.createElement('div');
+      err.style.fontSize = '12px';
+      err.style.color = '#b00';
+      err.textContent = '[Unable to load media]';
+      div.insertBefore(err, media.nextSibling);
+    });
+    div.appendChild(media);
+    if (data.text) {
+      const textDiv = document.createElement('div');
+      textDiv.appendChild(makeLinkedMessage(data.text));
+      div.appendChild(textDiv);
+    }
+  } else {
+    const textDiv = document.createElement('div');
+    textDiv.appendChild(makeLinkedMessage(data.text || ''));
+    div.appendChild(textDiv);
+  }
+  
+  const timeDiv = document.createElement('div');
+  timeDiv.className = 'msg-time';
+  const ts = Number(data.time || data.key);
+  timeDiv.textContent = new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  div.appendChild(timeDiv);
+  
+  const indicator = document.createElement('div');
+  indicator.className = 'reply-indicator';
+  indicator.innerHTML = '&#8617;';
+  div.appendChild(indicator);
+  addSwipeListeners(div, data, indicator);
+  
+  messagesEl.appendChild(div);
+  messageMap[data.key] = data;
+}
+
+function showContextMenu(event, messageData) {
+  // Remove any existing context menu
+  const existingMenu = document.querySelector('.context-menu');
+  if (existingMenu) existingMenu.remove();
+  
+  const menu = document.createElement('div');
+  menu.className = 'context-menu';
+  
+  const deleteOption = document.createElement('div');
+  deleteOption.className = 'context-menu-item delete';
+  deleteOption.textContent = 'Delete';
+  deleteOption.addEventListener('click', () => {
+    deleteMessage(messageData);
+    menu.remove();
+  });
+  
+  menu.appendChild(deleteOption);
+  
+  // Position menu near click
+  menu.style.left = (event.clientX - 50) + 'px';
+  menu.style.top = (event.clientY - 10) + 'px';
+  
+  document.body.appendChild(menu);
+  
+  // Close menu when clicking elsewhere
+  const closeMenu = (e) => {
+    if (!menu.contains(e.target)) {
+      menu.remove();
+      document.removeEventListener('click', closeMenu);
+    }
+  };
+  
+  setTimeout(() => {
+    document.addEventListener('click', closeMenu);
+  }, 0);
+}
+
+function deleteMessage(messageData) {
+  if (!confirm('Delete this message?')) return;
+  
+  // Remove from Firebase
+  db.ref('chats/' + userKey).child(messageData.key).remove()
+    .then(() => {
+      // Remove from UI - use the message key instead of time
+      const bubble = Array.from(document.querySelectorAll('.bubble'))
+        .find(bubble => {
+          // Get the data-key attribute we'll add to each bubble
+          return bubble.getAttribute('data-key') === messageData.key;
+        });
+      
+      if (bubble) {
+        bubble.style.transform = 'scale(0)';
+        setTimeout(() => bubble.remove(), 200);
+      }
+      
+      // Remove from messageMap
+      delete messageMap[messageData.key];
+    })
+    .catch(error => {
+      console.error('Error deleting message:', error);
+      alert('Error deleting message');
+    });
+}
+
+function addSwipeListeners(element, msgData, indicator) {
+  let startX=0,startY=0,currentX=0,isDragging=false;
+  const threshold=70;
+  element.addEventListener("touchstart",e=>{
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    isDragging=true;
+    element.style.transition="none";
+  });
+  element.addEventListener("touchmove",e=>{
+    if(!isDragging)return;
+    currentX=e.touches[0].clientX;
+    let diffX=currentX-startX;
+    let diffY=e.touches[0].clientY-startY;
+    if(Math.abs(diffY)>40)return;
+    element.style.transform=`translateX(${diffX}px)`;
+    indicator.style.opacity=Math.abs(diffX)>30?"1":"0";
+  });
+  element.addEventListener("touchend",()=>{
+    isDragging=false;
+    element.style.transition="transform 0.25s ease";
+    indicator.style.opacity="0";
+    let diffX=currentX-startX;
+    if(Math.abs(diffX)>threshold){ setReply(msgData); if(navigator.vibrate)navigator.vibrate(20); }
+    element.style.transform="translateX(0)";
+  });
+}
+
+function setReply(msg) {
+  replyTo = msg;
+  document.getElementById('replyText').innerText = "Replying to: " + (msg.text || '');
+  replyBox.style.display = 'flex';
+}
+document.getElementById('closeReply').addEventListener('click', () => {
+  replyTo = null;
+  replyBox.style.display = 'none';
+});
+
+function scrollToBottom() {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// ✅ Mobile keyboard fix: keep input visible when typing
+msgInput.addEventListener("focus", () => {
+  setTimeout(() => {
+    scrollToBottom();
+  }, 300); // wait for keyboard animation
+});
+
+
+(function setupViewportAdjustments() {
+  const header = document.getElementById('chatHeader');
+  const inputArea = document.getElementById('inputArea');
+  const messages = document.getElementById('messages');
+
+  // helper to compute current input area height (reflow-safe)
+  function getInputHeight() {
+    // use offsetHeight (includes padding, border)
+    return inputArea.offsetHeight || 70;
+  }
+
+  function updateLayout() {
+    const vv = window.visualViewport;
+    const headerH = header.offsetHeight || 60;
+    const inputH = getInputHeight();
+
+    const viewH = vv ? vv.height : window.innerHeight;
+    const viewOffsetTop = vv ? vv.offsetTop : 0;
+
+    // keyboard height (0 when keyboard closed)
+    const offsetBottom = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
+
+    // place inputArea just above keyboard
+    inputArea.style.bottom = offsetBottom + "px";
+
+    // pin messages between header and input (avoid using fixed height)
+    messages.style.top = headerH + 'px';
+    // let messages go all the way to the bottom (so they appear behind the input),
+// but still account for on-screen keyboard offset so input stays above it.
+messages.style.bottom = offsetBottom + 'px';
+
+// reserve scroll padding so last message isn't hidden behind the input
+messages.style.paddingBottom = (inputH + 10) + 'px';
+
+    // ensure header stays visually pinned if visualViewport shifted (keyboard)
+    header.style.transform = `translateY(${viewOffsetTop}px)`;
+  }
+
+  // if you have CSS that sets bottom: 70px on #messages, override it via JS above.
+  // OPTIONAL: remove any hardcoded bottom in CSS or set it to 0 there.
+
+  // listen for visualViewport and window events
+  window.addEventListener('resize', updateLayout);
+  window.addEventListener('orientationchange', updateLayout);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateLayout);
+    window.visualViewport.addEventListener('scroll', updateLayout);
+  }
+
+  // auto-grow support: if the textarea changes size, recalc layout
+  // (also makes sure expanding textarea doesn't create a gap)
+  msgInput.addEventListener('input', () => {
+    // simple auto-grow
+    msgInput.style.height = 'auto';
+    msgInput.style.height = (msgInput.scrollHeight) + 'px';
+    setTimeout(updateLayout, 0);
+  });
+
+  // also update on focus/blur to react to keyboard
+  msgInput.addEventListener('focus', () => {
+    setTimeout(() => { updateLayout(); scrollToBottom(); }, 50);
+  });
+  msgInput.addEventListener('blur', () => {
+    setTimeout(updateLayout, 50);
+  });
+
+  // initial layout
+  setTimeout(updateLayout, 50);
+
+  // expose for debugging if needed
+  window.__chatUpdateLayout = updateLayout;
+})();
+/* =========================
+   Utilities
+   ========================= */
+function formatLastSeen(timestamp) {
+  const date = new Date(timestamp), now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const time = date.toLocaleTimeString([], {hour:"numeric",minute:"2-digit",hour12:true});
+  if (isToday) return "today at " + time;
+  else if (date.toDateString() === yesterday.toDateString()) return "yesterday at " + time;
+  else return date.toLocaleDateString() + " at " + time;
+}
+
+/* =========================
+   Dark mode toggle (unchanged)
+   ========================= */
+if (localStorage.getItem("darkMode") === "enabled") document.body.classList.add("dark");
+function updateToggleIcon(){
+  const isDark=document.body.classList.contains("dark");
+  document.getElementById("darkToggle").style.setProperty("--toggle-icon", `"${isDark?"🌙":"☀️"}"`);
+}
+updateToggleIcon();
+darkToggle.addEventListener("click",()=>{
+  document.body.classList.toggle("dark");
+  localStorage.setItem("darkMode", document.body.classList.contains("dark")?"enabled":"disabled");
+  updateToggleIcon();
+});
+
+// paste handler: if user pastes an image URL or Giphy link, send as media
+document.addEventListener('paste', (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if(!items) return;
+  for (const it of items) {
+    if (it.kind === 'file') {
+      const blob = it.getAsFile();
+      const reader = new FileReader();
+      reader.onload = (ev) => sendMediaMessage({ type: 'image', url: ev.target.result });
+      reader.readAsDataURL(blob);
+      e.preventDefault();
+      return;
+    }
+    if (it.kind === 'string' && it.type === 'text/plain') {
+      it.getAsString(str => {
+        if (str.match(/\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || str.includes('giphy.com')) {
+          sendMediaMessage({ type: 'gif', url: str });
+        }
+      });
+    }
+  }
+});
+</script>
+<script>
+  /* =========================
+   Fullscreen Media Preview
+   ========================= */
+/* =========================
+   Fullscreen Media Preview
+   ========================= */
+/* =========================
+   Fullscreen Media Preview
+   ========================= */
+function setupMediaPreview() {
+  const preview = document.getElementById('mediaPreview');
+  const closePreview = document.getElementById('closePreview');
+  
+  // Simple close function
+  function closePreviewModal() {
+    preview.style.display = 'none';
+  }
+  
+  // Attach close event to button
+  closePreview.onclick = closePreviewModal;
+  
+  // Close when clicking backdrop
+  preview.onclick = function(e) {
+    if (e.target === preview) {
+      closePreviewModal();
+    }
+  };
+  
+  // Close with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && preview.style.display === 'flex') {
+      closePreviewModal();
+    }
+  });
+}
+
+
+// Call this function after DOM is ready
+setupMediaPreview();
+
+// Function to open media in fullscreen
+/* =========================
+   Fullscreen Media Preview - SIMPLE VERSION
+   ========================= */
+
+// Function to open media in fullscreen
+function openMediaPreview(imageUrl) {
+  const preview = document.getElementById('mediaPreview');
+  const previewImage = document.getElementById('previewImage');
+  
+  if (preview && previewImage) {
+    previewImage.src = imageUrl;
+    preview.style.display = 'flex';
+    
+    // Add click handlers directly each time
+    const closePreview = document.getElementById('closePreview');
+    
+    // Remove any existing handlers and add new ones
+    closePreview.onclick = function() {
+      preview.style.display = 'none';
+    };
+    
+    preview.onclick = function(e) {
+      if (e.target === preview) {
+        preview.style.display = 'none';
+      }
+    };
+    
+    // Escape key to close
+    document.onkeydown = function(e) {
+      if (e.key === 'Escape' && preview.style.display === 'flex') {
+        preview.style.display = 'none';
+      }
+    };
+  }
+}
+
+
+</script>
+<!-- Media Preview Modal -->
+<div id="mediaPreview">
+  <button id="closePreview">&times;</button>
+  <img id="previewImage" src="" alt="Preview">
+</div>
+
+</body>
+</html> 
