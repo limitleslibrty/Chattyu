@@ -4704,7 +4704,7 @@ renderChatsOptimized = function(chatListData) {
   
   const settings = getCurrentAnimationSettings();
   const chatItems = document.querySelectorAll('.chat-item');
-  
+   
   chatItems.forEach((item, index) => {
     if (settings.chatItemAnimation !== 'none') {
       applyChatItemAnimation(item, settings.chatItemAnimation, 0.5);
