@@ -1216,11 +1216,14 @@ margin-top: 8px;
   </button>
   
   <!-- Settings dropdown menu -->
-  <div id="settingsMenu" style="
+  <div id="settingsMenu">
+    <style>
+  #settingsMenu {
+    /* Your existing styles */
     position: absolute;
     top: 100%;
     right: 10px;
-    background :#DDF2ED;
+    background: #DDF2ED;
     border-radius: 12px;
     margin-top: 18px;
     color: black;
@@ -1228,8 +1231,24 @@ margin-top: 8px;
     min-width: 200px;
     z-index: 1000;
     display: none;
+    max-height: 300px;
+    overflow-y: scroll;
+    
+    /* Animation styles */
+    transform-origin: top right;
+    transform: scale(0);
+    opacity: 0;
+    transition: all 0.2s ease-out;
+  }
   
-  ">
+  #settingsMenu.show {
+    display: block;
+    transform: scale(1);
+    opacity: 1;
+  }
+</style>
+
+
     
     <style>
   body.dark #settingsMenu{
@@ -4952,6 +4971,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }, 100);
 });
+</script>
+<script>
+  // Toggle settings menu with animation
+  settingsToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isShowing = settingsMenu.classList.contains('show');
+    
+    if (isShowing) {
+      settingsMenu.classList.remove('show');
+      // Wait for animation to complete before hiding
+      setTimeout(() => {
+        settingsMenu.style.display = 'none';
+      }, 200);
+    } else {
+      settingsMenu.style.display = 'block';
+      // Trigger animation after display
+      setTimeout(() => {
+        settingsMenu.classList.add('show');
+      }, 10);
+    }
+  });
+  
+  // Close when clicking outside
+  document.addEventListener('click', () => {
+    settingsMenu.classList.remove('show');
+    setTimeout(() => {
+      settingsMenu.style.display = 'none';
+    }, 200);
+  });
 </script>
 </body>
 </html>
