@@ -3520,7 +3520,7 @@ const defaultColors = {
     messagesBg: '#E9FEF9',
     chatListBg: '#DFF2EC',
     chatItemBg: '#EAFDF9',
-    textColor: '#000000',
+    
     previewText: '#666666',
     // NEW COLOR OPTIONS
     stalkColor: '#2563eb',
@@ -3545,7 +3545,7 @@ const defaultColors = {
     messagesBg: '#031813',
     chatListBg: '#12221F',
     chatItemBg: '#061613',
-    textColor: '#B7CAC6',
+    
     previewText: '#B7CAC6',
     // NEW COLOR OPTIONS
     stalkColor: '#B7CAC6',
@@ -3630,14 +3630,14 @@ function openColorCustomization(mode) {
   // Create color options based on mode
   const colors = customColors[mode];
   const colorLabels = {
-  userBubble: 'Your Messages Color',
-  brotherBubble: 'Brother Messages Color',
-  chatHeader: 'Header & Chat Background',
+  userBubble: 'Her Msg bubble color',
+  brotherBubble: 'Your Msg bubble Color',
+  chatHeader: 'Chat header background ',
   inputArea: 'Input Area Color',
-  messagesBg: 'Messages Background',
-  chatListBg: 'Chat List Background',
-  chatItemBg: 'Chat Item Background',
-  textColor: 'Main Text Color',
+  messagesBg: 'Msgs area background',
+  chatListBg: 'Home pg background',
+  chatItemBg: 'Email box colour',
+  
   
   // NEW LABELS
   stalkColor: 'S talk Text Color',
@@ -3648,11 +3648,11 @@ function openColorCustomization(mode) {
   picBorderOnline: 'Pic Border (Online)',
   picBorderOffline: 'Pic Border (Offline)',
   svgColor: 'SVG Icons Color',
-  brotherTextColor: 'Brother Messages Text',
-  brotherTimeColor: 'Brother Messages Time',
-  userTextColor: 'Your Messages Text',
-  userTimeColor: 'Your Messages Time',
-  messageLinkColor: 'Message Link Color' // ADD THIS LINE
+  brotherTextColor: 'Your Msgs Text',
+  brotherTimeColor: 'Your Msgs Time',
+  userTextColor: 'Her Msgs Text',
+  userTimeColor: 'Her Messages Time',
+  messageLinkColor: 'Message Link Color' 
 };
   Object.keys(colors).forEach(key => {
     const optionDiv = document.createElement('div');
