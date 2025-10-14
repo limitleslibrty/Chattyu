@@ -1285,8 +1285,6 @@ margin-top: 8px;
   display: flex;
 }
 
-
-
 body.dark .color-modal-content {
   background: #13221F;
   color: #B7CAC6;
@@ -1297,37 +1295,506 @@ body.dark .color-modal-content {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0; /* Prevents flex items from overflowing */
+  min-width: 0;
 }
 
 .color-option label {
-  min-width: 140px; /* Reduced from 180px */
+  min-width: 140px;
   font-weight: 500;
   font-size: 14px;
-  flex-shrink: 0; /* Prevents label from shrinking */
+  flex-shrink: 0;
+}
+
+/* ENHANCED COLOR INPUT WITH PICKER */
+.color-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .color-input {
   flex: 1;
-  min-width: 0; /* Allows input to shrink properly */
+  min-width: 0;
   padding: 8px 12px;
   border-radius: 8px;
   background: #DDF2ED;
   border: 1px solid #ccc;
   font-size: 14px;
   box-sizing: border-box;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  transition: all 0.2s ease;
+}
+
+.color-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.color-picker-toggle {
+  width: 40px;
+  height: 36px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.color-picker-toggle:hover {
+  border-color: #2563eb;
+  transform: scale(1.05);
+}
+
+.color-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: currentColor;
+}
+
+/* ADVANCED COLOR PICKER DROPDOWN */
+/* Color picker dropdown positioning - FIXED */
+.color-picker-dropdown {
+  position: fixed !important;
+  background: #E9FEF9;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  min-width: 320px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: none;
+  border: 1px solid #e5e7eb;
+  backdrop-filter: blur(20px);
+}
+
+.color-picker-dropdown.show {
+  display: block;
+  animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure proper stacking context */
+.color-modal {
+  z-index: 9999;
+}
+
+.color-picker-dropdown {
+  z-index: 10000;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .color-picker-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 0 !important;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.color-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.color-picker-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #111827;
+}
+
+.color-picker-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.color-picker-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Color Wheel Container */
+.color-wheel-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 16px;
+  cursor: pointer;
+}
+
+.color-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000
+  );
+  position: relative;
+  border: 2px solid white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.color-wheel::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  background: #DDF2ED;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+body.dark .color-wheel::before{
+  background:#13221F;
+}
+.wheel-cursor {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* Brightness/Saturation Controls */
+.brightness-control {
+  width: 100%;
+  height: 24px;
+  background: linear-gradient(to right, #000, transparent, #fff);
+  border-radius: 12px;
+  margin: 16px 0;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+}
+
+.brightness-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #666;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* Alpha/Opacity Control */
+.alpha-control {
+  width: 100%;
+  height: 24px;
+  border-radius: 12px;
+  margin: 16px 0;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  background-image: 
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+}
+
+.alpha-gradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.alpha-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #666;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* Color Inputs Grid */
+.color-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.color-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.color-input-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.color-channel-input {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  background: #DDF2ED;
+}
+
+.color-channel-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* Current Color Preview */
+.current-color-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px;
+  background: #DDF2ED;
+  border-radius: 8px;
+}
+
+.color-preview-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 2px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--current-color, #000000);
+}
+
+.color-values {
+  flex: 1;
+}
+
+.hex-value {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.rgb-value {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* Preset Colors */
+.preset-colors {
+  margin-top: 16px;
+}
+
+.preset-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+
+.preset-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.preset-swatch:hover {
+  transform: scale(1.2);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Action Buttons */
+.color-picker-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.color-picker-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #DDF2ED;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-picker-btn.primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
 }
 
 
+.color-picker-btn.primary:hover {
+  background: #2563eb;
+}
 
-/* For dark mode */
+/* Dark Mode Adjustments */
 body.dark .color-input {
   background: #061613;
   color: #B7CAC6;
   border-color: #2A3A36;
 }
 
-/* Ensure modal content doesn't cause horizontal scroll */
+body.dark .color-picker-toggle {
+  background: #061613;
+  border-color: #2A3A36;
+}
+
+body.dark .color-picker-dropdown {
+  background: #13221F;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+body.dark .color-picker-header {
+  border-bottom-color: #031813;
+}
+
+body.dark .color-picker-title {
+  color: #f9fafb;
+}
+
+body.dark .color-picker-close {
+  color: #9ca3af;
+}
+
+body.dark .color-picker-close:hover {
+  background: #031813;
+  color: #f9fafb;
+}
+
+body.dark .color-channel-input {
+  background: #031813;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+body.dark .color-channel-input:focus {
+  background: #031813;
+  border-color: #3b82f6;
+}
+
+body.dark .current-color-preview {
+  background: #031813B0;
+}
+
+body.dark .hex-value {
+  color: #f9fafb;
+}
+
+body.dark .color-picker-btn {
+  background: #031813;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+
+body.dark .alpha-control {
+  border-color: #4b5563;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .color-picker-dropdown {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    max-width: 340px;
+    margin: 0;
+  }
+  
+  .color-wheel-container {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .preset-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .color-inputs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Keep existing modal styles */
 .color-modal-content {
   background: #E9FEF9;
   border-radius: 16px;
@@ -1336,18 +1803,13 @@ body.dark .color-input {
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  box-sizing: border-box; /* Include padding in width calculation */
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 body.dark .color-modal-content {
   background: #13221F;
   color: #B7CAC6;
-}
-body.dark .color-input {
-  background: #061613;
-  color: #B7CAC6;
-  border-color: #2A3A36;
 }
 
 .modal-actions {
@@ -1381,11 +1843,12 @@ body.dark .modal-btn.secondary {
   color: #B7CAC6;
 }
 
-
 .modal-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
+
+
     </style>
     <div class="menu-item" data-action="toggle-dark">🌙 Dark Mode</div>
     <div class="menu-item" data-action="toggle-light">☀️ Light Mode</div>
@@ -3505,7 +3968,10 @@ const colorModalTitle = document.getElementById('colorModalTitle');
 const colorOptions = document.getElementById('colorOptions');
 const cancelColorBtn = document.getElementById('cancelColorBtn');
 const saveColorBtn = document.getElementById('saveColorBtn');
-
+// Simple cancel button functionality
+cancelColorBtn.addEventListener('click', () => {
+  colorModal.classList.remove('open');
+});
 let currentMode = 'light'; // Track which mode we're customizing
 
 // Default color schemes
@@ -3618,8 +4084,544 @@ function disableDarkMode() {
   localStorage.setItem('darkMode', 'disabled');
   applyCustomColors('light');
 }
+// ADVANCED COLOR PICKER WITH WHEEL - REPLACE EXISTING COLOR PICKER CODE
+class AdvancedColorPicker {
+  constructor(container, currentColor, onColorChange) {
+    this.container = container;
+    this.currentColor = currentColor;
+    this.onColorChange = onColorChange;
+    this.hue = 0;
+    this.saturation = 100;
+    this.brightness = 100;
+    this.alpha = 1;
+    
+    this.init();
+    this.updateFromHex(currentColor);
+  }
 
-// Open color customization modal
+  init() {
+    this.container.innerHTML = this.getTemplate();
+    this.bindEvents();
+    this.updateUI();
+  }
+
+  getTemplate() {
+    return `
+      <div class="color-picker-header">
+        <div class="color-picker-title">Color Picker</div>
+        <button class="color-picker-close" onclick="this.closest('.color-picker-dropdown').classList.remove('show')">×</button>
+      </div>
+
+      <div class="color-wheel-container" id="colorWheel">
+        <div class="color-wheel"></div>
+        <div class="wheel-cursor" style="display: none;"></div>
+      </div>
+
+      <div class="brightness-control" id="brightnessControl">
+        <div class="brightness-cursor"></div>
+      </div>
+
+      <div class="alpha-control" id="alphaControl">
+        <div class="alpha-gradient" id="alphaGradient"></div>
+        <div class="alpha-cursor"></div>
+      </div>
+
+      <div class="current-color-preview">
+        <div class="color-preview-large" id="largeColorPreview"></div>
+        <div class="color-values">
+          <div class="hex-value" id="hexValue">#000000</div>
+          <div class="rgb-value" id="rgbValue">rgb(0, 0, 0)</div>
+        </div>
+      </div>
+
+      <div class="color-inputs-grid">
+        <div class="color-input-group">
+          <label class="color-input-label">HEX</label>
+          <input type="text" class="color-channel-input" id="hexInput" value="#000000" maxlength="7">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">R</label>
+          <input type="number" class="color-channel-input" id="redInput" min="0" max="255" value="0">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">G</label>
+          <input type="number" class="color-channel-input" id="greenInput" min="0" max="255" value="0">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">B</label>
+          <input type="number" class="color-channel-input" id="blueInput" min="0" max="255" value="0">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">H</label>
+          <input type="number" class="color-channel-input" id="hueInput" min="0" max="360" value="0">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">S</label>
+          <input type="number" class="color-channel-input" id="saturationInput" min="0" max="100" value="100">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">V</label>
+          <input type="number" class="color-channel-input" id="valueInput" min="0" max="100" value="100">
+        </div>
+        <div class="color-input-group">
+          <label class="color-input-label">A</label>
+          <input type="number" class="color-channel-input" id="alphaInput" min="0" max="1" step="0.01" value="1">
+        </div>
+      </div>
+
+      <div class="preset-colors">
+        <div class="preset-title">Preset Colors</div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </div>
+
+      <div class="color-picker-actions">
+        <button class="color-picker-btn" onclick="this.closest('.color-picker-dropdown').classList.remove('show')">Cancel</button>
+        <button class="color-picker-btn primary" id="confirmColor">Apply Color</button>
+      </div>
+    `;
+  }
+
+  bindEvents() {
+    // Color wheel events
+    const wheel = this.container.querySelector('#colorWheel');
+    wheel.addEventListener('mousedown', this.startWheelInteraction.bind(this));
+    wheel.addEventListener('touchstart', this.startWheelInteraction.bind(this));
+
+    // Brightness control events
+    const brightness = this.container.querySelector('#brightnessControl');
+    brightness.addEventListener('mousedown', this.startBrightnessInteraction.bind(this));
+    brightness.addEventListener('touchstart', this.startBrightnessInteraction.bind(this));
+
+    // Alpha control events
+    const alpha = this.container.querySelector('#alphaControl');
+    alpha.addEventListener('mousedown', this.startAlphaInteraction.bind(this));
+    alpha.addEventListener('touchstart', this.startAlphaInteraction.bind(this));
+
+    // Input events
+    this.container.querySelector('#hexInput').addEventListener('input', this.onHexInput.bind(this));
+    this.container.querySelector('#redInput').addEventListener('input', this.onRgbInput.bind(this));
+    this.container.querySelector('#greenInput').addEventListener('input', this.onRgbInput.bind(this));
+    this.container.querySelector('#blueInput').addEventListener('input', this.onRgbInput.bind(this));
+    this.container.querySelector('#hueInput').addEventListener('input', this.onHsvInput.bind(this));
+    this.container.querySelector('#saturationInput').addEventListener('input', this.onHsvInput.bind(this));
+    this.container.querySelector('#valueInput').addEventListener('input', this.onHsvInput.bind(this));
+    this.container.querySelector('#alphaInput').addEventListener('input', this.onAlphaInput.bind(this));
+
+    // Confirm button
+    this.container.querySelector('#confirmColor').addEventListener('click', this.confirmColor.bind(this));
+
+    // Load preset colors
+    this.loadPresetColors();
+  }
+
+  startWheelInteraction(e) {
+    e.preventDefault();
+    const wheel = this.container.querySelector('#colorWheel');
+    const rect = wheel.getBoundingClientRect();
+    
+    const moveHandler = (moveEvent) => {
+      const clientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
+      const clientY = moveEvent.clientY || (moveEvent.touches && moveEvent.touches[0].clientY);
+      
+      const x = clientX - rect.left - rect.width / 2;
+      const y = clientY - rect.top - rect.height / 2;
+      
+      const distance = Math.sqrt(x * x + y * y);
+      const maxDistance = rect.width / 2;
+      
+      if (distance <= maxDistance) {
+        let angle = Math.atan2(y, x) * (180 / Math.PI);
+        if (angle < 0) angle += 360;
+        
+        const saturation = Math.min(100, (distance / maxDistance) * 100);
+        
+        this.hue = Math.round(angle);
+        this.saturation = Math.round(saturation);
+        this.updateFromHSV();
+      }
+    };
+    
+    const upHandler = () => {
+      document.removeEventListener('mousemove', moveHandler);
+      document.removeEventListener('touchmove', moveHandler);
+      document.removeEventListener('mouseup', upHandler);
+      document.removeEventListener('touchend', upHandler);
+    };
+    
+    document.addEventListener('mousemove', moveHandler);
+    document.addEventListener('touchmove', moveHandler);
+    document.addEventListener('mouseup', upHandler);
+    document.addEventListener('touchend', upHandler);
+    
+    moveHandler(e);
+  }
+
+  startBrightnessInteraction(e) {
+    e.preventDefault();
+    const control = this.container.querySelector('#brightnessControl');
+    const rect = control.getBoundingClientRect();
+    
+    const moveHandler = (moveEvent) => {
+      const clientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
+      let x = clientX - rect.left;
+      x = Math.max(0, Math.min(rect.width, x));
+      
+      this.brightness = Math.round((x / rect.width) * 100);
+      this.updateFromHSV();
+    };
+    
+    const upHandler = () => {
+      document.removeEventListener('mousemove', moveHandler);
+      document.removeEventListener('touchmove', moveHandler);
+      document.removeEventListener('mouseup', upHandler);
+      document.removeEventListener('touchend', upHandler);
+    };
+    
+    document.addEventListener('mousemove', moveHandler);
+    document.addEventListener('touchmove', moveHandler);
+    document.addEventListener('mouseup', upHandler);
+    document.addEventListener('touchend', upHandler);
+    
+    moveHandler(e);
+  }
+
+  startAlphaInteraction(e) {
+    e.preventDefault();
+    const control = this.container.querySelector('#alphaControl');
+    const rect = control.getBoundingClientRect();
+    
+    const moveHandler = (moveEvent) => {
+      const clientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
+      let x = clientX - rect.left;
+      x = Math.max(0, Math.min(rect.width, x));
+      
+      this.alpha = Math.round((x / rect.width) * 100) / 100;
+      this.updateUI();
+    };
+    
+    const upHandler = () => {
+      document.removeEventListener('mousemove', moveHandler);
+      document.removeEventListener('touchmove', moveHandler);
+      document.removeEventListener('mouseup', upHandler);
+      document.removeEventListener('touchend', upHandler);
+    };
+    
+    document.addEventListener('mousemove', moveHandler);
+    document.addEventListener('touchmove', moveHandler);
+    document.addEventListener('mouseup', upHandler);
+    document.addEventListener('touchend', upHandler);
+    
+    moveHandler(e);
+  }
+
+  onHexInput(e) {
+    const hex = e.target.value;
+    if (this.isValidHex(hex)) {
+      this.updateFromHex(hex);
+    }
+  }
+
+  onRgbInput() {
+    const r = parseInt(this.container.querySelector('#redInput').value) || 0;
+    const g = parseInt(this.container.querySelector('#greenInput').value) || 0;
+    const b = parseInt(this.container.querySelector('#blueInput').value) || 0;
+    this.updateFromRGB(r, g, b);
+  }
+
+  onHsvInput() {
+    const h = parseInt(this.container.querySelector('#hueInput').value) || 0;
+    const s = parseInt(this.container.querySelector('#saturationInput').value) || 0;
+    const v = parseInt(this.container.querySelector('#valueInput').value) || 0;
+    this.hue = h;
+    this.saturation = s;
+    this.brightness = v;
+    this.updateFromHSV();
+  }
+
+  onAlphaInput() {
+    const alpha = parseFloat(this.container.querySelector('#alphaInput').value) || 1;
+    this.alpha = Math.max(0, Math.min(1, alpha));
+    this.updateUI();
+  }
+
+  updateFromHex(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    this.updateFromRGB(r, g, b);
+  }
+
+  updateFromRGB(r, g, b) {
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+    
+    const [h, s, v] = this.rgbToHsv(r, g, b);
+    this.hue = h;
+    this.saturation = s;
+    this.brightness = v;
+    
+    this.updateUI();
+  }
+
+  updateFromHSV() {
+    this.updateUI();
+  }
+
+  rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    
+    let h = 0;
+    let s = max === 0 ? 0 : delta / max;
+    let v = max;
+    
+    if (delta !== 0) {
+      switch (max) {
+        case r: h = (g - b) / delta + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / delta + 2; break;
+        case b: h = (r - g) / delta + 4; break;
+      }
+      h /= 6;
+    }
+    
+    return [
+      Math.round(h * 360),
+      Math.round(s * 100),
+      Math.round(v * 100)
+    ];
+  }
+
+  hsvToRgb(h, s, v) {
+    h = h / 360;
+    s = s / 100;
+    v = v / 100;
+    
+    let r, g, b;
+    
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+    
+    switch (i % 6) {
+      case 0: r = v; g = t; b = p; break;
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
+    
+    return [
+      Math.round(r * 255),
+      Math.round(g * 255),
+      Math.round(b * 255)
+    ];
+  }
+
+  updateUI() {
+    const [r, g, b] = this.hsvToRgb(this.hue, this.saturation, this.brightness);
+    const hex = this.rgbToHex(r, g, b);
+    
+    // Update wheel cursor
+    const wheel = this.container.querySelector('#colorWheel');
+    const wheelRect = wheel.getBoundingClientRect();
+    const radius = wheelRect.width / 2;
+    const angle = (this.hue * Math.PI) / 180;
+    const distance = (this.saturation / 100) * radius;
+    
+    const x = radius + Math.cos(angle) * distance;
+    const y = radius + Math.sin(angle) * distance;
+    
+    const cursor = this.container.querySelector('.wheel-cursor');
+    cursor.style.display = 'block';
+    cursor.style.left = x + 'px';
+    cursor.style.top = y + 'px';
+    cursor.style.color = `hsl(${this.hue}, 100%, 50%)`;
+    
+    // Update brightness cursor
+    const brightnessControl = this.container.querySelector('#brightnessControl');
+    const brightnessCursor = this.container.querySelector('.brightness-cursor');
+    const brightnessPos = (this.brightness / 100) * brightnessControl.offsetWidth;
+    brightnessCursor.style.left = brightnessPos + 'px';
+    brightnessCursor.style.background = `rgb(${r}, ${g}, ${b})`;
+    
+    // Update alpha gradient and cursor
+    const alphaControl = this.container.querySelector('#alphaControl');
+    const alphaGradient = this.container.querySelector('#alphaGradient');
+    const alphaCursor = this.container.querySelector('.alpha-cursor');
+    
+    alphaGradient.style.background = `linear-gradient(to right, rgba(${r}, ${g}, ${b}, 0), rgba(${r}, ${g}, ${b}, 1))`;
+    
+    const alphaPos = this.alpha * alphaControl.offsetWidth;
+    alphaCursor.style.left = alphaPos + 'px';
+    alphaCursor.style.background = `rgba(${r}, ${g}, ${b}, ${this.alpha})`;
+    
+    // Update color preview
+    const preview = this.container.querySelector('#largeColorPreview');
+    preview.style.background = `rgba(${r}, ${g}, ${b}, ${this.alpha})`;
+    
+    // Update values
+    this.container.querySelector('#hexValue').textContent = hex;
+    this.container.querySelector('#rgbValue').textContent = 
+      this.alpha < 1 ? 
+      `rgba(${r}, ${g}, ${b}, ${this.alpha})` : 
+      `rgb(${r}, ${g}, ${b})`;
+    
+    this.container.querySelector('#hexInput').value = hex;
+    this.container.querySelector('#redInput').value = r;
+    this.container.querySelector('#greenInput').value = g;
+    this.container.querySelector('#blueInput').value = b;
+    this.container.querySelector('#hueInput').value = this.hue;
+    this.container.querySelector('#saturationInput').value = this.saturation;
+    this.container.querySelector('#valueInput').value = this.brightness;
+    this.container.querySelector('#alphaInput').value = this.alpha;
+    
+    this.currentColor = this.alpha < 1 ? 
+      `rgba(${r}, ${g}, ${b}, ${this.alpha})` : 
+      hex;
+  }
+
+  rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => {
+      const hex = x.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+  }
+
+  isValidHex(hex) {
+    return /^#?([0-9A-F]{3}){1,2}$/i.test(hex);
+  }
+
+  loadPresetColors() {
+    const presets = [
+      '#FF3B30', '#FF9500', '#FFCC00', '#4CD964', '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55',
+      '#8E8E93', '#C7C7CC', '#EFEFF4', '#000000', '#1D1D1F', '#FFFFFF', '#FFD60A', '#32D74B',
+      '#64D2FF', '#0A84FF', '#5E5CE6', '#BF5AF2', '#FF375F', '#FF9F0A', '#FFD60A', '#30D158'
+    ];
+    
+    const grid = this.container.querySelector('#presetGrid');
+    grid.innerHTML = presets.map(color => `
+      <div class="preset-swatch" style="background: ${color}" onclick="colorPickers.get(this.closest('.color-picker-dropdown')).selectPreset('${color}')"></div>
+    `).join('');
+  }
+
+  selectPreset(color) {
+    this.updateFromHex(color);
+  }
+
+  confirmColor() {
+    if (this.onColorChange) {
+      this.onColorChange(this.currentColor);
+    }
+    this.container.classList.remove('show');
+  }
+}
+
+// Global color pickers manager
+const colorPickers = new Map();
+
+// ENHANCED COLOR OPTION CREATION - REPLACE EXISTING FUNCTION
+// ENHANCED COLOR OPTION CREATION - FIXED VERSION
+function createColorOptionWithPicker(key, label, value, mode) {
+  const optionDiv = document.createElement('div');
+  optionDiv.className = 'color-option';
+  
+  const labelEl = document.createElement('label');
+  labelEl.textContent = label;
+  
+  const inputContainer = document.createElement('div');
+  inputContainer.className = 'color-input-container';
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'color-input';
+  input.value = value;
+  input.dataset.colorKey = key;
+  input.dataset.mode = mode;
+  input.placeholder = '#000000 or color name';
+  
+  const pickerToggle = document.createElement('div');
+  pickerToggle.className = 'color-picker-toggle';
+  pickerToggle.innerHTML = '<div class="color-preview" style="background: ' + value + '"></div>';
+  
+  const pickerDropdown = document.createElement('div');
+  pickerDropdown.className = 'color-picker-dropdown';
+  
+  // Create color picker instance
+  const colorPicker = new AdvancedColorPicker(pickerDropdown, value, (newColor) => {
+    input.value = newColor;
+    const preview = pickerToggle.querySelector('.color-preview');
+    preview.style.background = newColor;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  
+  colorPickers.set(pickerDropdown, colorPicker);
+  
+  // Toggle picker dropdown - FIXED VERSION
+  pickerToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isShowing = pickerDropdown.classList.contains('show');
+    
+    // Close all other pickers
+    document.querySelectorAll('.color-picker-dropdown.show').forEach(dropdown => {
+      if (dropdown !== pickerDropdown) {
+        dropdown.classList.remove('show');
+      }
+    });
+    
+    if (!isShowing) {
+      // Position the dropdown relative to the toggle button
+      const toggleRect = pickerToggle.getBoundingClientRect();
+      pickerDropdown.style.position = 'fixed';
+      pickerDropdown.style.top = Math.min(toggleRect.bottom + 5, window.innerHeight - 400) + 'px';
+      pickerDropdown.style.left = Math.min(toggleRect.left, window.innerWidth - 350) + 'px';
+      pickerDropdown.style.zIndex = '10000';
+      
+      pickerDropdown.classList.add('show');
+    } else {
+      pickerDropdown.classList.remove('show');
+    }
+  });
+  
+  // Update input when color changes
+  input.addEventListener('input', () => {
+    const preview = pickerToggle.querySelector('.color-preview');
+    preview.style.background = input.value;
+  });
+  
+  inputContainer.appendChild(input);
+  inputContainer.appendChild(pickerToggle);
+  
+  optionDiv.appendChild(labelEl);
+  optionDiv.appendChild(inputContainer);
+  
+  // Append dropdown to body instead of toggle to avoid positioning issues
+  document.body.appendChild(pickerDropdown);
+  
+  return optionDiv;
+}
+// Close color pickers when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.color-picker-toggle') && !e.target.closest('.color-picker-dropdown')) {
+    document.querySelectorAll('.color-picker-dropdown.show').forEach(dropdown => {
+      dropdown.classList.remove('show');
+    });
+  }
+});
+
+// KEEP YOUR EXISTING openColorCustomization FUNCTION BUT UPDATE IT:
 function openColorCustomization(mode) {
   currentMode = mode;
   colorModalTitle.textContent = `Customize ${mode === 'dark' ? 'Dark' : 'Light'} Mode Colors`;
@@ -3627,71 +4629,51 @@ function openColorCustomization(mode) {
   // Clear previous options
   colorOptions.innerHTML = '';
   
-  // Create color options based on mode
+  // Create color options with enhanced pickers
   const colors = customColors[mode];
   const colorLabels = {
-  userBubble: 'Her Msg bubble color',
-  brotherBubble: 'Your Msg bubble Color',
-  chatHeader: 'Chat header background ',
-  inputArea: 'Input Area Color',
-  messagesBg: 'Msgs area background',
-  chatListBg: 'Home pg background',
-  chatItemBg: 'Email box colour',
+    userBubble: 'Her Msg bubble color',
+    brotherBubble: 'Your Msg bubble Color',
+    chatHeader: 'Chat header background',
+    inputArea: 'Input Area Color',
+    messagesBg: 'Msgs area background',
+    chatListBg: 'Home pg background',
+    chatItemBg: 'Email box colour',
+    stalkColor: 'S talk Text Color',
+    bubuTextColor: 'Bubu Text Color',
+    lastSeenColor: 'Last Seen Text Color',
+    onlineColor: 'Online Text Color',
+    typingColor: 'Typing Text Color',
+    picBorderOnline: 'Pic Border (Online)',
+    picBorderOffline: 'Pic Border (Offline)',
+    svgColor: 'SVG Icons Color',
+    brotherTextColor: 'Your Msgs Text',
+    brotherTimeColor: 'Your Msgs Time',
+    userTextColor: 'Her Msgs Text',
+    userTimeColor: 'Her Messages Time',
+    messageLinkColor: 'Message Link Color'
+  };
   
-  
-  // NEW LABELS
-  stalkColor: 'S talk Text Color',
-  bubuTextColor: 'Bubu Text Color',
-  lastSeenColor: 'Last Seen Text Color',
-  onlineColor: 'Online Text Color',
-  typingColor: 'Typing Text Color',
-  picBorderOnline: 'Pic Border (Online)',
-  picBorderOffline: 'Pic Border (Offline)',
-  svgColor: 'SVG Icons Color',
-  brotherTextColor: 'Your Msgs Text',
-  brotherTimeColor: 'Your Msgs Time',
-  userTextColor: 'Her Msgs Text',
-  userTimeColor: 'Her Messages Time',
-  messageLinkColor: 'Message Link Color' 
-};
   Object.keys(colors).forEach(key => {
-    const optionDiv = document.createElement('div');
-    optionDiv.className = 'color-option';
-    
-    const label = document.createElement('label');
-    label.textContent = colorLabels[key] || key;
-    
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'color-input';
-    input.value = colors[key];
-    input.dataset.colorKey = key;
-    input.placeholder = 'Enter color name or hex';
-    
-    optionDiv.appendChild(label);
-    optionDiv.appendChild(input);
+    const optionDiv = createColorOptionWithPicker(key, colorLabels[key] || key, colors[key], mode);
     colorOptions.appendChild(optionDiv);
   });
   
   colorModal.classList.add('open');
 }
 
-// Close color modal
-cancelColorBtn.addEventListener('click', () => {
-  colorModal.classList.remove('open');
-});
-
-// Save color changes
-saveColorBtn.addEventListener('click', () => {
-  // Collect all color values
+// KEEP YOUR EXISTING saveColorChanges FUNCTION:
+function saveColorChanges() {
+  // Collect all color values from enhanced inputs
   const inputs = colorOptions.querySelectorAll('.color-input');
   inputs.forEach(input => {
     const key = input.dataset.colorKey;
     const value = input.value.trim();
+    const mode = input.dataset.mode;
     
     // Only update if value is not empty
     if (value) {
-      customColors[currentMode][key] = value;
+      customColors[mode][key] = value;
     }
   });
   
@@ -3703,11 +4685,11 @@ saveColorBtn.addEventListener('click', () => {
   
   // Close modal
   colorModal.classList.remove('open');
-});
-// Helper function to update pseudo-element styles
-// Helper function to update pseudo-element styles
-// Helper function to update pseudo-element styles
-// Helper function to update pseudo-element styles - FIXED VERSION
+}
+
+// Update the event listener for save button
+saveColorBtn.addEventListener('click', saveColorChanges);
+
 function updatePseudoElementStyles(mode, colors) {
   // Remove existing style element if it exists
   const existingStyle = document.getElementById('custom-colors-style');
