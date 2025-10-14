@@ -3535,7 +3535,7 @@ const defaultColors = {
     brotherTimeColor: '#E5E5E5',
     userTextColor: '#000000',
     userTimeColor: '#666666',
-    
+    messageLinkColor: '#075E54' // ADD THIS LINE
   },
   dark: {
     userBubble: '#13221F',
@@ -3560,7 +3560,7 @@ const defaultColors = {
     brotherTimeColor: '#E5E5E5',
     userTextColor: '#B7CAC6',
     userTimeColor: '#B7CAC6',
-    
+    messageLinkColor: '#075E54' // ADD THIS LINE
   }
 };
 let customColors = JSON.parse(localStorage.getItem('customColors')) || {
@@ -3651,7 +3651,8 @@ function openColorCustomization(mode) {
   brotherTextColor: 'Brother Messages Text',
   brotherTimeColor: 'Brother Messages Time',
   userTextColor: 'Your Messages Text',
-  userTimeColor: 'Your Messages Time'
+  userTimeColor: 'Your Messages Time',
+  messageLinkColor: 'Message Link Color' // ADD THIS LINE
 };
   Object.keys(colors).forEach(key => {
     const optionDiv = document.createElement('div');
@@ -3720,6 +3721,28 @@ function updatePseudoElementStyles(mode, colors) {
   
   // Add comprehensive styles for all elements
   style.textContent = `
+  
+${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .message-link {
+color: ${colors.messageLinkColor} !important;
+}
+${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .reply-box a,
+${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} .reply-preview-text a {
+color: ${colors.messageLinkColor} !important;
+}
+
+/* For the opposite mode */
+${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .message-link {
+color: ${colors.messageLinkColor} !important;
+}
+${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .reply-box a,
+${mode !== 'dark' ? 'body:not(.dark)' : 'body.dark'} .reply-preview-text a {
+color: ${colors.messageLinkColor} !important;
+}
+
+
+  
+  
+  
     ${mode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #inboxHeader {
       color: ${colors.stalkColor} !important;
     }
