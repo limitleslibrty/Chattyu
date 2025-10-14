@@ -3533,10 +3533,9 @@ const defaultColors = {
     svgColor: '#3A4F4A',
     brotherTextColor: '#FFFFFF',
     brotherTimeColor: '#E5E5E5',
-    brotherPreviewColor: '#E5E5E5',
     userTextColor: '#000000',
     userTimeColor: '#666666',
-    userPreviewColor: '#666666'
+    
   },
   dark: {
     userBubble: '#13221F',
@@ -3559,10 +3558,9 @@ const defaultColors = {
     svgColor: '#B7CAC6',
     brotherTextColor: '#FFFFFF',
     brotherTimeColor: '#E5E5E5',
-    brotherPreviewColor: '#E5E5E5',
     userTextColor: '#B7CAC6',
     userTimeColor: '#B7CAC6',
-    userPreviewColor: '#B7CAC6'
+    
   }
 };
 let customColors = JSON.parse(localStorage.getItem('customColors')) || {
@@ -3640,7 +3638,7 @@ function openColorCustomization(mode) {
   chatListBg: 'Chat List Background',
   chatItemBg: 'Chat Item Background',
   textColor: 'Main Text Color',
-  previewText: 'Preview Text Color',
+  
   // NEW LABELS
   stalkColor: 'S talk Text Color',
   bubuTextColor: 'Bubu Text Color',
@@ -3652,10 +3650,8 @@ function openColorCustomization(mode) {
   svgColor: 'SVG Icons Color',
   brotherTextColor: 'Brother Messages Text',
   brotherTimeColor: 'Brother Messages Time',
-  brotherPreviewColor: 'Brother Preview Text',
   userTextColor: 'Your Messages Text',
-  userTimeColor: 'Your Messages Time',
-  userPreviewColor: 'Your Preview Text'
+  userTimeColor: 'Your Messages Time'
 };
   Object.keys(colors).forEach(key => {
     const optionDiv = document.createElement('div');
@@ -4045,53 +4041,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <input type="number" id="highlightDuration" min="0.5" max="5" step="0.5" class="size-input">
       <span class="unit">s</span>
     </div>
-    <div class="setting-item">
-      <label>Stagger Messages</label>
-      <input type="checkbox" id="staggerMessages">
-    </div>
-    <div class="setting-item">
-      <label>Stagger Delay</label>
-      <input type="number" id="staggerDelay" min="0.05" max="0.5" step="0.05" class="size-input">
-      <span class="unit">s</span>
-    </div>
+<br /><br /><br /><br /><br /><br /><br /><br />
+
   </div>
   
-  <div class="settings-group">
-    <h4>Special Effects</h4>
-    <div class="setting-item">
-      <label>Enable Particle Effects</label>
-      <input type="checkbox" id="particleEffects">
-    </div>
-    <div class="setting-item">
-      <label>Enable Ripple Effect</label>
-      <input type="checkbox" id="rippleEffect">
-    </div>
-    <div class="setting-item">
-      <label>Enable Glow Effect</label>
-      <input type="checkbox" id="glowEffect">
-    </div>
-    <div class="setting-item">
-      <label>Enable Floating Animation</label>
-      <input type="checkbox" id="floatingAnimation">
-    </div>
-  </div>
+
   
-  <div class="settings-group">
-    <h4>Chat List Animations</h4>
-    <div class="setting-item">
-      <label>Chat Item Animation</label>
-      <select id="chatItemAnimation">
-        <option value="none">None</option>
-        <option value="fadeIn">Fade In</option>
-        <option value="slideIn">Slide In</option>
-        <option value="bounceIn">Bounce In</option>
-      </select>
-    </div>
-    <div class="setting-item">
-      <label>Unread Pulse Effect</label>
-      <input type="checkbox" id="unreadPulse">
-    </div>
-  </div>
+
 </div>
     <div id="layoutTab" class="tab-content">
       <div class="settings-group">
