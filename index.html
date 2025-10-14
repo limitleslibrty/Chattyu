@@ -20,6 +20,151 @@
 
   <!--for bottom gesture navigation bar removing-->
   <style>
+/* ===== SIMPLIFIED MESSAGE SELECTION STYLES ===== */
+.bubble {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.bubble.selected {
+  position: relative;
+  overflow: visible;
+}
+
+/* Green border on left */
+.bubble.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #25D366;
+  z-index: 3;
+  border-radius: 16px 0 0 16px;
+}
+
+/* Color overlay - SIMPLIFIED APPROACH */
+.bubble.selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(37, 211, 102, 0.15);
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Checkbox */
+.bubble .selection-checkbox {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background: white;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.bubble.selected .selection-checkbox {
+  display: flex;
+  left: 10px;
+  border-color: #25D366;
+  background: #25D366;
+}
+
+.bubble.selected .selection-checkbox::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Ensure bubble content stays above the overlay */
+.bubble>* {
+  position: relative;
+  z-index: 2;
+}
+
+/* Selection toolbar - TOP POSITION */
+#selectionToolbar {
+  position: fixed;
+  top: 6px;
+  left: 0;
+  right: 0;
+  background: #DDF2ED;
+  color: #3A4F4A;
+  padding: 12px 20px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  
+}
+body:not(.dark) #selectionToolbar .selection-action {
+  color: #3A4F4A !important; /* Your desired color for light mode */
+  transition: all 0.2s ease;
+}
+
+#selectionToolbar .selected-count {
+  font-size: 18px;
+  font-weight: 400;
+}
+
+#selectionToolbar .selection-actions {
+  display: flex;
+  gap: 15px;
+}
+
+#selectionToolbar .selection-action {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+#selectionToolbar .selection-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Adjust messages padding when toolbar is visible */
+#messages.with-selection-toolbar {
+  padding-top: 70px !important;
+  padding-bottom: 120px !important;
+}
+
+/* Dark mode styles */
+body.dark .bubble .selection-checkbox {
+  background: #2A2A2A;
+  border-color: #666;
+}
+
+body.dark .bubble.selected .selection-checkbox {
+  background: #25D366;
+  border-color: #25D366;
+}
+
+body.dark #selectionToolbar {
+  color: #DDF2ED;
+  background: #13221F;
+}
+
+
+
   /* Dark mode HR color */
 body.dark #settingsMenu hr {
   border-color: #031813 !important;
@@ -2461,8 +2606,188 @@ function createDateDivider(label){
   div.textContent = label;
   return div;
 }
+// ===== MESSAGE SELECTION FUNCTIONALITY =====
+let selectedMessages = new Set();
+let isSelectionMode = false;
+let longPressTimer = null;
+let currentLongPressTarget = null;
 
+// Initialize selection functionality
+function initializeMessageSelection() {
+  const messagesEl = document.getElementById('messages');
+  
+  // Add event listeners to messages container
+  messagesEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+  messagesEl.addEventListener('touchend', handleTouchEnd);
+  messagesEl.addEventListener('touchmove', handleTouchMove);
+  messagesEl.addEventListener('click', handleMessageClick);
+  
+  // Toolbar event listeners
+  document.getElementById('deleteSelected').addEventListener('click', deleteSelectedMessages);
+  document.getElementById('copySelected').addEventListener('click', copySelectedMessages);
+  document.getElementById('closeSelection').addEventListener('click', clearSelection);
+}
 
+// Touch event handlers
+function handleTouchStart(e) {
+  if (e.target.closest('.message-link') || e.target.closest('.reply-box')) return;
+  
+  const bubble = e.target.closest('.bubble');
+  if (!bubble) return;
+  
+  currentLongPressTarget = bubble;
+  longPressTimer = setTimeout(() => {
+    // Enter selection mode on long press
+    if (!isSelectionMode) {
+      isSelectionMode = true;
+      toggleMessageSelection(bubble);
+    }
+    longPressTimer = null;
+    currentLongPressTarget = null;
+  }, 500);
+}
+
+function handleTouchEnd(e) {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+    
+    // If we're in selection mode and this was a quick tap, select the message
+    if (isSelectionMode && currentLongPressTarget) {
+      const bubble = currentLongPressTarget;
+      if (bubble && !e.target.closest('.message-link') && !e.target.closest('.reply-box')) {
+        toggleMessageSelection(bubble);
+      }
+    }
+  }
+  currentLongPressTarget = null;
+}
+
+function handleTouchMove(e) {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+    currentLongPressTarget = null;
+  }
+}
+
+// Click handler for selection mode (for mouse users)
+function handleMessageClick(e) {
+  if (e.target.closest('.message-link') || e.target.closest('.reply-box')) return;
+  
+  const bubble = e.target.closest('.bubble');
+  if (!bubble) return;
+  
+  if (isSelectionMode) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMessageSelection(bubble);
+  }
+}
+
+// Toggle message selection
+function toggleMessageSelection(bubble) {
+  const msgKey = bubble.getAttribute('data-msg-key');
+  
+  if (selectedMessages.has(msgKey)) {
+    selectedMessages.delete(msgKey);
+    bubble.classList.remove('selected');
+  } else {
+    selectedMessages.add(msgKey);
+    bubble.classList.add('selected');
+  }
+  
+  updateSelectionToolbar();
+}
+
+// Update selection toolbar
+function updateSelectionToolbar() {
+  const toolbar = document.getElementById('selectionToolbar');
+  const selectedCount = document.getElementById('selectedCount');
+  
+  if (selectedMessages.size > 0) {
+    toolbar.style.display = 'flex';
+    selectedCount.textContent = `${selectedMessages.size} selected`;
+    
+    // Adjust messages padding for toolbar
+    document.getElementById('messages').classList.add('with-selection-toolbar');
+  } else {
+    // If no messages selected, exit selection mode
+    isSelectionMode = false;
+    toolbar.style.display = 'none';
+    document.getElementById('messages').classList.remove('with-selection-toolbar');
+  }
+}
+
+// Clear selection
+function clearSelection() {
+  selectedMessages.clear();
+  isSelectionMode = false;
+  
+  // Remove selection from all messages
+  document.querySelectorAll('.bubble.selected').forEach(bubble => {
+    bubble.classList.remove('selected');
+  });
+  
+  // Hide toolbar
+  document.getElementById('selectionToolbar').style.display = 'none';
+  
+  // Reset messages padding
+  document.getElementById('messages').classList.remove('with-selection-toolbar');
+}
+
+// Delete selected messages
+function deleteSelectedMessages() {
+  if (selectedMessages.size === 0 || !currentKey) return;
+  
+  if (confirm(`Delete ${selectedMessages.size} message(s)?`)) {
+    selectedMessages.forEach(msgKey => {
+      db.ref('chats/' + currentKey + '/' + msgKey).remove()
+        .then(() => console.log('Deleted:', msgKey))
+        .catch(err => console.error('Failed to delete:', err));
+    });
+    
+    clearSelection();
+  }
+}
+
+// Copy selected messages
+function copySelectedMessages() {
+  if (selectedMessages.size === 0) return;
+  
+  let textToCopy = '';
+  selectedMessages.forEach(msgKey => {
+    const message = messageStore[msgKey];
+    if (message && message.text) {
+      textToCopy += message.text + '\n\n';
+    }
+  });
+  
+  if (textToCopy) {
+    navigator.clipboard.writeText(textToCopy.trim())
+      .then(() => {
+        alert('Messages copied to clipboard!');
+        clearSelection();
+      })
+      .catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy messages');
+      });
+  } else {
+    alert('No text messages to copy');
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeMessageSelection);
+
+// Also re-initialize when opening a new chat
+const originalOpenChat = openChat;
+openChat = function(key) {
+  originalOpenChat(key);
+  // Clear any existing selection when switching chats
+  clearSelection();
+};
 function highlightAndScrollTo(msgKey) {
   if (!msgKey) return;
   // prefer id format first
@@ -2504,79 +2829,115 @@ function highlightAndScrollTo(msgKey) {
   }, 2200);
 }
 
-function buildMessageBubble(msgKey, val) {
-  // create bubble wrapper & classes
+window.buildMessageBubble = function(msgKey, val) {
   const div = document.createElement('div');
   div.className = 'bubble ' + (val.from === 'user' ? 'from-user' : 'from-brother');
+  div.setAttribute('data-msg-key', String(msgKey));
+  div.id = 'msg_' + String(msgKey);
   
+  // Selection checkbox
+  const checkbox = document.createElement('div');
+  checkbox.className = 'selection-checkbox';
+  div.appendChild(checkbox);
   
-  // Apply enhanced animation to new messages
-  if (isNewMessage) {
-    div.classList.add('enhanced-pop');
-  }
-
+  // Selection overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'selection-overlay';
+  div.appendChild(overlay);
   
-  // reply arrow (swipe UI)
+  // Reply arrow
   const arrow = document.createElement('div');
   arrow.className = 'reply-arrow';
   arrow.innerHTML = '↩';
   div.appendChild(arrow);
   
-  // attach swipe/reply behavior (re-uses your helper)
-  attachSwipeHandlers(div, msgKey, val.text || val.url || '');
+  // Attach swipe handlers for reply
+  attachSwipeHandlers(div, msgKey, val.text || '');
   
-  // reply preview if present
+  // Reply preview
   if (val.replyTo && messageStore[val.replyTo]) {
     const replyDiv = document.createElement('div');
     replyDiv.className = 'reply-box';
-    // if the referenced message had text use it, otherwise if media show type
-    const ref = messageStore[val.replyTo];
-    replyDiv.textContent = ref && ref.text ? ref.text : (ref && ref.type ? '[' + (ref.type || 'media') + ']' : '');
+    const referenced = messageStore[val.replyTo];
+    if (referenced && referenced.text) {
+      const truncatedText = referenced.text.length > 120 ?
+        referenced.text.slice(0, 120) + '…' : referenced.text;
+      replyDiv.innerHTML = linkify(truncatedText);
+    } else {
+      replyDiv.textContent = '[media]';
+    }
+    
+    replyDiv.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      highlightAndScrollTo(val.replyTo);
+    });
+    
     div.prepend(replyDiv);
   }
   
-  // If media (gif/image) -> render image tag, allow optional text underneath
-  if (val.type === 'gif' || val.type === 'image' || val.url) {
+  // Media (image/gif)
+  if (val.type === 'gif' || val.type === 'image') {
     const media = document.createElement('img');
-    media.style.maxWidth = '260px';
+    media.style.maxWidth = '100%';
     media.style.maxHeight = '260px';
     media.style.borderRadius = '8px';
     media.style.display = 'block';
     media.style.marginBottom = '6px';
-    // prefer val.url; some payloads may include url or mediaUrl
-    media.src = val.url || val.mediaUrl || '';
-    media.alt = val.type || 'media';
-    // add error handler to help debug CORS/missing URL
-    media.addEventListener('error', () => {
-      const err = document.createElement('div');
-      err.style.fontSize = '12px';
-      err.style.color = '#b00';
-      err.textContent = '[Unable to load media]';
-      div.insertBefore(err, media.nextSibling);
-    });
+    media.src = val.url;
+    media.alt = val.type;
     div.appendChild(media);
+    
+    // Menu button
+    const menuBtn = document.createElement('button');
+    menuBtn.innerHTML = '⋮';
+    menuBtn.className = 'menu-btn';
+    menuBtn.style.position = 'absolute';
+    menuBtn.style.top = '6px';
+    menuBtn.style.right = '6px';
+    menuBtn.style.background = 'transparent';
+    menuBtn.style.border = 'none';
+    menuBtn.style.fontSize = '18px';
+    menuBtn.style.cursor = 'pointer';
+    
+    const menu = createDeleteMenu(msgKey);
+    div.appendChild(menu);
+    
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+    });
+    
+    document.addEventListener('click', () => { menu.style.display = 'none'; });
+    div.appendChild(menuBtn);
+    
     if (val.text) {
-  const textNode = document.createElement('div');
-  textNode.innerHTML = linkify(val.text);
-  div.appendChild(textNode);
-}
+      const textNode = document.createElement('div');
+      textNode.innerHTML = linkify(val.text);
+      div.appendChild(textNode);
+    }
   } else {
-    // regular text-only message
-    // text message
-const textNode = document.createElement('div');
-textNode.innerHTML = linkify(val.text || '');
-div.appendChild(textNode);
+    // Text message
+    const textNode = document.createElement('div');
+    textNode.innerHTML = linkify(val.text || '');
+    div.appendChild(textNode);
+    
+    // Remove long press delete handlers since we're using selection now
+    // (Keep only the selection functionality)
   }
   
-  // timestamp
+  // Timestamp
   const timeNode = document.createElement('div');
   timeNode.className = 'msg-time';
-  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  timeNode.textContent = new Date(Number(msgKey)).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
   div.appendChild(timeNode);
   
   return div;
-}
-
+};
 
 // ensure the local name points to the same function used in renderMessages
 buildMessageBubble = window.buildMessageBubble;
@@ -2601,7 +2962,7 @@ function openChat(key) {
   lastRenderedMsgTime = 0;
   messagesEl.innerHTML = '';
   initialLoadDone = false;
-  
+  clearSelection();
   // Reset infinite scroll variables
   isLoadingOlderMessages = false;
   hasMoreMessages = true;
@@ -3813,7 +4174,7 @@ function goBackToList() {
   // Clear current chat state
   currentKey = null;
   isInChatView = false;
-  
+  clearSelection();
   // Clean up listeners
   if (childListener) {
     db.ref('chats/' + currentKey).off('value', childListener);
@@ -5962,5 +6323,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 200);
   });
 </script>
+<!-- Selection Toolbar -->
+<div id="selectionToolbar">
+  <div class="selected-count" id="selectedCount">0 selected</div>
+  <div class="selection-actions">
+    <button class="selection-action" id="deleteSelected" title="Delete">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+      </svg>
+    </button>
+    <button class="selection-action" id="copySelected" title="Copy">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+      </svg>
+    </button>
+    <button class="selection-action" id="closeSelection" title="Cancel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+      </svg>
+    </button>
+  </div>
+</div>
 </body>
 </html>
