@@ -1001,16 +1001,16 @@ body.dark #chat{
 }
 
 /* Tail for user bubble (left) */
+/* Tail for user bubble (left) */
 .from-user::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0; /* start from left corner */
-  width: 12px;
-  height: 12px;
+  left: 0;
+  width: 14px;
+  height: 14px;
   background: #DDF2ED;
-  border-bottom-left-radius: 4px;
-  clip-path: polygon(0 0, 0% 100%, 100% 100%);
+  clip-path: polygon(-5% 0, 0% 100%, 100% 100%);
 }
 
 /* Tail for brother bubble (right) */
@@ -1018,15 +1018,12 @@ body.dark #chat{
   content: '';
   position: absolute;
   bottom: 0;
-  right: 0; /* start from right corner */
-  width: 12px;
-  height: 12px;
+  right: 0; /* overlap slightly */
+  width: 14px;
+  height: 14px;
   background: #006B61;
-  border-bottom-right-radius: 4px;
-  clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+  clip-path: polygon(100% 0, 0% 100%, 105% 100%);
 }
-
-
 
 
 
