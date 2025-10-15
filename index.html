@@ -4150,20 +4150,7 @@ function createDeleteMenu(msgKey) {
   })();
   
   
-  // Handle scroll events for infinite scroll
-function handleScroll() {
-  if (isLoadingOlderMessages || !hasMoreMessages) return;
-  
-  // Load more messages when scrolled to top
-  if (messagesEl.scrollTop < 100) {
-    loadOlderMessages();
-  }
-}
 
-// Function for back button of chat header 
-
-// Improved back button function
-// Improved back button function
 function goBackToList() {
   console.log('Back button clicked');
   
@@ -4439,7 +4426,14 @@ function enableDarkMode() {
   localStorage.setItem('darkMode', 'enabled');
   applyCustomColors('dark');
 }
-
+function handleScroll() {
+  if (isLoadingOlderMessages || !hasMoreMessages) return;
+  
+  // Load more messages when scrolled to top (within 100px)
+  if (messagesEl.scrollTop < 100) {
+    loadOlderMessages();
+  }
+}
 function disableDarkMode() {
   document.body.classList.remove('dark');
   localStorage.setItem('darkMode', 'disabled');
