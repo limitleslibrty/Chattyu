@@ -2221,8 +2221,12 @@ body.dark .modal-btn.secondary {
 <!-- Chat Background Picker Modal -->
 <div id="backgroundModal" class="color-modal" aria-hidden="true">
   <div class="color-modal-content">
-    <h3 style="margin-bottom: 20px;">Chat Background</h3>
+    <div class="background-modal-header">
+      <h3 style="margin: 0;">Chat Background</h3>
+      <button class="background-close-btn" id="closeBackgroundModal" aria-label="Close">×</button>
+    </div>
     
+
   <div class="background-tabs">
   <button class="bg-tab-btn active" data-tab="colors">Solid Colors</button>
   <button class="bg-tab-btn" data-tab="gradients">Gradients</button>
@@ -2407,6 +2411,64 @@ function formatLastSeen(ts) {
 }
 
 
+// Close background modal function
+function closeBackgroundModal() {
+  const backgroundModal = document.getElementById('backgroundModal');
+  backgroundModal.classList.remove('open');
+}
+
+// Initialize uploaded images with remove buttons
+function initializeUploadedImages() {
+  const savedImagesGrid = document.getElementById('savedImagesGrid');
+  
+  // Clear existing uploaded images (keep default ones)
+  const defaultImages = Array.from(savedImagesGrid.querySelectorAll('.image-option'))
+    .filter(opt => !opt.hasAttribute('data-name'));
+  
+  savedImagesGrid.innerHTML = '';
+  defaultImages.forEach(img => savedImagesGrid.appendChild(img));
+  
+  // Add uploaded images with remove buttons
+  uploadedImages.forEach(imageData => {
+    addImageToGrid(imageData.url, imageData.name);
+  });
+}
+
+// Update the existing addImageToGrid function
+function addImageToGrid(imageUrl, imageName) {
+  const savedImagesGrid = document.getElementById('savedImagesGrid');
+  
+  const imageOption = document.createElement('div');
+  imageOption.className = 'image-option';
+  imageOption.setAttribute('data-image', imageUrl);
+  imageOption.setAttribute('data-name', imageName);
+  imageOption.style.backgroundImage = `url('${imageUrl}')`;
+  imageOption.title = imageName;
+  
+  // Add click handler to apply background
+  imageOption.addEventListener('click', function() {
+    document.querySelectorAll('.image-option').forEach(opt => opt.classList.remove('selected'));
+    this.classList.add('selected');
+    
+    selectedBackground = this.getAttribute('data-image');
+    selectedType = 'image';
+    
+    // Apply the background immediately
+    applyBackground(
+      'image',
+      selectedBackground,
+      parseInt(blurSlider?.value || 0),
+      parseInt(opacitySlider?.value || 50)
+    );
+  });
+  
+  // Add remove button for uploaded images (not default ones)
+  if (imageName) {
+    addRemoveButtonToImage(imageOption, imageUrl, imageName);
+  }
+  
+  savedImagesGrid.appendChild(imageOption);
+}
 function subscribeToPresenceFor(chatKey) {
   // remove previous listener
   if (statusListener && statusListener.ref) {
@@ -2972,7 +3034,30 @@ openChat = function(key) {
   // Clear any existing selection when switching chats
   clearSelection();
 };
-
+// Close background modal when close button is clicked
+document.addEventListener('DOMContentLoaded', function() {
+  const closeBtn = document.getElementById('closeBackgroundModal');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeBackgroundModal);
+  }
+  
+  // Also close when clicking outside the modal content
+  const backgroundModal = document.getElementById('backgroundModal');
+  if (backgroundModal) {
+    backgroundModal.addEventListener('click', function(e) {
+      if (e.target === backgroundModal) {
+        closeBackgroundModal();
+      }
+    });
+  }
+  
+  // Close with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && backgroundModal.classList.contains('open')) {
+      closeBackgroundModal();
+    }
+  });
+});
 
 
 
@@ -3204,8 +3289,87 @@ function initializeUploadedImages() {
     addImageToGrid(imageData.url, imageData.name);
   });
 }
+// Add this CSS for the remove button
+const removeButtonStyle = `
+.remove-image-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0.9;
+}
 
-// Add uploaded image to the grid
+.remove-image-btn:hover {
+    background: #cc0000;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.image-option {
+    position: relative;
+}
+
+/* Hide remove button when image is selected */
+.image-option.selected .remove-image-btn {
+    display: none;
+}
+`;
+
+// Inject the styles
+const style = document.createElement('style');
+style.textContent = removeButtonStyle;
+document.head.appendChild(style);
+
+// Function to add remove button to uploaded images
+function addRemoveButtonToImage(imageOption, imageUrl, imageName) {
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-image-btn';
+  removeBtn.innerHTML = '×';
+  removeBtn.title = 'Remove image';
+  
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent triggering image selection
+    removeUploadedImage(imageUrl, imageName, imageOption);
+  });
+  
+  imageOption.appendChild(removeBtn);
+}
+
+// Function to remove uploaded image
+function removeUploadedImage(imageUrl, imageName, imageElement) {
+  if (confirm(`Remove "${imageName}" from your saved collection?`)) {
+    // Remove from uploadedImages array
+    uploadedImages = uploadedImages.filter(img => img.url !== imageUrl);
+    
+    // Update localStorage
+    localStorage.setItem('uploadedBackgrounds', JSON.stringify(uploadedImages));
+    
+    // Remove from DOM
+    imageElement.remove();
+    
+    // If this was the currently selected background, reset selection
+    if (selectedBackground === imageUrl && selectedType === 'image') {
+      selectedBackground = null;
+      selectedType = null;
+    }
+    
+    console.log('Image removed from collection');
+  }
+}
+
+// Update your existing addImageToGrid function
 function addImageToGrid(imageUrl, imageName) {
   const savedImagesGrid = document.getElementById('savedImagesGrid');
   
@@ -3216,25 +3380,92 @@ function addImageToGrid(imageUrl, imageName) {
   imageOption.style.backgroundImage = `url('${imageUrl}')`;
   imageOption.title = imageName;
   
-  // Add click handler to apply background
+  // Add click handler for SELECTION only (not application)
   imageOption.addEventListener('click', function() {
-    document.querySelectorAll('.image-option').forEach(opt => opt.classList.remove('selected'));
+    // Deselect all other options
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(opt => {
+      opt.classList.remove('selected');
+    });
+    
+    // Select this image
     this.classList.add('selected');
     
+    // Store selection but don't apply yet
     selectedBackground = this.getAttribute('data-image');
     selectedType = 'image';
     
-    // Apply the background immediately
-    applyBackground(
-      'image',
-      selectedBackground,
-      parseInt(blurSlider.value),
-      parseInt(opacitySlider.value)
-    );
+    console.log('Image selected (not applied):', selectedBackground);
   });
+  
+  // Add remove button for uploaded images (not default ones)
+  if (imageName) {
+    addRemoveButtonToImage(imageOption, imageUrl, imageName);
+  }
   
   savedImagesGrid.appendChild(imageOption);
 }
+
+// Update the apply background button to use the selection
+document.addEventListener('DOMContentLoaded', function() {
+  const applyBackgroundBtn = document.getElementById('applyBackgroundBtn');
+  
+  if (applyBackgroundBtn) {
+    // Remove any existing event listeners and add new one
+    applyBackgroundBtn.replaceWith(applyBackgroundBtn.cloneNode(true));
+    const newApplyBtn = document.getElementById('applyBackgroundBtn');
+    
+    newApplyBtn.addEventListener('click', function() {
+      console.log('Apply Background button clicked');
+      
+      if (selectedBackground && selectedType) {
+        console.log('Applying background:', selectedType, selectedBackground);
+        applyBackground(
+          selectedType,
+          selectedBackground,
+          parseInt(blurSlider?.value || 0),
+          parseInt(opacitySlider?.value || 50)
+        );
+        closeBackgroundPicker();
+      } else {
+        console.log('No background selected');
+        alert('Please select a background first');
+      }
+    });
+  }
+  
+  // Initialize remove buttons for existing uploaded images
+  const savedImagesGrid = document.getElementById('savedImagesGrid');
+  const uploadedImageOptions = savedImagesGrid.querySelectorAll('.image-option[data-name]');
+  
+  uploadedImageOptions.forEach(option => {
+    const imageUrl = option.getAttribute('data-image');
+    const imageName = option.getAttribute('data-name');
+    addRemoveButtonToImage(option, imageUrl, imageName);
+  });
+});
+
+// Also update the color and gradient selection to work the same way
+document.querySelectorAll('.color-option').forEach(option => {
+  option.addEventListener('click', () => {
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedBackground = option.dataset.color;
+    selectedType = 'color';
+    console.log('Color selected (not applied):', selectedBackground);
+  });
+});
+
+document.querySelectorAll('.gradient-option').forEach(option => {
+  option.addEventListener('click', () => {
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedBackground = option.dataset.gradient;
+    selectedType = 'gradient';
+    console.log('Gradient selected (not applied):', selectedBackground);
+  });
+});
+// Add uploaded image to the grid
+
 
 // Handle file upload
 document.getElementById('bgImageUpload').addEventListener('change', function(e) {
@@ -6787,6 +7018,69 @@ document.addEventListener('DOMContentLoaded', function() {
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
 }
+/* Remove button for saved images */
+.image-option {
+  position: relative;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.image-option:hover .remove-image-btn {
+  display: flex;
+}
+
+.remove-image-btn:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+/* Close button for background modal */
+.background-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.background-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.background-close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+body.dark .background-close-btn {
+  color: #B7CAC6;
+}
+
+body.dark .background-close-btn:hover {
+  background: #2A3A36;
+  color: #fff;
+}
+
 </style>
 </body>
 </html>
