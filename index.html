@@ -4939,7 +4939,6 @@ class AdvancedColorPicker {
     this.hue = 0;
     this.saturation = 100;
     this.brightness = 100;
-    this.alpha = 1;
     
     this.init();
     this.updateFromHex(currentColor);
@@ -4965,11 +4964,6 @@ class AdvancedColorPicker {
 
       <div class="brightness-control" id="brightnessControl">
         <div class="brightness-cursor"></div>
-      </div>
-
-      <div class="alpha-control" id="alphaControl">
-        <div class="alpha-gradient" id="alphaGradient"></div>
-        <div class="alpha-cursor"></div>
       </div>
 
       <div class="current-color-preview">
@@ -5009,10 +5003,6 @@ class AdvancedColorPicker {
           <label class="color-input-label">V</label>
           <input type="number" class="color-channel-input" id="valueInput" min="0" max="100" value="100">
         </div>
-        <div class="color-input-group">
-          <label class="color-input-label">A</label>
-          <input type="number" class="color-channel-input" id="alphaInput" min="0" max="1" step="0.01" value="1">
-        </div>
       </div>
 
       <div class="preset-colors">
@@ -5038,11 +5028,6 @@ class AdvancedColorPicker {
     brightness.addEventListener('mousedown', this.startBrightnessInteraction.bind(this));
     brightness.addEventListener('touchstart', this.startBrightnessInteraction.bind(this));
 
-    // Alpha control events
-    const alpha = this.container.querySelector('#alphaControl');
-    alpha.addEventListener('mousedown', this.startAlphaInteraction.bind(this));
-    alpha.addEventListener('touchstart', this.startAlphaInteraction.bind(this));
-
     // Input events
     this.container.querySelector('#hexInput').addEventListener('input', this.onHexInput.bind(this));
     this.container.querySelector('#redInput').addEventListener('input', this.onRgbInput.bind(this));
@@ -5051,7 +5036,6 @@ class AdvancedColorPicker {
     this.container.querySelector('#hueInput').addEventListener('input', this.onHsvInput.bind(this));
     this.container.querySelector('#saturationInput').addEventListener('input', this.onHsvInput.bind(this));
     this.container.querySelector('#valueInput').addEventListener('input', this.onHsvInput.bind(this));
-    this.container.querySelector('#alphaInput').addEventListener('input', this.onAlphaInput.bind(this));
 
     // Confirm button
     this.container.querySelector('#confirmColor').addEventListener('click', this.confirmColor.bind(this));
@@ -5131,35 +5115,6 @@ class AdvancedColorPicker {
     moveHandler(e);
   }
 
-  startAlphaInteraction(e) {
-    e.preventDefault();
-    const control = this.container.querySelector('#alphaControl');
-    const rect = control.getBoundingClientRect();
-    
-    const moveHandler = (moveEvent) => {
-      const clientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
-      let x = clientX - rect.left;
-      x = Math.max(0, Math.min(rect.width, x));
-      
-      this.alpha = Math.round((x / rect.width) * 100) / 100;
-      this.updateUI();
-    };
-    
-    const upHandler = () => {
-      document.removeEventListener('mousemove', moveHandler);
-      document.removeEventListener('touchmove', moveHandler);
-      document.removeEventListener('mouseup', upHandler);
-      document.removeEventListener('touchend', upHandler);
-    };
-    
-    document.addEventListener('mousemove', moveHandler);
-    document.addEventListener('touchmove', moveHandler);
-    document.addEventListener('mouseup', upHandler);
-    document.addEventListener('touchend', upHandler);
-    
-    moveHandler(e);
-  }
-
   onHexInput(e) {
     const hex = e.target.value;
     if (this.isValidHex(hex)) {
@@ -5182,12 +5137,6 @@ class AdvancedColorPicker {
     this.saturation = s;
     this.brightness = v;
     this.updateFromHSV();
-  }
-
-  onAlphaInput() {
-    const alpha = parseFloat(this.container.querySelector('#alphaInput').value) || 1;
-    this.alpha = Math.max(0, Math.min(1, alpha));
-    this.updateUI();
   }
 
   updateFromHex(hex) {
@@ -5303,27 +5252,13 @@ class AdvancedColorPicker {
     brightnessCursor.style.left = brightnessPos + 'px';
     brightnessCursor.style.background = `rgb(${r}, ${g}, ${b})`;
     
-    // Update alpha gradient and cursor
-    const alphaControl = this.container.querySelector('#alphaControl');
-    const alphaGradient = this.container.querySelector('#alphaGradient');
-    const alphaCursor = this.container.querySelector('.alpha-cursor');
-    
-    alphaGradient.style.background = `linear-gradient(to right, rgba(${r}, ${g}, ${b}, 0), rgba(${r}, ${g}, ${b}, 1))`;
-    
-    const alphaPos = this.alpha * alphaControl.offsetWidth;
-    alphaCursor.style.left = alphaPos + 'px';
-    alphaCursor.style.background = `rgba(${r}, ${g}, ${b}, ${this.alpha})`;
-    
     // Update color preview
     const preview = this.container.querySelector('#largeColorPreview');
-    preview.style.background = `rgba(${r}, ${g}, ${b}, ${this.alpha})`;
+    preview.style.background = `rgb(${r}, ${g}, ${b})`;
     
     // Update values
     this.container.querySelector('#hexValue').textContent = hex;
-    this.container.querySelector('#rgbValue').textContent = 
-      this.alpha < 1 ? 
-      `rgba(${r}, ${g}, ${b}, ${this.alpha})` : 
-      `rgb(${r}, ${g}, ${b})`;
+    this.container.querySelector('#rgbValue').textContent = `rgb(${r}, ${g}, ${b})`;
     
     this.container.querySelector('#hexInput').value = hex;
     this.container.querySelector('#redInput').value = r;
@@ -5332,11 +5267,8 @@ class AdvancedColorPicker {
     this.container.querySelector('#hueInput').value = this.hue;
     this.container.querySelector('#saturationInput').value = this.saturation;
     this.container.querySelector('#valueInput').value = this.brightness;
-    this.container.querySelector('#alphaInput').value = this.alpha;
     
-    this.currentColor = this.alpha < 1 ? 
-      `rgba(${r}, ${g}, ${b}, ${this.alpha})` : 
-      hex;
+    this.currentColor = hex;
   }
 
   rgbToHex(r, g, b) {
