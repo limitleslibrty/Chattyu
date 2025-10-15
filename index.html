@@ -20,6 +20,143 @@
 
   <!--for bottom gesture navigation bar removing-->
   <style>
+/* Background Picker Styles */
+.background-tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.bg-tab-btn {
+  
+  flex: 1;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-size: 12px;
+  min-width: 80px;
+}
+
+body.dark .bg-tab-btn {
+  color: #DDF2ED;
+}
+
+.bg-tab-btn.active {
+  border-bottom: 2px solid #2563eb;
+  font-weight: bold;
+}
+
+.bg-tab-content {
+  display: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.bg-tab-content.active {
+  display: block;
+}
+
+/* Color Grid */
+.color-grid, .gradient-grid, .image-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.color-option, .gradient-option, .image-option {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.color-option:hover, .gradient-option:hover, .image-option:hover {
+  transform: scale(1.05);
+  border-color: #2563eb;
+}
+
+.color-option.selected, .gradient-option.selected, .image-option.selected {
+  border-color: #2563eb;
+  border-width: 3px;
+}
+
+.image-option {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Custom Upload */
+.custom-upload {
+  text-align: center;
+  padding: 20px;
+}
+
+.upload-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.upload-btn:hover {
+  background: #1d4ed8;
+}
+
+.upload-hint {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.blur-control, .opacity-control {
+  margin: 15px 0;
+  text-align: left;
+}
+
+.blur-control label, .opacity-control label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.blur-control input, .opacity-control input {
+  width: 100%;
+}
+
+/* Dark mode adjustments */
+body.dark .background-tabs {
+  border-bottom-color: #2A3A36;
+}
+
+body.dark .bg-tab-content {
+  color: #B7CAC6;
+}
+
+body.dark .upload-hint {
+  color: #B7CAC6;
+}
+
+/* IMPORTANT: Override existing message background with !important */
+#messages.custom-background {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+
 /* ===== SIMPLIFIED MESSAGE SELECTION STYLES ===== */
 .bubble {
   position: relative;
@@ -1435,7 +1572,7 @@ body.dark .color-modal-content {
   color: #B7CAC6;
 }
 
-.color-option {
+.color-option1 {
   margin-bottom: 15px;
   display: flex;
   align-items: center;
@@ -1443,7 +1580,7 @@ body.dark .color-modal-content {
   min-width: 0;
 }
 
-.color-option label {
+.color-option1 label {
   min-width: 140px;
   font-weight: 500;
   font-size: 14px;
@@ -2001,6 +2138,9 @@ body.dark .modal-btn.secondary {
     <div class="menu-item" data-action="customize-light">🎨 Customize Light Mode</div>
     <div class="menu-item" data-action="reset-colors">🔄 Reset to Default</div>
     <div class="menu-item" data-action="advanced-settings">⚙️ Setting</div>
+    <!-- Add these menu items in your settings menu -->
+<div class="menu-item" data-action="chat-background">🎨 Chat Background</div>
+
         <hr color=#E9FEF9 />
     <div class="menu-item">Extras</div>
     <hr color=#E9FEF9 />
@@ -2087,7 +2227,68 @@ body.dark .modal-btn.secondary {
     </button>
   </div>
 </div>
-
+<!-- Chat Background Picker Modal -->
+<div id="backgroundModal" class="color-modal" aria-hidden="true">
+  <div class="color-modal-content">
+    <h3 style="margin-bottom: 20px;">Chat Background</h3>
+    
+  <div class="background-tabs">
+  <button class="bg-tab-btn active" data-tab="colors">Solid Colors</button>
+  <button class="bg-tab-btn" data-tab="gradients">Gradients</button>
+  <button class="bg-tab-btn" data-tab="images">Saved Images</button>
+</div>
+    
+    <div id="colorsTab" class="bg-tab-content active">
+      <div class="color-grid">
+        <div class="color-option" data-color="#ffffff" style="background: #ffffff; border: 1px solid #eee;"></div>
+        <div class="color-option" data-color="#f0f8ff" style="background: #f0f8ff;"></div>
+        <div class="color-option" data-color="#fff0f5" style="background: #fff0f5;"></div>
+        <div class="color-option" data-color="#f0fff0" style="background: #f0fff0;"></div>
+        <div class="color-option" data-color="#fff8dc" style="background: #fff8dc;"></div>
+        <div class="color-option" data-color="#f5f5f5" style="background: #f5f5f5;"></div>
+        <div class="color-option" data-color="#e6e6fa" style="background: #e6e6fa;"></div>
+        <div class="color-option" data-color="#faf0e6" style="background: #faf0e6;"></div>
+      </div>
+    </div>
+    
+    <div id="gradientsTab" class="bg-tab-content">
+      <div class="gradient-grid">
+        <div class="gradient-option" data-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+        <div class="gradient-option" data-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+        <div class="gradient-option" data-gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+        <div class="gradient-option" data-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+        <div class="gradient-option" data-gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+        <div class="gradient-option" data-gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+      </div>
+    </div>
+    
+<div id="imagesTab" class="bg-tab-content">
+  <!-- Add Upload Section -->
+  <div class="custom-upload" style="margin-bottom: 20px;">
+    <input type="file" id="bgImageUpload" accept="image/*" style="display: none;">
+    <button class="upload-btn" onclick="document.getElementById('bgImageUpload').click()">
+      📁 Upload New Image
+    </button>
+    <p class="upload-hint">Upload an image to add to your saved collection</p>
+  </div>
+  
+  <div class="image-grid" id="savedImagesGrid">
+    <!-- Existing images -->
+    <div class="image-option" data-image="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400" style="background-image: url('https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400')"></div>
+    <div class="image-option" data-image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400')"></div>
+    <!-- ... more existing images ... -->
+    
+    <!-- Uploaded images will be added here dynamically -->
+  </div>
+</div>
+    
+    
+    <div class="modal-actions">
+      <button class="modal-btn secondary" id="resetBackgroundBtn">Reset to Default</button>
+      <button class="modal-btn primary" id="applyBackgroundBtn">Apply Background</button>
+    </div>
+  </div>
+</div>
 <!-- GIF modal -->
 <div id="gifModal" aria-hidden="true">
   <div class="panel">
@@ -2145,6 +2346,9 @@ padding: 3px;
   
   
   <script>
+  
+  let selectedBackground = null;
+let selectedType = 'color';
   document.addEventListener("DOMContentLoaded", function() {
     if (!localStorage.getItem("authenticated")) {
       document.body.style.filter = "blur(8px)";
@@ -2620,7 +2824,6 @@ function initializeMessageSelection() {
   messagesEl.addEventListener('touchstart', handleTouchStart, { passive: true });
   messagesEl.addEventListener('touchend', handleTouchEnd);
   messagesEl.addEventListener('touchmove', handleTouchMove);
-  messagesEl.addEventListener('click', handleMessageClick);
   
   // Toolbar event listeners
   document.getElementById('deleteSelected').addEventListener('click', deleteSelectedMessages);
@@ -2628,9 +2831,12 @@ function initializeMessageSelection() {
   document.getElementById('closeSelection').addEventListener('click', clearSelection);
 }
 
-// Touch event handlers
+// Touch event handlers - COMPLETELY BYPASS IMAGES
 function handleTouchStart(e) {
-  if (e.target.closest('.message-link') || e.target.closest('.reply-box')) return;
+  // Don't start swipe if clicking on a link, reply box, or image
+  if (e.target.closest('.message-link') || e.target.closest('.reply-box') || e.target.tagName === 'IMG') {
+    return;
+  }
   
   const bubble = e.target.closest('.bubble');
   if (!bubble) return;
@@ -2653,11 +2859,12 @@ function handleTouchEnd(e) {
     longPressTimer = null;
     
     // If we're in selection mode and this was a quick tap, select the message
-    if (isSelectionMode && currentLongPressTarget) {
-      const bubble = currentLongPressTarget;
-      if (bubble && !e.target.closest('.message-link') && !e.target.closest('.reply-box')) {
-        toggleMessageSelection(bubble);
-      }
+    // But allow image clicks to proceed normally
+    if (isSelectionMode && currentLongPressTarget &&
+      !e.target.closest('.message-link') &&
+      !e.target.closest('.reply-box') &&
+      e.target.tagName !== 'IMG') {
+      toggleMessageSelection(currentLongPressTarget);
     }
   }
   currentLongPressTarget = null;
@@ -2668,20 +2875,6 @@ function handleTouchMove(e) {
     clearTimeout(longPressTimer);
     longPressTimer = null;
     currentLongPressTarget = null;
-  }
-}
-
-// Click handler for selection mode (for mouse users)
-function handleMessageClick(e) {
-  if (e.target.closest('.message-link') || e.target.closest('.reply-box')) return;
-  
-  const bubble = e.target.closest('.bubble');
-  if (!bubble) return;
-  
-  if (isSelectionMode) {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleMessageSelection(bubble);
   }
 }
 
@@ -2788,6 +2981,10 @@ openChat = function(key) {
   // Clear any existing selection when switching chats
   clearSelection();
 };
+
+
+
+
 function highlightAndScrollTo(msgKey) {
   if (!msgKey) return;
   // prefer id format first
@@ -3004,6 +3201,98 @@ function openChat(key) {
   messagesEl.addEventListener('scroll', handleScroll);
 }
 
+// Handle image upload and storage
+let uploadedImages = JSON.parse(localStorage.getItem('uploadedBackgrounds') || '[]');
+
+// Initialize uploaded images on load
+function initializeUploadedImages() {
+  const savedImagesGrid = document.getElementById('savedImagesGrid');
+  
+  // Add uploaded images to the grid
+  uploadedImages.forEach(imageData => {
+    addImageToGrid(imageData.url, imageData.name);
+  });
+}
+
+// Add uploaded image to the grid
+function addImageToGrid(imageUrl, imageName) {
+  const savedImagesGrid = document.getElementById('savedImagesGrid');
+  
+  const imageOption = document.createElement('div');
+  imageOption.className = 'image-option';
+  imageOption.setAttribute('data-image', imageUrl);
+  imageOption.setAttribute('data-name', imageName);
+  imageOption.style.backgroundImage = `url('${imageUrl}')`;
+  imageOption.title = imageName;
+  
+  // Add click handler to apply background
+  imageOption.addEventListener('click', function() {
+    document.querySelectorAll('.image-option').forEach(opt => opt.classList.remove('selected'));
+    this.classList.add('selected');
+    
+    selectedBackground = this.getAttribute('data-image');
+    selectedType = 'image';
+    
+    // Apply the background immediately
+    applyBackground(
+      'image',
+      selectedBackground,
+      parseInt(blurSlider.value),
+      parseInt(opacitySlider.value)
+    );
+  });
+  
+  savedImagesGrid.appendChild(imageOption);
+}
+
+// Handle file upload
+document.getElementById('bgImageUpload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const imageData = {
+      url: event.target.result,
+      name: file.name,
+      uploadedAt: Date.now()
+    };
+    
+    // Add to local storage
+    uploadedImages.push(imageData);
+    localStorage.setItem('uploadedBackgrounds', JSON.stringify(uploadedImages));
+    
+    // Add to grid
+    addImageToGrid(imageData.url, imageData.name);
+    
+    // Select the newly uploaded image
+    selectedBackground = imageData.url;
+    selectedType = 'image';
+    
+    // Apply the background immediately
+    applyBackground(
+      'image',
+      selectedBackground,
+      parseInt(blurSlider.value),
+      parseInt(opacitySlider.value)
+    );
+    
+    alert('Image uploaded and applied successfully!');
+  };
+  
+  reader.readAsDataURL(file);
+  this.value = ''; // Reset file input
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeUploadedImages();
+});
 // Replace your renderMessages function with this optimized version
 function processAndRenderMessages(messages) {
   if (!messages) return;
@@ -3508,6 +3797,259 @@ function insertAtCursor(input, text) {
   input.dispatchEvent(new Event('input'));
 }
 
+// Background Picker Functionality
+const backgroundModal = document.getElementById('backgroundModal');
+const resetBackgroundBtn = document.getElementById('resetBackgroundBtn');
+const applyBackgroundBtn = document.getElementById('applyBackgroundBtn');
+const bgImageUpload = document.getElementById('bgImageUpload');
+const blurSlider = document.getElementById('blurSlider');
+const opacitySlider = document.getElementById('opacitySlider');
+const blurValue = document.getElementById('blurValue');
+const opacityValue = document.getElementById('opacityValue');
+
+ // 'color', 'gradient', 'image', 'custom'
+
+// Load saved background
+// Load saved background
+function loadSavedBackground() {
+  const saved = JSON.parse(localStorage.getItem('chatBackground') || '{}');
+  console.log('Loading saved background:', saved);
+  
+  if (saved.type && saved.value) {
+    // Use setTimeout to ensure DOM is ready and color system is initialized
+    setTimeout(() => {
+      console.log('Applying saved background using color system');
+      applyBackground(saved.type, saved.value, saved.blur, saved.opacity);
+    }, 200);
+  } else {
+    console.log('No saved background, using default color system');
+    const messagesEl = document.getElementById('messages');
+    messagesEl.classList.remove('custom-background');
+    messagesEl.removeAttribute('style');
+    
+    // Remove any custom background styles
+    const existingStyle = document.getElementById('custom-background-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    // Let the existing color system handle the default background
+    // It will use the colors from your customColors object
+  }
+}
+
+// Apply background to messages area
+// Apply background to messages area
+function applyBackground(type, value, blur = 0, opacity = 50) {
+  console.log('Final application:', { type, value, blur, opacity });
+  
+  const messagesEl = document.getElementById('messages');
+  
+  // Remove preview
+  messagesEl.classList.remove('background-preview');
+  const previewStyle = document.getElementById('background-preview-style');
+  if (previewStyle) {
+    previewStyle.remove();
+  }
+  
+  // Remove any existing custom background
+  messagesEl.classList.remove('custom-background');
+  const existingStyle = document.getElementById('custom-background-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  // Apply final background
+  const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
+  const style = document.createElement('style');
+  style.id = 'custom-background-style';
+  
+  let css = '';
+  
+  switch (type) {
+    case 'color':
+      css = `
+                ${currentMode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #messages.custom-background {
+                    background: ${value} !important;
+                    background-color: ${value} !important;
+                }
+            `;
+      break;
+    case 'gradient':
+      css = `
+                ${currentMode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #messages.custom-background {
+                    background: ${value} !important;
+                }
+            `;
+      break;
+    case 'image':
+      css = `
+                ${currentMode === 'dark' ? 'body.dark' : 'body:not(.dark)'} #messages.custom-background {
+                    background-image: url("${value}") !important;
+                    background-size: cover !important;
+                    background-position: center !important;
+                    background-repeat: no-repeat !important;
+                    background-attachment: fixed !important;
+                }
+            `;
+      break;
+  }
+  
+  if (blur > 0) {
+    css = css.replace('}', `
+            backdrop-filter: blur(${blur}px) !important;
+            -webkit-backdrop-filter: blur(${blur}px) !important;
+        }`);
+  }
+  
+  style.textContent = css;
+  document.head.appendChild(style);
+  messagesEl.classList.add('custom-background');
+  
+  // Save settings
+  const backgroundSettings = {
+    type: type,
+    value: value,
+    blur: blur,
+    opacity: opacity,
+    appliedAt: Date.now()
+  };
+  
+  localStorage.setItem('chatBackground', JSON.stringify(backgroundSettings));
+  console.log('Background saved:', backgroundSettings);
+  
+  
+}
+
+// Open background picker
+function openBackgroundPicker() {
+  backgroundModal.classList.add('open');
+  selectedBackground = null;
+  
+  // Load current settings
+  const current = JSON.parse(localStorage.getItem('chatBackground') || '{}');
+  if (current.blur) {
+    blurSlider.value = current.blur;
+    blurValue.textContent = current.blur;
+  }
+  if (current.opacity) {
+    opacitySlider.value = current.opacity;
+    opacityValue.textContent = current.opacity;
+  }
+}
+
+// Close background picker
+function closeBackgroundPicker() {
+  backgroundModal.classList.remove('open');
+}
+
+// Tab functionality
+document.querySelectorAll('.bg-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.bg-tab-btn').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.bg-tab-content').forEach(c => c.classList.remove('active'));
+    
+    btn.classList.add('active');
+    const tabId = btn.dataset.tab + 'Tab';
+    document.getElementById(tabId).classList.add('active');
+  });
+});
+
+// Color selection - add debugging
+document.querySelectorAll('.color-option').forEach(option => {
+  option.addEventListener('click', () => {
+    console.log('Color option clicked:', option.dataset.color);
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedBackground = option.dataset.color;
+    selectedType = 'color';
+    console.log('Selected:', selectedType, selectedBackground);
+  });
+});
+
+// Gradient selection - add debugging
+document.querySelectorAll('.gradient-option').forEach(option => {
+  option.addEventListener('click', () => {
+    console.log('Gradient option clicked:', option.dataset.gradient);
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedBackground = option.dataset.gradient;
+    selectedType = 'gradient';
+    console.log('Selected:', selectedType, selectedBackground);
+  });
+});
+
+// Image selection - add debugging
+document.querySelectorAll('.image-option').forEach(option => {
+  option.addEventListener('click', () => {
+    console.log('Image option clicked:', option.dataset.image);
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedBackground = option.dataset.image;
+    selectedType = 'image';
+    console.log('Selected:', selectedType, selectedBackground);
+  });
+});
+
+// Apply background button - add debugging
+// Add this to your JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+  // Apply background button functionality
+  const applyBackgroundBtn = document.getElementById('applyBackgroundBtn');
+  if (applyBackgroundBtn) {
+    applyBackgroundBtn.addEventListener('click', function() {
+      console.log('Apply Background button clicked');
+      
+      if (selectedBackground) {
+        console.log('Applying background:', selectedType, selectedBackground);
+        applyBackground(
+          selectedType,
+          selectedBackground,
+          parseInt(blurSlider?.value || 0),
+          parseInt(opacitySlider?.value || 50)
+        );
+        closeBackgroundPicker();
+      } else {
+        console.log('No background selected');
+        alert('Please select a background first');
+      }
+    });
+  }
+});
+// Reset background
+resetBackgroundBtn.addEventListener('click', () => {
+  const messagesEl = document.getElementById('messages');
+  
+  // Remove custom background class
+  messagesEl.classList.remove('custom-background');
+  
+  // Remove inline styles
+  messagesEl.removeAttribute('style');
+  
+  // Remove custom background styles
+  const existingStyle = document.getElementById('custom-background-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  // Let the existing color system handle the default background
+  // This will use whatever is in your customColors for messagesBg
+  
+  localStorage.removeItem('chatBackground');
+  closeBackgroundPicker();
+  alert('Background reset to default');
+});
+// Add event listener for the menu item
+document.addEventListener('click', (e) => {
+  if (e.target.dataset.action === 'chat-background') {
+    openBackgroundPicker();
+  }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  loadSavedBackground();
+});
 /* ===== GIF picker modal + search ===== */
 const gifBtn = document.getElementById('gifBtn');
 const gifModal = document.getElementById('gifModal');
@@ -4101,196 +4643,148 @@ function createDeleteMenu(msgKey) {
   </div>
 
   <!-- LIGHTBOX SCRIPT -->
-  <script>
-  (function(){
-    const messagesEl = document.getElementById('messages');
-    const lightbox = document.getElementById('lightbox');
-    const lImg = document.getElementById('lightboxImg');
-    const btnClose = lightbox.querySelector('.close');
-    const btnPrev = lightbox.querySelector('.prev');
-    const btnNext = lightbox.querySelector('.next');
-    const btnDownload = document.getElementById('lightboxDownload');
-    const counter = document.getElementById('lightboxCounter');
+<script>// SIMPLE LIGHTBOX SCRIPT - FIXED VERSION
+(function(){
+const messagesEl = document.getElementById('messages');
+const lightbox = document.getElementById('lightbox');
+const lImg = document.getElementById('lightboxImg');
+const btnClose = lightbox.querySelector('.close');
+const btnPrev = lightbox.querySelector('.prev');
+const btnNext = lightbox.querySelector('.next');
+const btnDownload = document.getElementById('lightboxDownload');
+const counter = document.getElementById('lightboxCounter');
 
-    let gallery = [], idx = 0;
+let gallery = [], idx = 0;
 
-    function buildGallery(){
-      gallery = Array.from(messagesEl.querySelectorAll('img')).map(i=>i.src);
-    }
-    function openAt(src){
-      buildGallery();
-      idx = gallery.indexOf(src);
-      if(idx === -1) { gallery.unshift(src); idx = 0; }
-      show();
-    }
-    function show(){
-      lImg.src = gallery[idx];
-      lightbox.classList.add('open');
-      btnDownload.href = gallery[idx];
-      btnDownload.setAttribute('download','image');
-      counter.textContent = (gallery.length>1) ? (idx+1)+' / '+gallery.length : '';
-    }
-    function close(){ lightbox.classList.remove('open'); }
-    function prev(){ idx=(idx-1+gallery.length)%gallery.length; show(); }
-    function next(){ idx=(idx+1)%gallery.length; show(); }
-
-    messagesEl.addEventListener('click', e=>{
-      const img=e.target.closest('img');
-      if(img) openAt(img.src);
-    });
-    btnClose.addEventListener('click', close);
-    btnPrev.addEventListener('click', prev);
-    btnNext.addEventListener('click', next);
-    document.addEventListener('keydown', e=>{
-      if(!lightbox.classList.contains('open')) return;
-      if(e.key==='Escape') close();
-      if(e.key==='ArrowLeft') prev();
-      if(e.key==='ArrowRight') next();
-    });
-  })();
-  
-  
-
-function goBackToList() {
-  console.log('Back button clicked');
-  
-  // Hide chat, show list
-  chatEl.classList.remove('active');
-  listEl.classList.add('active');
-  
-  // Clear current chat state
-  currentKey = null;
-  isInChatView = false;
-  clearSelection();
-  // Clean up listeners
-  if (childListener) {
-    db.ref('chats/' + currentKey).off('value', childListener);
-    childListener = null;
-  }
-  
-  // Remove scroll listener
-  messagesEl.removeEventListener('scroll', handleScroll);
-  
-  // Clear presence listener
-  if (statusListener && statusListener.ref) {
-    try {
-      statusListener.ref.off('value', statusListener.callback);
-    } catch (e) {}
-    statusListener = null;
-  }
-  
-  // Hide typing indicator
-  const typingEl = document.getElementById('typingIndicator');
-  if (typingEl) typingEl.style.display = 'none';
-  
-  // Use history management
-  history.back();
-  
-  console.log('Returned to list view');
-}
-// Improved history state management
-window.addEventListener('popstate', function(event) {
-  console.log('Popstate event triggered', event.state);
-  
-  // If going back to list view
-  if (!event.state || event.state.screen === "list") {
-    listEl.classList.add('active');
-    chatEl.classList.remove('active');
-    currentKey = null;
-    
-    // Clean up listeners
-    if (childListener) {
-      db.ref('chats/' + currentKey).off('value', childListener);
-      childListener = null;
-    }
-    
-    // Remove scroll listener
-    messagesEl.removeEventListener('scroll', handleScroll);
-    
-    // Clear presence listener
-    if (statusListener && statusListener.ref) {
-      try {
-        statusListener.ref.off('value', statusListener.callback);
-      } catch (e) {}
-      statusListener = null;
-    }
-    
-    // Hide typing indicator
-    const typingEl = document.getElementById('typingIndicator');
-    if (typingEl) typingEl.style.display = 'none';
-  }
-});
-
-// Update the openChat function to properly manage history
-// Override the openChat function to properly manage state
-const originalOpenChat = openChat;
-openChat = function(key) {
-  originalOpenChat(key);
-  isInChatView = true;
-  
-  // Push state to history when opening a chat
-  history.pushState({ screen: "chat", chatKey: key }, "Chat", "");
-  console.log('Opened chat, history state pushed');
-};
-function renderOlderMessages(messages) {
-  const sortedKeys = Object.keys(messages).map(Number).sort((a, b) => a - b).map(String);
-  const fragment = document.createDocumentFragment();
-  
-  let currentDate = null;
-  
-  sortedKeys.forEach(msgKey => {
-    const val = messages[msgKey];
-    if (!val || (!val.text && !val.type && !val.url)) return;
-    
-    const msgDate = new Date(Number(msgKey));
-    const dateLabel = formatDateSeparator(msgKey);
-    
-    // Date divider
-    if (currentDate !== msgDate.toDateString()) {
-      fragment.appendChild(createDateDivider(dateLabel));
-      currentDate = msgDate.toDateString();
-    }
-    
-    const div = buildMessageBubble(msgKey, val);
-    fragment.appendChild(div);
-  });
-  
-  // Get first child to insert before
-  const firstChild = messagesEl.firstChild;
-  messagesEl.insertBefore(fragment, firstChild);
+function buildGallery(){
+gallery = Array.from(messagesEl.querySelectorAll('img[src]'))
+.filter(img => !img.closest('.selection-checkbox')) // Exclude selection checkboxes
+.map(img => img.src);
 }
 
-// Clean up scroll listener when changing chats
-const originalOnPopState = window.onpopstate;
-window.onpopstate = function(event) {
-  messagesEl.removeEventListener('scroll', handleScroll);
-  if (originalOnPopState) originalOnPopState(event);
+function openAt(src){
+buildGallery();
+idx = gallery.indexOf(src);
+if(idx === -1) {
+gallery = [src];
+idx = 0;
+}
+show();
+}
+
+function show(){
+if (gallery.length === 0) return;
+
+lImg.src = gallery[idx];
+lightbox.classList.add('open');
+document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+// Set download link
+btnDownload.href = gallery[idx];
+btnDownload.setAttribute('download', 'image_' + Date.now());
+
+// Update counter
+counter.textContent = (gallery.length > 1) ? (idx + 1) + ' / ' + gallery.length : '';
+
+// Show/hide navigation buttons
+btnPrev.style.display = gallery.length > 1 ? 'block' : 'none';
+btnNext.style.display = gallery.length > 1 ? 'block' : 'none';
+}
+
+function close(){
+lightbox.classList.remove('open');
+document.body.style.overflow = ''; // Restore scrolling
+}
+
+function prev(){
+idx = (idx - 1 + gallery.length) % gallery.length;
+show();
+}
+
+function next(){
+idx = (idx + 1) % gallery.length;
+show();
+}
+
+// Enhanced lightbox initialization
+function initializeLightbox() {
+// Function to add click handlers to images
+const addImageHandlers = (img) => {
+// Skip if already has handler or is part of UI elements
+if (img.hasAttribute('data-lightbox-handler') ||
+img.closest('.selection-checkbox') ||
+img.closest('.menu-popup')) {
+return;
+}
+
+img.style.cursor = 'zoom-in';
+img.setAttribute('data-lightbox-handler', 'true');
+
+img.addEventListener('click', function(e) {
+// Only open if not in selection mode and not clicking on a button
+if (!window.isSelectionMode &&
+!e.target.closest('button') &&
+!e.target.closest('.menu-btn')) {
+openAt(this.src);
+e.stopPropagation();
+e.preventDefault();
+}
+});
 };
-  </script>
-  
-  <script>
-    // Add active state to send button when there's text
-replyInput.addEventListener('input', function() {
-  const sendBtn = document.getElementById('sendBtn');
-  if (this.value.trim() !== '') {
-    sendBtn.classList.add('active');
-  } else {
-    sendBtn.classList.remove('active');
-  }
+
+// Add handlers to existing images
+messagesEl.querySelectorAll('img[src]').forEach(addImageHandlers);
+
+// Watch for new images
+const observer = new MutationObserver(function(mutations) {
+mutations.forEach(function(mutation) {
+mutation.addedNodes.forEach(function(node) {
+if (node.nodeType === 1) {
+// Handle direct image nodes
+if (node.tagName === 'IMG') {
+addImageHandlers(node);
+}
+// Handle images within added nodes
+if (node.querySelectorAll) {
+node.querySelectorAll('img[src]').forEach(addImageHandlers);
+}
+}
+});
+});
 });
 
-// Initialize send button state
-document.addEventListener('DOMContentLoaded', function() {
-  const sendBtn = document.getElementById('sendBtn');
-  const replyInput = document.getElementById('replyInput');
-  
-  if (replyInput.value.trim() !== '') {
-    sendBtn.classList.add('active');
-  } else {
-    sendBtn.classList.remove('active');
-  }
+observer.observe(messagesEl, {
+childList: true,
+subtree: true
 });
-  </script>
+}
+
+// Initialize lightbox
+initializeLightbox();
+
+// Event listeners
+btnClose.addEventListener('click', close);
+btnPrev.addEventListener('click', prev);
+btnNext.addEventListener('click', next);
+
+// Close on background click
+lightbox.addEventListener('click', function(e) {
+if (e.target === lightbox) {
+close();
+}
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e){
+if(!lightbox.classList.contains('open')) return;
+
+switch(e.key) {
+case 'Escape': close(); break;
+case 'ArrowLeft': prev(); break;
+case 'ArrowRight': next(); break;
+}
+});
+})();</script>
 
     <!-- Color Customization Modal -->
 <div id="colorModal" class="color-modal" aria-hidden="true">
@@ -4414,6 +4908,9 @@ document.querySelectorAll('.menu-item').forEach(item => {
       case 'reset-colors':
         resetColorsToDefault();
         break;
+      case 'chat-background':
+openBackgroundPicker();
+break;  
     }
     
     settingsMenu.style.display = 'none';
@@ -4891,7 +5388,7 @@ const colorPickers = new Map();
 // ENHANCED COLOR OPTION CREATION - FIXED VERSION
 function createColorOptionWithPicker(key, label, value, mode) {
   const optionDiv = document.createElement('div');
-  optionDiv.className = 'color-option';
+  optionDiv.className = 'color-option1';
   
   const labelEl = document.createElement('label');
   labelEl.textContent = label;
@@ -5466,6 +5963,8 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 <style>
+
+
   /* Settings Tabs */
 .settings-tabs {
   display: flex;
@@ -6338,5 +6837,33 @@ document.addEventListener('DOMContentLoaded', function() {
     </button>
   </div>
 </div>
+<style>
+/* More specific CSS overrides */
+#messages.custom-background {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  background: inherit !important;
+}
+
+/* Force override for different background types */
+#messages.custom-background[style*="background-color"] {
+  background-color: inherit !important;
+}
+
+#messages.custom-background[style*="gradient"] {
+  background: inherit !important;
+  background-image: inherit !important;
+}
+
+#messages.custom-background[style*="background-image"] {
+  background-image: inherit !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+</style>
 </body>
 </html>
