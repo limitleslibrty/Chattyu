@@ -836,27 +836,6 @@ body::-webkit-scrollbar {
 }
 
 /* Notification */
-.notification {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #25D366;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 10001;
-    display: none;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-}
-
-.notification.show {
-    display: flex;
-    animation: slideUp 0.3s ease;
-}
 
 @keyframes slideUp {
     from {
@@ -8286,36 +8265,65 @@ body.dark #imageUrlInput:focus {
   background: #059669 !important;
 }
 
+/* Notification above lightbox */
 .notification {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     background: #25D366;
     color: white;
     padding: 12px 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10010; /* Higher than lightbox z-index */
     display: none;
     align-items: center;
     gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .notification.show {
     display: flex;
-    animation: slideUp 0.3s ease;
+    animation: slideDown 0.3s ease;
 }
 
-@keyframes slideUp {
+@keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(20px);
+        transform: translateX(-50%) translateY(-20px);
     }
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+}
+
+/* Success and Error notification types */
+.notification.success {
+    background: #25D366;
+}
+
+.notification.error {
+    background: #FF3B30;
+}
+
+.notification.info {
+    background: #007AFF;
+}
+
+/* Lightbox z-index adjustment */
+.lightbox {
+    z-index: 10000; /* Lower than notification */
+}
+
+.lightbox-header,
+.lightbox-footer,
+.lightbox-nav {
+    z-index: 10001; /* Higher than lightbox background but lower than notification */
 }
 </style>
 
