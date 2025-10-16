@@ -2127,10 +2127,11 @@ body.dark .modal-btn.secondary {
     <div class="menu-item" data-action="toggle-light">☀️ Light Mode</div>
     <div class="menu-item" data-action="customize-dark">🎨 Customize Dark Mode</div>
     <div class="menu-item" data-action="customize-light">🎨 Customize Light Mode</div>
-    <div class="menu-item" data-action="reset-colors">🔄 Reset to Default</div>
+    <div class="menu-item" data-action="reset-colors">🔄 Reset all colours</div>
     <div class="menu-item" data-action="advanced-settings">⚙️ Setting</div>
     <!-- Add these menu items in your settings menu -->
 <div class="menu-item" data-action="chat-background">🎨 Chat Background</div>
+
 
         <hr color=#E9FEF9 />
     <div class="menu-item">Extras</div>
@@ -2264,15 +2265,27 @@ body.dark .modal-btn.secondary {
     <button class="upload-btn" onclick="document.getElementById('bgImageUpload').click()">
       📁 Upload New Image
     </button>
-    <p class="upload-hint">Upload an image to add to your saved collection</p>
+    
+    <!-- Add Image from URL Section -->
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc;">
+      <input 
+        type="text" 
+        id="imageUrlInput" 
+        placeholder="Paste image URL here..."
+        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;"
+      >
+      <button class="upload-btn" onclick="addImageFromUrl()" style="background: #10B981;">
+        🔗 Add from URL
+      </button>
+    </div>
+    
+    <p class="upload-hint">Upload an image or add from URL to add to Stalk saved collection</p>
   </div>
   
   <div class="image-grid" id="savedImagesGrid">
     <!-- Existing images -->
     <div class="image-option" data-image="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400" style="background-image: url('https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400')"></div>
     <div class="image-option" data-image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400')"></div>
-    <!-- ... more existing images ... -->
-    
     <!-- Uploaded images will be added here dynamically -->
   </div>
 </div>
@@ -2280,7 +2293,7 @@ body.dark .modal-btn.secondary {
     
     <div class="modal-actions">
       <button class="modal-btn secondary" id="resetBackgroundBtn">Reset to Default</button>
-      <button class="modal-btn primary" id="applyBackgroundBtn">Apply Background</button>
+      <button class="modal-btn primary" id="applyBackgroundBtn">Apply as chat bg</button>
     </div>
   </div>
 </div>
@@ -2435,8 +2448,18 @@ function initializeUploadedImages() {
 }
 
 // Update the existing addImageToGrid function
+// Update the addImageToGrid function to handle image clicks with options
+// Update the addImageToGrid function to handle image clicks with options - FIXED VERSION
 function addImageToGrid(imageUrl, imageName) {
   const savedImagesGrid = document.getElementById('savedImagesGrid');
+  
+  // Check if image already exists to prevent duplicates
+  const existingImage = Array.from(savedImagesGrid.querySelectorAll('.image-option'))
+    .find(opt => opt.getAttribute('data-image') === imageUrl);
+  
+  if (existingImage) {
+    return; // Image already exists, don't add duplicate
+  }
   
   const imageOption = document.createElement('div');
   imageOption.className = 'image-option';
@@ -2445,29 +2468,294 @@ function addImageToGrid(imageUrl, imageName) {
   imageOption.style.backgroundImage = `url('${imageUrl}')`;
   imageOption.title = imageName;
   
-  // Add click handler to apply background
-  imageOption.addEventListener('click', function() {
-    document.querySelectorAll('.image-option').forEach(opt => opt.classList.remove('selected'));
+  // Add click handler to show options instead of applying immediately
+  imageOption.addEventListener('click', function(e) {
+    e.stopPropagation();
+    
+    // Remove selection from all other options
+    document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(opt => {
+      opt.classList.remove('selected');
+    });
+    
+    // Select this image
     this.classList.add('selected');
     
+    // Store selection
     selectedBackground = this.getAttribute('data-image');
     selectedType = 'image';
     
-    // Apply the background immediately
-    applyBackground(
-      'image',
-      selectedBackground,
-      parseInt(blurSlider?.value || 0),
-      parseInt(opacitySlider?.value || 50)
-    );
+    // Show action options
+    showImageActions(this, imageUrl, imageName);
   });
   
   // Add remove button for uploaded images (not default ones)
-  if (imageName) {
+  if (imageName && !imageName.startsWith('Default')) {
     addRemoveButtonToImage(imageOption, imageUrl, imageName);
   }
   
   savedImagesGrid.appendChild(imageOption);
+}
+// Function to add image from URL
+function addImageFromUrl() {
+  const urlInput = document.getElementById('imageUrlInput');
+  const imageUrl = urlInput.value.trim();
+  
+  if (!imageUrl) {
+    alert('Please enter an image URL');
+    return;
+  }
+  
+  // More permissive validation for testing
+  if (!imageUrl.startsWith('http')) {
+    alert('Please enter a valid URL starting with http or https');
+    return;
+  }
+  
+  // Check if image already exists
+  if (isImageAlreadyExists(imageUrl)) {
+    alert('This image is already in your collection');
+    return;
+  }
+  
+  // Create a test image to check if URL is valid
+  const testImage = new Image();
+  testImage.onload = function() {
+    // Image loaded successfully
+    const imageName = extractImageNameFromUrl(imageUrl) || `Image_${Date.now()}`;
+    const imageData = {
+      url: imageUrl,
+      name: imageName,
+      uploadedAt: Date.now(),
+      type: 'url'
+    };
+    
+    // Add to local storage
+    uploadedImages.push(imageData);
+    localStorage.setItem('uploadedBackgrounds', JSON.stringify(uploadedImages));
+    
+    // Add to grid
+    addImageToGrid(imageData.url, imageData.name);
+    
+    // Clear input
+    urlInput.value = '';
+    
+    alert('Image added successfully from URL!');
+  };
+  
+  testImage.onerror = function() {
+    alert('Unable to load image from this URL. Please check the link and try again.\n\nTip: Try using direct image links from Unsplash or Imgur.');
+  };
+  
+  // Add timeout for image loading
+  setTimeout(() => {
+    if (!testImage.complete) {
+      alert('Image is taking too long to load. It might be restricted. Try a different image URL.');
+    }
+  }, 5000);
+  
+  testImage.src = imageUrl;
+}
+// Function to validate image URL
+function isValidImageUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+    const path = urlObj.pathname.toLowerCase();
+    
+    return imageExtensions.some(ext => path.endsWith(ext)) ||
+      url.includes('unsplash.com') ||
+      url.includes('picsum.photos') ||
+      url.match(/\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i);
+  } catch (e) {
+    return false;
+  }
+}
+
+// Function to extract image name from URL
+function extractImageNameFromUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const filename = pathname.split('/').pop();
+    return filename || `Image_${Date.now()}`;
+  } catch (e) {
+    return `Image_${Date.now()}`;
+  }
+}
+
+// Function to check if image already exists in collection
+function isImageAlreadyExists(url) {
+  return uploadedImages.some(img => img.url === url);
+}
+
+// Function to handle Enter key in URL input
+document.addEventListener('DOMContentLoaded', function() {
+  const urlInput = document.getElementById('imageUrlInput');
+  if (urlInput) {
+    urlInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addImageFromUrl();
+      }
+    });
+  }
+});
+// Function to show action options when image is clicked
+// Function to show action options when image is clicked - FIXED VERSION
+// Update the showImageActions function to include home background option
+function showImageActions(imageElement, imageUrl, imageName) {
+  // Remove any existing action menu
+  const existingMenu = document.querySelector('.image-actions-menu');
+  if (existingMenu) {
+    existingMenu.remove();
+  }
+  
+  // Create action menu
+  const actionMenu = document.createElement('div');
+  actionMenu.className = 'image-actions-menu';
+  actionMenu.innerHTML = `
+    <div class="action-menu-content">
+      <button class="image-action-btn" data-action="apply-dp">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V19C3 20.1 3.89 21 5 21H19C20.11 21 21 20.11 21 19V9ZM19 9H14V10H19V9ZM6 10H11V15H6V10ZM8 12V13H9V12H8Z"/>
+        </svg>
+        Apply as DP
+      </button>
+      <button class="image-action-btn" data-action="apply-background">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z"/>
+        </svg>
+        Apply as Chat Background
+      </button>
+      <button class="image-action-btn" data-action="apply-home-background">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        Apply as Home Background
+      </button>
+      <button class="image-action-btn" data-action="remove-photo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+        Remove Photo
+      </button>
+    </div>
+  `;
+  
+  // Get the modal content container
+  const modalContent = document.querySelector('.color-modal-content');
+  
+  // Position the menu relative to the clicked image within the modal
+  const rect = imageElement.getBoundingClientRect();
+  const modalRect = modalContent.getBoundingClientRect();
+  
+  actionMenu.style.position = 'absolute';
+  actionMenu.style.top = (rect.bottom - modalRect.top + 5) + 'px';
+  actionMenu.style.left = (rect.left - modalRect.left) + 'px';
+  actionMenu.style.zIndex = '1000';
+  
+  // Add to background modal content
+  modalContent.appendChild(actionMenu);
+  
+  // Add event listeners to action buttons
+  actionMenu.querySelectorAll('.image-action-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = btn.dataset.action;
+      
+      switch (action) {
+        case 'apply-dp':
+          applyAsDP(imageUrl);
+          break;
+        case 'apply-background':
+          applyAsBackground(imageUrl);
+          break;
+        case 'apply-home-background':
+          applyAsHomeBackground(imageUrl);
+          break;
+        case 'remove-photo':
+          removePhoto(imageUrl, imageName, imageElement);
+          break;
+      }
+      
+      // Remove the menu after action
+      actionMenu.remove();
+    });
+  });
+  
+  // Close menu when clicking outside
+  const closeMenu = (e) => {
+    if (!actionMenu.contains(e.target) && !imageElement.contains(e.target)) {
+      actionMenu.remove();
+      document.removeEventListener('click', closeMenu);
+    }
+  };
+  
+  setTimeout(() => {
+    document.addEventListener('click', closeMenu);
+  }, 100);
+}
+
+// Function to apply image as DP
+// Function to apply image as DP - FIXED PERSISTENCE
+function applyAsDP(imageUrl) {
+  const userLogo = document.getElementById('userLogo');
+  if (userLogo) {
+    userLogo.src = imageUrl;
+    // Save to localStorage with proper key
+    localStorage.setItem('userProfilePicture', imageUrl);
+    alert('Profile picture updated successfully!');
+  }
+}
+
+// Load saved DP on page load
+function loadSavedDP() {
+  const savedDP = localStorage.getItem('userProfilePicture');
+  const userLogo = document.getElementById('userLogo');
+  if (savedDP && userLogo) {
+    userLogo.src = savedDP;
+  }
+}
+
+// Call this on page load
+document.addEventListener('DOMContentLoaded', function() {
+  loadSavedDP();
+  // ... rest of your initialization code
+});
+// Function to apply image as background
+function applyAsBackground(imageUrl) {
+  selectedBackground = imageUrl;
+  selectedType = 'image';
+  
+  applyBackground(
+    'image',
+    selectedBackground,
+    parseInt(blurSlider?.value || 0),
+    parseInt(opacitySlider?.value || 50)
+  );
+  
+  alert('Chat background updated successfully!');
+}
+
+// Function to remove photo (already exists, just making sure it's accessible)
+function removePhoto(imageUrl, imageName, imageElement) {
+  if (confirm(`Remove "${imageName}" from your saved collection?`)) {
+    // Remove from uploadedImages array
+    uploadedImages = uploadedImages.filter(img => img.url !== imageUrl);
+    
+    // Update localStorage
+    localStorage.setItem('uploadedBackgrounds', JSON.stringify(uploadedImages));
+    
+    // Remove from DOM
+    imageElement.remove();
+    
+    // If this was the currently selected background, reset selection
+    if (selectedBackground === imageUrl && selectedType === 'image') {
+      selectedBackground = null;
+      selectedType = null;
+    }
+    
+    console.log('Image removed from collection');
+  }
 }
 function subscribeToPresenceFor(chatKey) {
   // remove previous listener
@@ -3512,10 +3800,175 @@ document.getElementById('bgImageUpload').addEventListener('change', function(e) 
 });
 
 // Initialize on page load
+// Initialize on page load - FIXED VERSION (no duplicates)
+// Initialize on page load - FIXED VERSION
 document.addEventListener('DOMContentLoaded', function() {
   initializeUploadedImages();
+  loadSavedDP();
+  loadSavedBackground();
+  
+  // Initialize ALL images (both default and uploaded) with click handlers
+  function initializeAllImages() {
+    const allImages = document.querySelectorAll('.image-option');
+    allImages.forEach(imageOption => {
+      const imageUrl = imageOption.getAttribute('data-image');
+      const imageName = imageOption.getAttribute('data-name') || 'Default Image';
+      
+      // Remove any existing click listeners to prevent duplicates
+      const newImageOption = imageOption.cloneNode(true);
+      imageOption.parentNode.replaceChild(newImageOption, imageOption);
+      
+      // Add click handler to the new element
+      newImageOption.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Remove selection from all other options
+        document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        
+        // Select this image
+        this.classList.add('selected');
+        
+        // Store selection
+        selectedBackground = this.getAttribute('data-image');
+        selectedType = 'image';
+        
+        // Show action options for ALL images
+        showImageActions(this, imageUrl, imageName);
+      });
+    });
+  }
+  
+  // Initialize images after a short delay to ensure DOM is ready
+  setTimeout(initializeAllImages, 100);
+  
+  // Re-initialize when background modal opens (for newly uploaded images)
+  const backgroundModal = document.getElementById('backgroundModal');
+  if (backgroundModal) {
+    backgroundModal.addEventListener('click', function(e) {
+      if (e.target === backgroundModal || e.target.classList.contains('background-close-btn')) {
+        // Re-initialize images when modal closes/opens to catch new uploads
+        setTimeout(initializeAllImages, 300);
+      }
+    });
+  }
 });
 // Replace your renderMessages function with this optimized version
+// Function to apply image as home page background
+// Function to apply image as home page background - FIXED VERSION
+// Function to apply image as home page background - WORKING VERSION
+function applyAsHomeBackground(imageUrl) {
+  console.log('Applying home background:', imageUrl);
+  
+  // Save the home background setting
+  const homeBackgroundSettings = {
+    type: 'image',
+    value: imageUrl,
+    appliedAt: Date.now()
+  };
+  
+  localStorage.setItem('homeBackground', JSON.stringify(homeBackgroundSettings));
+  applyHomeBackground(imageUrl);
+  
+  // Close the action menu
+  const actionMenu = document.querySelector('.image-actions-menu');
+  if (actionMenu) {
+    actionMenu.remove();
+  }
+  
+  alert('Home page background updated successfully!');
+}
+
+// Apply home background to the UI - WORKING VERSION
+function applyHomeBackground(imageUrl) {
+  console.log('applyHomeBackground called with:', imageUrl);
+  
+  const listEl = document.getElementById('list');
+  if (!listEl) {
+    console.error('List element not found!');
+    return;
+  }
+  
+  // Remove any existing home background styles
+  const existingStyle = document.getElementById('home-background-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  // Create new style for home background with maximum specificity
+  const style = document.createElement('style');
+  style.id = 'home-background-style';
+  
+  // Use very specific CSS selectors with !important
+  style.textContent = `
+    /* Target the list div directly */
+    #list {
+      background-image: url("${imageUrl}") !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      background-attachment: fixed !important;
+    }
+    
+    /* Override any inline styles or other CSS */
+    body #list {
+      background-image: url("${imageUrl}") !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      background-attachment: fixed !important;
+    }
+    
+    /* Make sure it works in both light and dark modes */
+    body:not(.dark) #list,
+    body.dark #list {
+      background-image: url("${imageUrl}") !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      background-attachment: fixed !important;
+    }
+    
+
+  `;
+  
+  document.head.appendChild(style);
+  
+  // Force immediate application by adding a class and triggering reflow
+  listEl.classList.add('home-background-applied');
+  
+  // Force browser to repaint
+  void listEl.offsetWidth;
+  
+  console.log('Home background style applied successfully');
+}
+
+// Apply home background to the UI
+
+
+// Load saved home background on page load
+// Load saved home background on page load - UPDATED
+function loadSavedHomeBackground() {
+  const savedHomeBg = JSON.parse(localStorage.getItem('homeBackground') || '{}');
+  if (savedHomeBg.value) {
+    console.log('Loading saved home background:', savedHomeBg.value);
+    // Use setTimeout to ensure DOM is fully loaded
+    setTimeout(() => {
+      applyHomeBackground(savedHomeBg.value);
+    }, 100);
+  } else {
+    console.log('No saved home background found');
+  }
+}
+
+// Update the DOMContentLoaded to load home background
+document.addEventListener('DOMContentLoaded', function() {
+  loadSavedDP();
+  loadSavedBackground();
+  loadSavedHomeBackground();
+  // ... rest of initialization
+});
 function processAndRenderMessages(messages) {
   if (!messages) return;
   
@@ -4215,29 +4668,7 @@ document.querySelectorAll('.image-option').forEach(option => {
 
 // Apply background button - add debugging
 // Add this to your JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-  // Apply background button functionality
-  const applyBackgroundBtn = document.getElementById('applyBackgroundBtn');
-  if (applyBackgroundBtn) {
-    applyBackgroundBtn.addEventListener('click', function() {
-      console.log('Apply Background button clicked');
-      
-      if (selectedBackground) {
-        console.log('Applying background:', selectedType, selectedBackground);
-        applyBackground(
-          selectedType,
-          selectedBackground,
-          parseInt(blurSlider?.value || 0),
-          parseInt(opacitySlider?.value || 50)
-        );
-        closeBackgroundPicker();
-      } else {
-        console.log('No background selected');
-        alert('Please select a background first');
-      }
-    });
-  }
-});
+
 // Reset background
 resetBackgroundBtn.addEventListener('click', () => {
   const messagesEl = document.getElementById('messages');
@@ -5893,7 +6324,97 @@ function applyCustomColors(mode) {
     processAndRenderMessages(tempStore);
   }
 }
+// Update the reset background button to reset everything
+document.addEventListener('DOMContentLoaded', function() {
+  const resetBackgroundBtn = document.getElementById('resetBackgroundBtn');
+  
+  if (resetBackgroundBtn) {
+    // Remove any existing event listeners
+    resetBackgroundBtn.replaceWith(resetBackgroundBtn.cloneNode(true));
+    const newResetBtn = document.getElementById('resetBackgroundBtn');
+    
+    newResetBtn.addEventListener('click', function() {
+      if (confirm('Are you sure you want to reset ALL backgrounds (chat background, home background, and profile picture) to default?')) {
+        // 1. Reset Chat Background
+        resetChatBackground();
+        
+        // 2. Reset Home Background
+        resetHomeBackground();
+        
+        // 3. Reset Profile Picture (DP)
+        resetProfilePicture();
+        
+        // Close the modal
+        closeBackgroundPicker();
+        
+        alert('All backgrounds and profile picture have been reset to default!');
+      }
+    });
+  }
+});
 
+// Function to reset chat background (your existing function)
+function resetChatBackground() {
+  const messagesEl = document.getElementById('messages');
+  
+  // Remove custom background class
+  messagesEl.classList.remove('custom-background');
+  
+  // Remove inline styles
+  messagesEl.removeAttribute('style');
+  
+  // Remove custom background styles
+  const existingStyle = document.getElementById('custom-background-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+  
+  // Remove from localStorage
+  localStorage.removeItem('chatBackground');
+  
+  console.log('Chat background reset to default');
+}
+
+// Function to reset home background
+function resetHomeBackground() {
+  console.log('Resetting home background...');
+  
+  const listEl = document.getElementById('list');
+  
+  // Remove the home background style
+  const existingStyle = document.getElementById('home-background-style');
+  if (existingStyle) {
+    existingStyle.remove();
+    console.log('Removed home background style');
+  }
+  
+  // Remove the applied class
+  listEl.classList.remove('home-background-applied');
+  
+  // Remove from localStorage
+  localStorage.removeItem('homeBackground');
+  
+  // Force reflow
+  void listEl.offsetWidth;
+  
+  // Restore default colors
+  const currentMode = document.body.classList.contains('dark') ? 'dark' : 'light';
+  applyCustomColors(currentMode);
+  
+  console.log('Home background reset complete');
+}
+
+// Function to reset profile picture (DP)
+function resetProfilePicture() {
+  const userLogo = document.getElementById('userLogo');
+  if (userLogo) {
+    // Reset to default logo
+    userLogo.src = 'chat_logo.png';
+    // Remove from localStorage
+    localStorage.removeItem('userProfilePicture');
+    console.log('Profile picture reset to default');
+  }
+}
 // Reset all colors to default
 function resetColorsToDefault() {
   if (confirm('Are you sure you want to reset all colors to default?')) {
@@ -6549,7 +7070,15 @@ function applyMessageAnimation(bubble, animationType, duration, isUser) {
     applySpecialEffects(bubble);
   }
 }
+// Function to reset home background
 
+
+// Add event listener for reset
+document.addEventListener('click', (e) => {
+  if (e.target.dataset.action === 'reset-home-background') {
+    resetHomeBackground();
+  }
+});
 function applySpecialEffects(bubble) {
   const settings = getCurrentAnimationSettings();
   
@@ -6940,6 +7469,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }, 100);
 });
+
 </script>
 <script>
   // Toggle settings menu with animation
@@ -6984,7 +7514,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
       </svg>
     </button>
-    <button class="selection-action" id="closeSelection" title="Cancel">
+  <button class="selection-action" id="closeSelection" title="Cancel">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
       </svg>
@@ -7080,7 +7610,113 @@ body.dark .background-close-btn:hover {
   background: #2A3A36;
   color: #fff;
 }
+/* Image Actions Menu Styles */
+/* Image Actions Menu Styles - IMPROVED POSITIONING */
+.image-actions-menu {
+  background: #DDF2ED;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ccc;
+  min-width: 80px;
+  z-index: 1000;
+  max-width: 47%;
+}
 
+.action-menu-content {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.image-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #3A4F4A;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.image-action-btn:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.image-action-btn svg {
+  flex-shrink: 0;
+}
+
+/* Dark mode styles */
+body.dark .image-actions-menu {
+  background: #13221F;
+  border-color: #2A3A36;
+  color: #B7CAC6;
+}
+
+body.dark .image-action-btn {
+  color: #B7CAC6;
+}
+
+body.dark .image-action-btn:hover {
+  background: rgba(37, 99, 235, 0.2);
+  color: #5ac8fa;
+}
+/* Ensure home background displays properly */
+#list.home-background-applied {
+  background-image: inherit !important;
+  background-size: inherit !important;
+  background-position: inherit !important;
+  background-repeat: inherit !important;
+  background-attachment: inherit !important;
+}
+
+/* Smooth transitions for background changes */
+#list {
+  transition: background-image 0.3s ease;
+}
+
+/* URL Input Section Styling */
+#imageUrlInput {
+  background: #DDF2ED;
+  border: 1px solid #ccc;
+  color: #3A4F4A;
+  font-size: 14px;
+}
+
+#imageUrlInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+body.dark #imageUrlInput {
+  background: #061613;
+  border-color: #2A3A36;
+  color: #B7CAC6;
+}
+
+body.dark #imageUrlInput:focus {
+  border-color: #5ac8fa;
+  box-shadow: 0 0 0 2px rgba(90, 200, 250, 0.1);
+}
+
+/* URL upload button specific styling */
+.upload-btn[style*="background: #10B981"] {
+  background: #10B981 !important;
+}
+
+.upload-btn[style*="background: #10B981"]:hover {
+  background: #059669 !important;
+}
 </style>
+
 </body>
 </html>
