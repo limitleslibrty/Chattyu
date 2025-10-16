@@ -661,35 +661,265 @@ body::-webkit-scrollbar {
 
 
 
+/* WhatsApp Style Full Screen Lightbox */
 .lightbox {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.9);
-  z-index: 9999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: none;
+    flex-direction: column;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
-.lightbox.open { display: flex; }
-.lightbox img {
-  max-width: 90vw;
-  max-height: 90vh;
-}
-.lightbox .btn {
-  position: absolute;
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  border: none;
 
-  border-radius: 4px;
-  cursor: pointer;
+.lightbox.active {
+    display: flex;
+    opacity: 1;
 }
-.lightbox .close { top: 10px; right: 10px; }
-.lightbox .prev { left: 10px; top: 14%; transform: translateY(-50%); }
-.lightbox .next { right: 5%;
-left:70%; top: 14%; transform: translateY(-50%); }
-.lightbox .download { bottom: 10px; right: 10px; }
-.lightbox .counter { bottom: 10px; left: 10px; color:#fff; font-size:14px; }
+
+.lightbox-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 10;
+}
+
+.lightbox-close {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-counter {
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.lightbox-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.lightbox-image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.lightbox-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    cursor: grab;
+}
+
+.lightbox-image.zoomed {
+    cursor: grab;
+}
+
+.lightbox-image.dragging {
+    cursor: grabbing;
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-prev {
+    left: 20px;
+}
+
+.lightbox-next {
+    right: 20px;
+}
+
+.lightbox-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    padding: 30px 20px 20px;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+}
+
+.lightbox-toolbar {
+    display: flex;
+    gap: 15px;
+    background: rgba(30, 30, 30, 0.8);
+    padding: 12px 20px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+}
+
+.lightbox-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.lightbox-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-btn.save-btn {
+    background: rgba(37, 211, 102, 0.2);
+    color: #25D366;
+}
+
+.lightbox-btn.save-btn:hover {
+    background: rgba(37, 211, 102, 0.3);
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #25D366;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.notification.show {
+    display: flex;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .lightbox-header {
+        height: 50px;
+        padding: 0 15px;
+    }
+    
+    .lightbox-close {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .lightbox-nav {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .lightbox-prev {
+        left: 10px;
+    }
+    
+    .lightbox-next {
+        right: 10px;
+    }
+    
+    .lightbox-footer {
+        padding: 25px 15px 15px;
+    }
+    
+    .lightbox-toolbar {
+        gap: 10px;
+        padding: 10px 16px;
+    }
+    
+    .lightbox-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .lightbox-toolbar {
+        flex-direction: column;
+        gap: 8px;
+        border-radius: 20px;
+    }
+    
+    .lightbox-btn {
+        justify-content: center;
+    }
+}
 /* Keep input area fully transparent */
 #inputArea {
   position: absolute;
@@ -5240,203 +5470,542 @@ function createDeleteMenu(msgKey) {
 
 
 
-  <!-- LIGHTBOX MARKUP -->
-  <div id="lightbox" class="lightbox" aria-hidden="true" style="background: black;">
-    <div class="inner" role="dialog" aria-modal="true">
-      <button class="btn close" aria-label="Close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-     xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Back">
-  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round"/>
-</svg></button>
-      <button class="btn prev" aria-label="Previous">
-        
-        <svg width="130" height="44" viewBox="0 0 160 44" xmlns="http://www.w3.org/2000/svg"
-     role="img" aria-label="Download">
-  <g fill="none">
-    <rect x="1" y="1" width="108" height="42" rx="22" fill="currentColor" opacity="0.08" stroke="currentColor"/>
-
-
-    <!-- Text -->
-    <text x="20" y="27" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="18"
-          fill="currentColor">Previous</text>
-  </g>
-</svg></button>
-      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-        <img id="lightboxImg" src="" alt="" />
-      </div>
-      <button class="btn next" aria-label="Next">
-              <svg width="130" height="44" viewBox="0 0 160 44" xmlns="http://www.w3.org/2000/svg"
-     role="img" aria-label="Download">
-  <g fill="none">
-    <rect x="1" y="1" width="108" height="42" rx="22" fill="currentColor" opacity="0.08" stroke="currentColor"/>
-    <!-- Text -->
-    <text x="35" y="27" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="18"
-          fill="currentColor">Next</text>
-  </g>
-</svg>
+<!-- Modern Lightbox -->
+<!-- WhatsApp Style Full Screen Lightbox -->
+<div id="lightbox" class="lightbox" aria-hidden="true">
+  <div class="lightbox-header">
+    <button class="lightbox-close" aria-label="Close">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+      </svg>
+    </button>
+    <div class="lightbox-counter" id="lightboxCounter"></div>
+  </div>
+  
+  <div class="lightbox-content">
+    <div class="lightbox-image-container">
+      <img id="lightboxImg" class="lightbox-image" src="" alt="">
+    </div>
+    
+    <!-- Navigation arrows -->
+    <button class="lightbox-nav lightbox-prev" aria-label="Previous">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+    </button>
+    <button class="lightbox-nav lightbox-next" aria-label="Next">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+      </svg>
+    </button>
+  </div>
+  
+  <div class="lightbox-footer">
+    <div class="lightbox-toolbar">
+      <a id="lightboxDownload" class="lightbox-btn download-btn" download>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+        </svg>
+        Download
+      </a>
+      <button id="lightboxSave" class="lightbox-btn save-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+        </svg>
+        Save to Collection
       </button>
-      <a id="lightboxDownload" class="btn download" aria-label="Download" target="_blank" rel="noopener"><!-- Download button -->
-<svg width="130" height="44" viewBox="0 0 160 44" xmlns="http://www.w3.org/2000/svg"
-     role="img" aria-label="Download">
-  <g fill="none">
-    <rect x="1" y="1" width="158" height="42" rx="22" fill="currentColor" opacity="0.08" stroke="currentColor"/>
-    <!-- Icon -->
-    <g transform="translate(18,10)" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 0v10"/>
-      <path d="m7 6 5 5 5-5"/>
-      <path d="M3 20h18"/>
-    </g>
-    <!-- Text -->
-    <text x="64" y="27" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="18"
-          fill="currentColor">Download</text>
-  </g>
-</svg></a>
-      <div class="counter" id="lightboxCounter"></div>
     </div>
   </div>
+</div>
 
+<!-- Notification -->
+<div id="notification" class="notification">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+  </svg>
+  <span id="notificationText">Image saved to collection!</span>
+</div>
   <!-- LIGHTBOX SCRIPT -->
-<script>// SIMPLE LIGHTBOX SCRIPT - FIXED VERSION
+<script>// MODERN LIGHTBOX SCRIPT - COMPLETE FIXED VERSION
 (function(){
-const messagesEl = document.getElementById('messages');
-const lightbox = document.getElementById('lightbox');
-const lImg = document.getElementById('lightboxImg');
-const btnClose = lightbox.querySelector('.close');
-const btnPrev = lightbox.querySelector('.prev');
-const btnNext = lightbox.querySelector('.next');
-const btnDownload = document.getElementById('lightboxDownload');
-const counter = document.getElementById('lightboxCounter');
+    const messagesEl = document.getElementById('messages');
+    const lightbox = document.getElementById('lightbox');
+    const lImg = document.getElementById('lightboxImg');
+    const btnClose = lightbox.querySelector('.lightbox-close');
+    const btnPrev = lightbox.querySelector('.lightbox-prev');
+    const btnNext = lightbox.querySelector('.lightbox-next');
+    const btnDownload = document.getElementById('lightboxDownload');
+    const btnSave = document.getElementById('lightboxSave');
+    const counter = document.getElementById('lightboxCounter');
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notificationText');
 
-let gallery = [], idx = 0;
+    let gallery = [], idx = 0;
+    let isZoomed = false;
+    let scale = 1;
+    let lastScale = 1;
+    let posX = 0, posY = 0;
+    let startX = 0, startY = 0;
+    let isDragging = false;
+    let isPinching = false;
+    let savedCollection = JSON.parse(localStorage.getItem('savedCollection')) || [];
+    let touchStartX = 0;
+    let touchStartY = 0;
 
-function buildGallery(){
-gallery = Array.from(messagesEl.querySelectorAll('img[src]'))
-.filter(img => !img.closest('.selection-checkbox')) // Exclude selection checkboxes
-.map(img => img.src);
-}
+    // Initialize
+    function initializeLightbox() {
+        const addImageHandlers = (img) => {
+            if (img.hasAttribute('data-lightbox-handler') ||
+                img.closest('.selection-checkbox') ||
+                img.closest('.menu-popup')) {
+                return;
+            }
 
-function openAt(src){
-buildGallery();
-idx = gallery.indexOf(src);
-if(idx === -1) {
-gallery = [src];
-idx = 0;
-}
-show();
-}
+            img.style.cursor = 'zoom-in';
+            img.setAttribute('data-lightbox-handler', 'true');
 
-function show(){
-if (gallery.length === 0) return;
+            img.addEventListener('click', function(e) {
+                if (!window.isSelectionMode &&
+                    !e.target.closest('button') &&
+                    !e.target.closest('.menu-btn')) {
+                    openAt(this.src);
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+            });
+        };
 
-lImg.src = gallery[idx];
-lightbox.classList.add('open');
-document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        // Add handlers to existing images
+        messagesEl.querySelectorAll('img[src]').forEach(addImageHandlers);
 
-// Set download link
-btnDownload.href = gallery[idx];
-btnDownload.setAttribute('download', 'image_' + Date.now());
+        // Watch for new images
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) {
+                        if (node.tagName === 'IMG') {
+                            addImageHandlers(node);
+                        }
+                        if (node.querySelectorAll) {
+                            node.querySelectorAll('img[src]').forEach(addImageHandlers);
+                        }
+                    }
+                });
+            });
+        });
 
-// Update counter
-counter.textContent = (gallery.length > 1) ? (idx + 1) + ' / ' + gallery.length : '';
+        observer.observe(messagesEl, {
+            childList: true,
+            subtree: true
+        });
 
-// Show/hide navigation buttons
-btnPrev.style.display = gallery.length > 1 ? 'block' : 'none';
-btnNext.style.display = gallery.length > 1 ? 'block' : 'none';
-}
+        console.log('Lightbox initialized');
+    }
 
-function close(){
-lightbox.classList.remove('open');
-document.body.style.overflow = ''; // Restore scrolling
-}
+    // Save image to chat background collection
+    function saveToCollection(imageSrc) {
+        // Get uploaded images from localStorage
+        let uploadedImages = JSON.parse(localStorage.getItem('uploadedBackgrounds')) || [];
+        
+        // Check if image already exists
+        const existingImage = uploadedImages.find(img => img.url === imageSrc);
+        
+        if (!existingImage) {
+            // Create image data
+            const imageData = {
+                url: imageSrc,
+                name: `Saved_${Date.now()}`,
+                uploadedAt: Date.now(),
+                type: 'saved'
+            };
+            
+            // Add to uploaded images
+            uploadedImages.push(imageData);
+            localStorage.setItem('uploadedBackgrounds', JSON.stringify(uploadedImages));
+            
+            // Add to saved images grid
+            addImageToSavedCollection(imageSrc, imageData.name);
+            
+            showNotification('Image saved to collection!');
+            console.log('Image saved to background collection');
+        } else {
+            showNotification('Image already in collection');
+        }
+    }
 
-function prev(){
-idx = (idx - 1 + gallery.length) % gallery.length;
-show();
-}
+    // Add image to saved collection grid
+    function addImageToSavedCollection(imageUrl, imageName) {
+        const savedImagesGrid = document.getElementById('savedImagesGrid');
+        
+        if (!savedImagesGrid) {
+            console.log('Saved images grid not found, will add when available');
+            return;
+        }
+        
+        // Check if already exists
+        const existingImage = Array.from(savedImagesGrid.querySelectorAll('.image-option'))
+            .find(opt => opt.getAttribute('data-image') === imageUrl);
+        
+        if (existingImage) return;
+        
+        // Create image option
+        const imageOption = document.createElement('div');
+        imageOption.className = 'image-option';
+        imageOption.setAttribute('data-image', imageUrl);
+        imageOption.setAttribute('data-name', imageName);
+        imageOption.style.backgroundImage = `url('${imageUrl}')`;
+        imageOption.title = imageName;
+        
+        // Add click handler
+        imageOption.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            this.classList.add('selected');
+            selectedBackground = this.getAttribute('data-image');
+            selectedType = 'image';
+            
+            showImageActions(this, imageUrl, imageName);
+        });
+        
+        // Add remove button
+        addRemoveButtonToImage(imageOption, imageUrl, imageName);
+        
+        savedImagesGrid.appendChild(imageOption);
+    }
 
-function next(){
-idx = (idx + 1) % gallery.length;
-show();
-}
+    // Helper function for remove button
+    function addRemoveButtonToImage(imageOption, imageUrl, imageName) {
+        if (!imageName.startsWith('Default')) {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-image-btn';
+            removeBtn.innerHTML = '×';
+            removeBtn.title = 'Remove image';
+            
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeUploadedImage(imageUrl, imageName, imageOption);
+            });
+            
+            imageOption.appendChild(removeBtn);
+        }
+    }
 
-// Enhanced lightbox initialization
-function initializeLightbox() {
-// Function to add click handlers to images
-const addImageHandlers = (img) => {
-// Skip if already has handler or is part of UI elements
-if (img.hasAttribute('data-lightbox-handler') ||
-img.closest('.selection-checkbox') ||
-img.closest('.menu-popup')) {
-return;
-}
+    // Remove image function
+    function removeUploadedImage(imageUrl, imageName, imageElement) {
+        if (confirm(`Remove "${imageName}" from collection?`)) {
+            let uploadedImages = JSON.parse(localStorage.getItem('uploadedBackgrounds')) || [];
+            uploadedImages = uploadedImages.filter(img => img.url !== imageUrl);
+            localStorage.setItem('uploadedBackgrounds', JSON.stringify(uploadedImages));
+            
+            imageElement.remove();
+            
+            if (selectedBackground === imageUrl && selectedType === 'image') {
+                selectedBackground = null;
+                selectedType = null;
+            }
+        }
+    }
 
-img.style.cursor = 'zoom-in';
-img.setAttribute('data-lightbox-handler', 'true');
+    // Show notification
+    function showNotification(message) {
+        if (!notification) return;
+        
+        notificationText.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
 
-img.addEventListener('click', function(e) {
-// Only open if not in selection mode and not clicking on a button
-if (!window.isSelectionMode &&
-!e.target.closest('button') &&
-!e.target.closest('.menu-btn')) {
-openAt(this.src);
-e.stopPropagation();
-e.preventDefault();
-}
-});
-};
+    // Build gallery
+    function buildGallery(){
+        gallery = Array.from(messagesEl.querySelectorAll('img[src]'))
+            .filter(img => !img.closest('.selection-checkbox') && 
+                          !img.closest('.menu-popup') &&
+                          img.src && img.src !== '')
+            .map(img => img.src);
+    }
 
-// Add handlers to existing images
-messagesEl.querySelectorAll('img[src]').forEach(addImageHandlers);
+    // Open lightbox
+    function openAt(src){
+        buildGallery();
+        idx = gallery.indexOf(src);
+        if(idx === -1) {
+            gallery = [src];
+            idx = 0;
+        }
+        show();
+    }
 
-// Watch for new images
-const observer = new MutationObserver(function(mutations) {
-mutations.forEach(function(mutation) {
-mutation.addedNodes.forEach(function(node) {
-if (node.nodeType === 1) {
-// Handle direct image nodes
-if (node.tagName === 'IMG') {
-addImageHandlers(node);
-}
-// Handle images within added nodes
-if (node.querySelectorAll) {
-node.querySelectorAll('img[src]').forEach(addImageHandlers);
-}
-}
-});
-});
-});
+    // Show lightbox
+    function show(){
+        if (gallery.length === 0) return;
 
-observer.observe(messagesEl, {
-childList: true,
-subtree: true
-});
-}
+        lImg.src = gallery[idx];
+        resetZoom();
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
 
-// Initialize lightbox
-initializeLightbox();
+        // Set download link
+        btnDownload.href = gallery[idx];
+        btnDownload.setAttribute('download', 'image_' + Date.now() + '.jpg');
 
-// Event listeners
-btnClose.addEventListener('click', close);
-btnPrev.addEventListener('click', prev);
-btnNext.addEventListener('click', next);
+        // Update counter
+        updateCounter();
 
-// Close on background click
-lightbox.addEventListener('click', function(e) {
-if (e.target === lightbox) {
-close();
-}
-});
+        // Show/hide nav buttons
+        btnPrev.style.display = gallery.length > 1 ? 'block' : 'none';
+        btnNext.style.display = gallery.length > 1 ? 'block' : 'none';
+    }
 
-// Keyboard navigation
-document.addEventListener('keydown', function(e){
-if(!lightbox.classList.contains('open')) return;
+    // Close lightbox
+    function close(){
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+        resetZoom();
+    }
 
-switch(e.key) {
-case 'Escape': close(); break;
-case 'ArrowLeft': prev(); break;
-case 'ArrowRight': next(); break;
-}
-});
+    // Previous image
+    function prev(){
+        idx = (idx - 1 + gallery.length) % gallery.length;
+        resetZoom();
+        lImg.src = gallery[idx];
+        updateCounter();
+    }
+
+    // Next image
+    function next(){
+        idx = (idx + 1) % gallery.length;
+        resetZoom();
+        lImg.src = gallery[idx];
+        updateCounter();
+    }
+
+    // Update counter
+    function updateCounter() {
+        counter.textContent = (gallery.length > 1) ? (idx + 1) + ' / ' + gallery.length : '';
+    }
+
+    // ZOOM FUNCTIONALITY
+    function toggleZoom() {
+        if (scale > 1) {
+            resetZoom();
+        } else {
+            zoomIn();
+        }
+    }
+
+    function zoomIn() {
+        scale = 2;
+        updateTransform();
+        lImg.classList.add('zoomed');
+        isZoomed = true;
+    }
+
+    function resetZoom() {
+        scale = 1;
+        posX = 0;
+        posY = 0;
+        updateTransform();
+        lImg.classList.remove('zoomed', 'dragging');
+        isZoomed = false;
+        isDragging = false;
+    }
+
+    function updateTransform() {
+        lImg.style.transform = `scale(${scale}) translate(${posX}px, ${posY}px)`;
+    }
+
+    // TOUCH GESTURES
+    function handleTouchStart(e) {
+        if (e.touches.length === 1) {
+            // Single touch - prepare for drag or swipe
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            startX = touch.clientX - posX;
+            startY = touch.clientY - posY;
+            
+            if (isZoomed) {
+                isDragging = true;
+                lImg.classList.add('dragging');
+            }
+        } else if (e.touches.length === 2) {
+            // Two fingers - pinch to zoom
+            isPinching = true;
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            lastScale = scale;
+            
+            // Calculate initial distance
+            const dx = touch1.clientX - touch2.clientX;
+            const dy = touch1.clientY - touch2.clientY;
+            touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }
+
+    function handleTouchMove(e) {
+        if (e.touches.length === 1 && isDragging) {
+            // Single touch drag
+            const touch = e.touches[0];
+            posX = touch.clientX - startX;
+            posY = touch.clientY - startY;
+            
+            // Limit drag boundaries
+            const maxX = lImg.offsetWidth * (scale - 1) / 2;
+            const maxY = lImg.offsetHeight * (scale - 1) / 2;
+            
+            posX = Math.max(-maxX, Math.min(maxX, posX));
+            posY = Math.max(-maxY, Math.min(maxY, posY));
+            
+            updateTransform();
+        } else if (e.touches.length === 2 && isPinching) {
+            // Pinch to zoom
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            
+            const dx = touch1.clientX - touch2.clientX;
+            const dy = touch1.clientY - touch2.clientY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (touchStartDistance > 0) {
+                scale = Math.max(1, Math.min(3, lastScale * (distance / touchStartDistance)));
+                updateTransform();
+                
+                if (scale > 1) {
+                    lImg.classList.add('zoomed');
+                    isZoomed = true;
+                }
+            }
+        }
+    }
+
+    function handleTouchEnd(e) {
+        if (e.touches.length === 0) {
+            // All touches ended
+            isDragging = false;
+            isPinching = false;
+            lImg.classList.remove('dragging');
+            
+            // Check for swipe gesture
+            if (!isZoomed && e.changedTouches.length === 1) {
+                const touch = e.changedTouches[0];
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+                
+                // Only handle horizontal swipes with minimal vertical movement
+                if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
+                    if (deltaX > 0) {
+                        // Swipe right - previous
+                        prev();
+                    } else {
+                        // Swipe left - next
+                        next();
+                    }
+                }
+            }
+        }
+    }
+
+    // MOUSE EVENTS
+    function handleMouseDown(e) {
+        if (!isZoomed) return;
+        
+        isDragging = true;
+        lImg.classList.add('dragging');
+        startX = e.clientX - posX;
+        startY = e.clientY - posY;
+    }
+
+    function handleMouseMove(e) {
+        if (!isDragging) return;
+        
+        posX = e.clientX - startX;
+        posY = e.clientY - startY;
+        
+        // Limit drag boundaries
+        const maxX = lImg.offsetWidth * (scale - 1) / 2;
+        const maxY = lImg.offsetHeight * (scale - 1) / 2;
+        
+        posX = Math.max(-maxX, Math.min(maxX, posX));
+        posY = Math.max(-maxY, Math.min(maxY, posY));
+        
+        updateTransform();
+    }
+
+    function handleMouseUp() {
+        isDragging = false;
+        lImg.classList.remove('dragging');
+    }
+
+    // DOUBLE TAP ZOOM
+    let lastTap = 0;
+    function handleDoubleTap(e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        
+        if (tapLength < 300 && tapLength > 0) {
+            toggleZoom();
+            e.preventDefault();
+        }
+        
+        lastTap = currentTime;
+    }
+
+    // EVENT LISTENERS
+    btnClose.addEventListener('click', close);
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnSave.addEventListener('click', () => saveToCollection(gallery[idx]));
+
+    // Image interactions
+    lImg.addEventListener('click', (e) => {
+        if (!isDragging) {
+            toggleZoom();
+        }
+    });
+
+    lImg.addEventListener('dblclick', handleDoubleTap);
+
+    // Mouse events
+    lImg.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    // Touch events
+    lImg.addEventListener('touchstart', handleTouchStart);
+    lImg.addEventListener('touchmove', handleTouchMove);
+    lImg.addEventListener('touchend', handleTouchEnd);
+
+    // Close on background click
+    lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) {
+            close();
+        }
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e){
+        if(!lightbox.classList.contains('active')) return;
+
+        switch(e.key) {
+            case 'Escape': close(); break;
+            case 'ArrowLeft': prev(); break;
+            case 'ArrowRight': next(); break;
+            case ' ': toggleZoom(); break;
+        }
+    });
+
+    // Initialize
+    initializeLightbox();
+
+    // Expose to global scope
+    window.openLightbox = openAt;
+    window.closeLightbox = close;
 })();</script>
 
     <!-- Color Customization Modal -->
@@ -7715,6 +8284,38 @@ body.dark #imageUrlInput:focus {
 
 .upload-btn[style*="background: #10B981"]:hover {
   background: #059669 !important;
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #25D366;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification.show {
+    display: flex;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 </style>
 
