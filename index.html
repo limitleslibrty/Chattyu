@@ -1655,7 +1655,7 @@ border:none"
 
       
 <div style="margin-left:10px; display:flex; flex-direction:column;">
-  <div id="chatTitle">Bubu😘</div>
+  <div id="chatTitle"></div>
   <div id="typingIndicator" style="font-size:12px; color:gray; display:none;">
     typing…
   </div>
@@ -2916,6 +2916,36 @@ function applyAsDP(imageUrl) {
   }
 }
 
+function editProfileName() {
+  const currentName = document.getElementById('profileNameDisplay').textContent;
+  const currentChatName = document.getElementById('chatTitle').textContent;
+  
+  // Use the chat title if available, otherwise use profile name
+  const currentDisplayName = currentChatName || currentName;
+  
+  const newName = prompt('Enter new name:', currentDisplayName);
+  
+  if (newName && newName.trim() !== '') {
+    const trimmedName = newName.trim();
+    
+    // Update both profile display and chat header
+    document.getElementById('profileNameDisplay').textContent = trimmedName;
+    document.getElementById('chatTitle').textContent = trimmedName;
+    
+    // Save to localStorage for persistence
+    localStorage.setItem('userDisplayName', trimmedName);
+    
+    // Optional: Show confirmation
+    showNotification('Name updated successfully!');
+  }
+}
+function loadSavedName() {
+  const savedName = localStorage.getItem('userDisplayName');
+  if (savedName) {
+    document.getElementById('profileNameDisplay').textContent = savedName;
+    document.getElementById('chatTitle').textContent = savedName;
+  }
+}
 // Load saved DP on page load
 function loadSavedDP() {
   const savedDP = localStorage.getItem('userProfilePicture');
@@ -3724,7 +3754,7 @@ function openChat(key) {
   
   // Reset state
   currentKey = key;
-  document.getElementById('chatTitle').textContent = "Bubu😘";
+  
   history.pushState({screen: "chat"}, "Chat");
 
   messageStore = {};
@@ -4176,6 +4206,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadSavedDP();
   loadSavedBackground();
   loadSavedHomeBackground();
+  loadSavedName();
   // ... rest of initialization
 });
 function processAndRenderMessages(messages) {
@@ -6015,6 +6046,7 @@ const saveColorBtn = document.getElementById('saveColorBtn');
 cancelColorBtn.addEventListener('click', () => {
   colorModal.classList.remove('open');
 });
+
 let currentMode = 'light'; // Track which mode we're customizing
 
 // Default color schemes
@@ -8115,28 +8147,18 @@ function loadSharedMedia() {
   }
 }
 
-function editProfileName() {
-  const currentName = document.getElementById('profileNameDisplay').textContent;
-  const newName = prompt('Enter new name:', currentName);
-  if (newName && newName.trim() !== '') {
-    const trimmedName = newName.trim();
-    document.getElementById('profileNameDisplay').textContent = trimmedName;
-    document.getElementById('chatTitle').textContent = trimmedName;
-    // Optional: Save to localStorage
-    localStorage.setItem('chatUserName', trimmedName);
-  }
-}
+
 
 function editProfilePicture() {
-  // Redirect directly to saved backgrounds collection
+  // Open background picker without closing profile tab
   openBackgroundPicker();
   
+  // Switch to images tab
   setTimeout(() => {
     const imagesTabBtn = document.querySelector('.bg-tab-btn[data-tab="images"]');
     if (imagesTabBtn) {
       imagesTabBtn.click();
     }
-    closeProfileTab();
   }, 100);
 }
 </script>
@@ -8162,6 +8184,18 @@ function editProfilePicture() {
   </div>
 </div>
 <style>
+/* Make background modal appear above profile tab */
+.color-modal {
+    z-index: 10001 !important; /* Higher than profile tab (10000) */
+}
+
+.background-modal {
+    z-index: 10001 !important;
+}
+
+.color-modal-content {
+    z-index: 10002 !important;
+}
 /* More specific CSS overrides */
 #messages.custom-background {
   background-size: cover !important;
@@ -8617,7 +8651,11 @@ body.dark .section-title {
       <div class="action-text">Edit profile picture</div>
       <div class="action-arrow">›</div>
     </div>
-
+    <div class="profile-action-item" onclick="editProfileName()">
+      <div class="action-icon">✏️</div>
+      <div class="action-text">Edit name</div>
+      <div class="action-arrow">›</div>
+    </div>
   </div>
   
   <div class="media-section">
