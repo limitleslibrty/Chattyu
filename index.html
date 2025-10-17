@@ -8047,6 +8047,98 @@ document.addEventListener('DOMContentLoaded', function() {
       settingsMenu.style.display = 'none';
     }, 200);
   });
+  
+  // ADD this to your existing JavaScript
+// Add click event only to the profile picture
+document.getElementById('userLogo').addEventListener('click', function(e) {
+  e.stopPropagation();
+  openProfileTab();
+});
+
+function openProfileTab() {
+  const profileTab = document.getElementById('profileTab');
+  if (profileTab) {
+    profileTab.style.display = 'block';
+    loadProfileData();
+    loadSharedMedia();
+  }
+}
+
+function closeProfileTab() {
+  const profileTab = document.getElementById('profileTab');
+  if (profileTab) {
+    profileTab.style.display = 'none';
+  }
+}
+
+function loadProfileData() {
+  // Load current profile data from existing elements
+  const profilePic = document.getElementById('userLogo').src;
+  const profileName = document.getElementById('chatTitle').textContent;
+  
+  document.getElementById('profilePicLarge').src = profilePic;
+  document.getElementById('profileNameDisplay').textContent = profileName;
+}
+
+function loadSharedMedia() {
+  // Load shared images/GIFs from the current chat
+  const mediaGrid = document.getElementById('mediaGrid');
+  if (!mediaGrid || !currentKey) return;
+  
+  mediaGrid.innerHTML = '';
+  
+  // Get all media messages from the current chat
+  const mediaMessages = Object.values(messageStore).filter(msg =>
+    (msg.type === 'image' || msg.type === 'gif') && msg.url
+  );
+  
+  mediaMessages.forEach(msg => {
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-item';
+    mediaItem.onclick = () => {
+      if (window.openLightbox) {
+        window.openLightbox(msg.url);
+      }
+    };
+    
+    const img = document.createElement('img');
+    img.src = msg.url;
+    img.alt = 'Shared media';
+    img.loading = 'lazy';
+    
+    mediaItem.appendChild(img);
+    mediaGrid.appendChild(mediaItem);
+  });
+  
+  if (mediaMessages.length === 0) {
+    mediaGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #666; padding: 20px;">No media shared yet</p>';
+  }
+}
+
+function editProfileName() {
+  const currentName = document.getElementById('profileNameDisplay').textContent;
+  const newName = prompt('Enter new name:', currentName);
+  if (newName && newName.trim() !== '') {
+    const trimmedName = newName.trim();
+    document.getElementById('profileNameDisplay').textContent = trimmedName;
+    document.getElementById('chatTitle').textContent = trimmedName;
+    // Optional: Save to localStorage
+    localStorage.setItem('chatUserName', trimmedName);
+  }
+}
+
+function editProfilePicture() {
+  // Redirect directly to saved backgrounds collection
+  openBackgroundPicker();
+  
+  setTimeout(() => {
+    const imagesTabBtn = document.querySelector('.bg-tab-btn[data-tab="images"]');
+    if (imagesTabBtn) {
+      imagesTabBtn.click();
+    }
+    closeProfileTab();
+  }, 100);
+}
 </script>
 <!-- Selection Toolbar -->
 <div id="selectionToolbar">
@@ -8325,7 +8417,215 @@ body.dark #imageUrlInput:focus {
 .lightbox-nav {
     z-index: 10001; /* Higher than lightbox background but lower than notification */
 }
-</style>
 
+
+/* Profile Tab Styles - ADD these */
+.profile-tab {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #DDF2ED;
+  z-index: 10000;
+  overflow-y: auto;
+}
+
+body.dark .profile-tab {
+  background: #13221F;
+}
+
+.profile-header {
+  background: #DDF2ED;
+  padding: 10px 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: sticky;
+  top: 0;
+}
+
+body.dark .profile-header {
+  background: #13221F;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #075E54;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark .back-btn {
+  color: #B7CAC6;
+}
+
+.profile-info {
+  text-align: center;
+  padding: 20px;
+}
+
+.profile-pic-large {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  border: 3px solid #DDF2ED;
+}
+
+.profile-name {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #000;
+}
+
+body.dark .profile-name {
+  color: #B7CAC6;
+}
+
+.profile-status {
+  color: #666;
+  font-size: 14px;
+}
+
+body.dark .profile-status {
+  color: #B7CAC6;
+}
+
+.profile-actions {
+  background: #E9FEF9;
+  margin: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+body.dark .profile-actions {
+  background: #031813;
+}
+
+.profile-action-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #E5E5E5;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+body.dark .profile-action-item {
+  border-bottom-color: #2A3A36;
+}
+
+.profile-action-item:last-child {
+  border-bottom: none;
+}
+
+.profile-action-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+body.dark .profile-action-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.action-icon {
+  margin-right: 15px;
+  font-size: 20px;
+}
+
+.action-text {
+  flex: 1;
+  font-size: 16px;
+  color: #000;
+}
+
+body.dark .action-text {
+  color: #B7CAC6;
+}
+
+.action-arrow {
+  color: #666;
+  font-size: 18px;
+}
+
+.media-section {
+  margin: 20px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #075E54;
+}
+
+body.dark .section-title {
+  color: #B7CAC6;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.media-item {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #f0f0f0;
+}
+
+.media-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.media-item:hover img {
+  transform: scale(1.05);
+}
+</style>
+<!-- ADD this HTML before closing </body> tag -->
+<div id="profileTab" class="profile-tab" style="display: none;">
+  <div class="profile-header">
+    <button class="back-btn" onclick="closeProfileTab()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+    </button>
+    <h2 style="margin: 0; flex: 1;">Profile</h2>
+  </div>
+  
+  <div class="profile-info">
+    <img id="profilePicLarge" class="profile-pic-large" src="" alt="Profile Picture">
+    <div class="profile-name" id="profileNameDisplay">Bubu😘</div>
+    <div class="profile-status">Hey there! I am using S Talk</div>
+  </div>
+  
+  <div class="profile-actions">
+    <div class="profile-action-item" onclick="editProfilePicture()">
+      <div class="action-icon">📷</div>
+      <div class="action-text">Edit profile picture</div>
+      <div class="action-arrow">›</div>
+    </div>
+
+  </div>
+  
+  <div class="media-section">
+    <div class="section-title">Shared Media</div>
+    <div class="media-grid" id="mediaGrid">
+      <!-- Media items will be loaded dynamically -->
+    </div>
+  </div>
+</div>
 </body>
 </html>
