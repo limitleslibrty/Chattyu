@@ -8283,6 +8283,13 @@ function loadSharedMedia() {
 
 function editProfilePicture() {
   // Open background picker without closing profile tab
+  const backgroundModal = document.getElementById('backgroundModal');
+  const profileTab = document.getElementById('profileTab');
+  
+  // Ensure background modal appears above profile tab
+  backgroundModal.style.zIndex = '10001';
+  profileTab.style.zIndex = '9999';
+  
   openBackgroundPicker();
   
   // Switch to images tab
@@ -10815,25 +10822,7 @@ window.initializeProfileTimers = initializeProfileTimers;
 
 // Auto-initialize
 document.addEventListener('DOMContentLoaded', initializeTimers);
-function editProfilePicture() {
-  // Open background picker without closing profile tab
-  const backgroundModal = document.getElementById('backgroundModal');
-  const profileTab = document.getElementById('profileTab');
-  
-  // Ensure background modal appears above profile tab
-  backgroundModal.style.zIndex = '10001';
-  profileTab.style.zIndex = '9999';
-  
-  openBackgroundPicker();
-  
-  // Switch to images tab
-  setTimeout(() => {
-    const imagesTabBtn = document.querySelector('.bg-tab-btn[data-tab="images"]');
-    if (imagesTabBtn) {
-      imagesTabBtn.click();
-    }
-  }, 100);
-}
+
 </script>
 
 </body>
