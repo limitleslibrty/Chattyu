@@ -8923,7 +8923,32 @@ body.dark .section-title {
       <div class="action-arrow">›</div>
     </div>
   </div>
-  
+
+
+  <!-- ADD THIS TIMERS SECTION RIGHT HERE -->
+  <div class="timers-section">
+    <div class="timer-card">
+      <div class="timer-title">💕 Our Relationship Journey</div>
+      <div class="timer-display" id="relationshipTimer">7 years 2 months 15 days</div>
+    </div>
+    
+    <div class="timer-card">
+      <div class="timer-title">🎉 Next Anniversary</div>
+      <div class="timer-display" id="anniversaryCountdown">45 days 12 hours</div>
+    </div>
+    
+    <div class="timer-card">
+      <div class="timer-title">🎂 Your Special Day</div>
+      <div class="timer-display" id="userBirthdayCountdown">325 days</div>
+    </div>
+    
+    <div class="timer-card">
+      <div class="timer-title">🎂 Brother's Birthday</div>
+      <div class="timer-display" id="brotherBirthdayCountdown">340 days</div>
+    </div>
+  </div>
+
+
 <div class="media-section">
   <div class="section-title">Shared Media</div>
   
@@ -10225,6 +10250,592 @@ body.dark #animationsTab button:hover {
   border-radius: 4px;
   font-size: 14px;
 }
+
+/* Relationship Timers & Countdowns - Matching App Theme */
+.timers-section {
+    background: #DDF2ED;
+    padding: 20px;
+    border-radius: 20px;
+    margin: 20px;
+    box-shadow: 0 4px 15px rgba(0, 107, 97, 0.1);
+    color: #3A4F4A;
+    text-align: center;
+    border: 2px solid #006B61;
+}
+
+body.dark .timers-section {
+    background: #13221F;
+    color: #B7CAC6;
+    border-color: #005047;
+}
+
+.timer-card {
+    background: #E9FEF9;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #006B61;
+    transition: all 0.3s ease;
+}
+
+body.dark .timer-card {
+    background: #031813;
+    border-color: #005047;
+}
+
+.timer-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #006B61;
+}
+
+body.dark .timer-title {
+    color: #25D366;
+}
+
+.timer-display {
+    font-size: 18px;
+    font-weight: bold;
+    color: #3A4F4A;
+    min-height: 24px;
+}
+
+body.dark .timer-display {
+    color: #B7CAC6;
+}
+
+.countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.countdown-item {
+    background: #DDF2ED;
+    padding: 8px 5px;
+    border-radius: 8px;
+    border: 1px solid #006B61;
+}
+
+body.dark .countdown-item {
+    background: #13221F;
+    border-color: #005047;
+}
+
+.countdown-number {
+    font-size: 16px;
+    font-weight: bold;
+    color: #006B61;
+}
+
+body.dark .countdown-number {
+    color: #25D366;
+}
+
+.countdown-label {
+    font-size: 10px;
+    color: #3A4F4A;
+    text-transform: uppercase;
+}
+
+body.dark .countdown-label {
+    color: #B7CAC6;
+}
+
+/* Romantic animations */
+@keyframes gentlePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.timer-card:hover {
+    animation: gentlePulse 2s ease-in-out infinite;
+    box-shadow: 0 6px 20px rgba(0, 107, 97, 0.15);
+}
+
+body.dark .timer-card:hover {
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.15);
+}
 </style>
+<script>
+  // Relationship start date
+const RELATIONSHIP_START_DATE = new Date('October 15, 2017');
+
+// Important dates (update years to current/next year)
+const currentYear = new Date().getFullYear();
+const nextYear = currentYear + 1;
+
+const ANNIVERSARY_DATE = new Date(`September 23, ${currentYear}`);
+const USER_BIRTHDAY = new Date(`August 10, ${currentYear}`);
+const BROTHER_BIRTHDAY = new Date(`September 16, ${currentYear}`);
+
+function initializeTimers() {
+    // Update immediately on load
+    updateAllTimers();
+    
+    // Then update every second
+    setInterval(updateAllTimers, 1000);
+}
+
+function updateAllTimers() {
+    updateRelationshipTimer();
+    updateCountdown('anniversaryCountdown', ANNIVERSARY_DATE, 'Anniversary');
+    updateCountdown('userBirthdayCountdown', USER_BIRTHDAY, 'Your Birthday');
+    updateCountdown('brotherBirthdayCountdown', BROTHER_BIRTHDAY, 'Brother\\'s Birthday');
+}
+
+function updateRelationshipTimer() {
+    const now = new Date();
+    const diff = now - RELATIONSHIP_START_DATE;
+    
+    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+    
+    document.getElementById('relationshipTimer').innerHTML = 
+        `<strong>${years}</strong> years <strong>${months}</strong> months <strong>${days}</strong> days`;
+}
+
+function updateCountdown(elementId, targetDate, eventName) {
+    const now = new Date();
+    
+    // Set target date to current or next year
+    let nextDate = new Date(targetDate);
+    const currentYear = now.getFullYear();
+    nextDate.setFullYear(currentYear);
+    
+    if (nextDate < now) {
+        nextDate.setFullYear(currentYear + 1);
+    }
+    
+    const diff = nextDate - now;
+    
+    if (diff <= 0) {
+        document.getElementById(elementId).innerHTML = 
+            `<div style="color: #25D366; font-weight: bold;">🎉 Today is ${eventName}!</div>`;
+        return;
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    document.getElementById(elementId).innerHTML = `
+        <div class="countdown-grid">
+            <div class="countdown-item">
+                <div class="countdown-number">${days}</div>
+                <div class="countdown-label">days</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${hours}</div>
+                <div class="countdown-label">hours</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${minutes}</div>
+                <div class="countdown-label">mins</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${seconds}</div>
+                <div class="countdown-label">secs</div>
+            </div>
+        </div>
+    `;
+}
+
+// Initialize timers when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeTimers);
+
+// Also initialize if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTimers);
+} else {
+    initializeTimers();
+}
+
+// Add this to your existing JavaScript
+// Replace your existing initializeRelationshipTimers function with this:
+// ADD THIS CODE ANYWHERE IN YOUR SCRIPT (preferably at the end)
+// COMPLETE TIMER SOLUTION - Add this anywhere in your script
+function initializeRelationshipTimers() {
+    console.log('🕒 Initializing relationship timers...');
+    
+    const profileTab = document.getElementById('profileTab');
+    if (!profileTab) {
+        console.log('❌ Profile tab not found');
+        return;
+    }
+    
+    // Check if timers already exist
+    let timersSection = profileTab.querySelector('.timers-section');
+    
+    if (!timersSection) {
+        // Create timers HTML
+        const timersHTML = `
+        <div class="timers-section">
+            <div class="timer-card">
+                <div class="timer-title">💕 Our Relationship Journey</div>
+                <div class="timer-display" id="relationshipTimer">Calculating...</div>
+            </div>
+            
+            <div class="timer-card">
+                <div class="timer-title">🎉 Next Anniversary</div>
+                <div class="timer-display" id="anniversaryCountdown">Calculating...</div>
+            </div>
+            
+            <div class="timer-card">
+                <div class="timer-title">🎂 Your Special Day</div>
+                <div class="timer-display" id="userBirthdayCountdown">Calculating...</div>
+            </div>
+            
+            <div class="timer-card">
+                <div class="timer-title">🎂 Brother's Birthday</div>
+                <div class="timer-display" id="brotherBirthdayCountdown">Calculating...</div>
+            </div>
+        </div>
+        `;
+        
+        // Insert after media section or at the end
+        const mediaSection = profileTab.querySelector('.media-section');
+        if (mediaSection) {
+            mediaSection.insertAdjacentHTML('afterend', timersHTML);
+        } else {
+            profileTab.insertAdjacentHTML('beforeend', timersHTML);
+        }
+        
+        console.log('✅ Timers HTML added to profile tab');
+    }
+    
+    // Start the timers
+    startRelationshipTimers();
+}
+
+// Self-contained timer functions
+function startRelationshipTimers() {
+    console.log('Starting timer updates...');
+    updateAllRelationshipTimers();
+    setInterval(updateAllRelationshipTimers, 1000);
+}
+
+function updateAllRelationshipTimers() {
+    updateRelationshipTimer();
+    updateCountdownTimers();
+}
+
+function updateRelationshipTimer() {
+    const timerElement = document.getElementById('relationshipTimer');
+    if (!timerElement) return;
+    
+    const now = new Date();
+    const start = new Date('October 15, 2017');
+    const diff = now - start;
+    
+    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+    
+    timerElement.innerHTML = `<strong>${years}</strong> years <strong>${months}</strong> months <strong>${days}</strong> days`;
+}
+
+function updateCountdownTimers() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Anniversary - September 23
+    const anniversary = new Date(`September 23, ${currentYear}`);
+    if (anniversary < now) anniversary.setFullYear(currentYear + 1);
+    updateSingleCountdownTimer('anniversaryCountdown', anniversary, '🎉 Anniversary Today!');
+    
+    // User Birthday - August 10
+    const userBday = new Date(`August 10, ${currentYear}`);
+    if (userBday < now) userBday.setFullYear(currentYear + 1);
+    updateSingleCountdownTimer('userBirthdayCountdown', userBday, '🎂 Your Birthday Today!');
+    
+    // Brother Birthday - September 16
+    const brotherBday = new Date(`September 16, ${currentYear}`);
+    if (brotherBday < now) brotherBday.setFullYear(currentYear + 1);
+    updateSingleCountdownTimer('brotherBirthdayCountdown', brotherBday, '🎂 Brother\\'s Birthday Today!');
+}
+
+function updateSingleCountdownTimer(elementId, targetDate, todayMessage) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const now = new Date();
+    const diff = targetDate - now;
+    
+    if (diff <= 0) {
+        element.innerHTML = `<div style="color: #25D366; font-weight: bold;">${todayMessage}</div>`;
+        return;
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    element.innerHTML = `
+        <div class="countdown-grid">
+            <div class="countdown-item">
+                <div class="countdown-number">${days}</div>
+                <div class="countdown-label">days</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${hours}</div>
+                <div class="countdown-label">hours</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${minutes}</div>
+                <div class="countdown-label">mins</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${seconds}</div>
+                <div class="countdown-label">secs</div>
+            </div>
+        </div>
+    `;
+}
+
+// Make it globally available
+window.initializeRelationshipTimers = initializeRelationshipTimers;
+
+// Auto-initialize when profile tab opens
+document.addEventListener('DOMContentLoaded', function() {
+    // Override the openProfileTab function to include timers
+    const originalOpenProfileTab = window.openProfileTab;
+    window.openProfileTab = function() {
+        if (originalOpenProfileTab) {
+            originalOpenProfileTab();
+        }
+        
+        // Initialize timers after profile tab is opened
+        setTimeout(() => {
+            initializeRelationshipTimers();
+        }, 200);
+    };
+});
+
+console.log('✅ Relationship timers loaded - use initializeRelationshipTimers() to test');
+
+// Timer functions
+function startTimers() {
+    updateAllTimers();
+    setInterval(updateAllTimers, 1000);
+}
+
+function updateAllTimers() {
+    updateRelationshipTimer();
+    updateCountdowns();
+}
+
+function updateRelationshipTimer() {
+    const now = new Date();
+    const start = new Date('October 15, 2017');
+    const diff = now - start;
+    
+    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+    
+    const timerElement = document.getElementById('relationshipTimer');
+    if (timerElement) {
+        timerElement.innerHTML = `<strong>${years}</strong> years <strong>${months}</strong> months <strong>${days}</strong> days`;
+    }
+}
+
+function updateCountdowns() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Anniversary - September 23
+    const anniversary = new Date(`September 23, ${currentYear}`);
+    if (anniversary < now) anniversary.setFullYear(currentYear + 1);
+    updateSingleCountdown('anniversaryCountdown', anniversary, '🎉 Anniversary Today!');
+    
+    // User Birthday - August 10
+    const userBday = new Date(`August 10, ${currentYear}`);
+    if (userBday < now) userBday.setFullYear(currentYear + 1);
+    updateSingleCountdown('userBirthdayCountdown', userBday, '🎂 Your Birthday Today!');
+    
+    // Brother Birthday - September 16
+    const brotherBday = new Date(`September 16, ${currentYear}`);
+    if (brotherBday < now) brotherBday.setFullYear(currentYear + 1);
+    updateSingleCountdown('brotherBirthdayCountdown', brotherBday, '🎂 Brother\\'s Birthday Today!');
+}
+
+function updateSingleCountdown(elementId, targetDate, todayMessage) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const now = new Date();
+    const diff = targetDate - now;
+    
+    if (diff <= 0) {
+        element.innerHTML = `<div style="color: #25D366; font-weight: bold;">${todayMessage}</div>`;
+        return;
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    element.innerHTML = `
+        <div class="countdown-grid">
+            <div class="countdown-item">
+                <div class="countdown-number">${days}</div>
+                <div class="countdown-label">days</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${hours}</div>
+                <div class="countdown-label">hours</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${minutes}</div>
+                <div class="countdown-label">mins</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${seconds}</div>
+                <div class="countdown-label">secs</div>
+            </div>
+        </div>
+    `;
+}
+
+// Make it globally available
+window.initializeRelationshipTimers = initializeRelationshipTimers;
+
+// Auto-initialize when profile tab opens
+const originalOpenProfileTab = window.openProfileTab;
+window.openProfileTab = function() {
+    originalOpenProfileTab && originalOpenProfileTab();
+    
+    // Initialize timers after a short delay
+    setTimeout(() => {
+        initializeRelationshipTimers();
+    }, 100);
+};
+
+// Make sure this function is called when profile tab opens
+function openProfileTab() {
+  const profileTab = document.getElementById('profileTab');
+  if (profileTab) {
+    profileTab.style.display = 'block';
+    loadProfileData();
+    loadSharedMedia();
+    
+    // Initialize timers when profile tab opens
+    setTimeout(initializeRelationshipTimers, 100);
+  }
+}
+
+function startTimers() {
+    console.log('🕒 Starting timer updates...');
+    
+    // Update immediately
+    updateAllTimers();
+    
+    // Update every second
+    setInterval(updateAllTimers, 1000);
+}
+
+// Relationship start date
+const RELATIONSHIP_START_DATE = new Date('October 15, 2017');
+
+function updateAllTimers() {
+    updateRelationshipTimer();
+    updateCountdowns();
+}
+
+function updateRelationshipTimer() {
+    const now = new Date();
+    const start = new Date(RELATIONSHIP_START_DATE);
+    const diff = now - start;
+    
+    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+    
+    const timerElement = document.getElementById('relationshipTimer');
+    if (timerElement) {
+        timerElement.innerHTML = `${years} years ${months} months ${days} days`;
+    }
+}
+
+function updateCountdowns() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Anniversary - September 23
+    const anniversary = new Date(`September 23, ${currentYear}`);
+    if (anniversary < now) anniversary.setFullYear(currentYear + 1);
+    updateSingleCountdown('anniversaryCountdown', anniversary, '🎉 Anniversary Today!');
+    
+    // User Birthday - August 10
+    const userBday = new Date(`August 10, ${currentYear}`);
+    if (userBday < now) userBday.setFullYear(currentYear + 1);
+    updateSingleCountdown('userBirthdayCountdown', userBday, '🎂 Your Birthday Today!');
+    
+    // Brother Birthday - September 16
+    const brotherBday = new Date(`September 16, ${currentYear}`);
+    if (brotherBday < now) brotherBday.setFullYear(currentYear + 1);
+    updateSingleCountdown('brotherBirthdayCountdown', brotherBday, '🎂 Brother\\'s Birthday Today!');
+}
+
+function updateSingleCountdown(elementId, targetDate, todayMessage) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const now = new Date();
+    const diff = targetDate - now;
+    
+    if (diff <= 0) {
+        element.innerHTML = `<span style="color: #25D366; font-weight: bold;">${todayMessage}</span>`;
+        return;
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    element.innerHTML = `
+        <div class="countdown-grid">
+            <div class="countdown-item">
+                <div class="countdown-number">${days}</div>
+                <div class="countdown-label">days</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${hours}</div>
+                <div class="countdown-label">hours</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${minutes}</div>
+                <div class="countdown-label">mins</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number">${seconds}</div>
+                <div class="countdown-label">secs</div>
+            </div>
+        </div>
+    `;
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM loaded, initializing timers...');
+    setTimeout(initializeRelationshipTimers, 1000);
+});
+
+// Also try to initialize if DOM is already loaded
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('⚡ DOM ready, initializing timers immediately...');
+    setTimeout(initializeRelationshipTimers, 500);
+}
+</script>
+
 </body>
 </html>
