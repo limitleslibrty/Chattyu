@@ -1851,7 +1851,7 @@ body.dark .color-modal-content {
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  z-index: 10000;
+  z-index: 10002; /* Increased from 10000 to 10002 */
   min-width: 320px;
   max-width: 90vw;
   max-height: 80vh;
@@ -1866,14 +1866,8 @@ body.dark .color-modal-content {
   animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ensure proper stacking context */
-.color-modal {
-  z-index: 9999;
-}
 
-.color-picker-dropdown {
-  z-index: 10000;
-}
+
 
 /* Mobile responsiveness */
 @media (max-width: 480px) {
@@ -8470,17 +8464,12 @@ function loadSharedMedia() {
 </div>
 <style>
 /* Make background modal appear above profile tab */
-.color-modal {
-    z-index: 10001 !important; /* Higher than profile tab (10000) */
-}
+
 
 .background-modal {
     z-index: 10001 !important;
 }
 
-.color-modal-content {
-    z-index: 10002 !important;
-}
 /* More specific CSS overrides */
 #messages.custom-background {
   background-size: cover !important;
@@ -10826,6 +10815,25 @@ window.initializeProfileTimers = initializeProfileTimers;
 
 // Auto-initialize
 document.addEventListener('DOMContentLoaded', initializeTimers);
+function editProfilePicture() {
+  // Open background picker without closing profile tab
+  const backgroundModal = document.getElementById('backgroundModal');
+  const profileTab = document.getElementById('profileTab');
+  
+  // Ensure background modal appears above profile tab
+  backgroundModal.style.zIndex = '10001';
+  profileTab.style.zIndex = '9999';
+  
+  openBackgroundPicker();
+  
+  // Switch to images tab
+  setTimeout(() => {
+    const imagesTabBtn = document.querySelector('.bg-tab-btn[data-tab="images"]');
+    if (imagesTabBtn) {
+      imagesTabBtn.click();
+    }
+  }, 100);
+}
 </script>
 
 </body>
