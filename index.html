@@ -8925,29 +8925,103 @@ body.dark .section-title {
   </div>
 
 
-  <!-- ADD THIS TIMERS SECTION RIGHT HERE -->
-  <div class="timers-section">
-    <div class="timer-card">
-      <div class="timer-title">💕 Our Relationship Journey</div>
-      <div class="timer-display" id="relationshipTimer">7 years 2 months 15 days</div>
-    </div>
-    
-    <div class="timer-card">
-      <div class="timer-title">🎉 Next Anniversary</div>
-      <div class="timer-display" id="anniversaryCountdown">45 days 12 hours</div>
-    </div>
-    
-    <div class="timer-card">
-      <div class="timer-title">🎂 Your Special Day</div>
-      <div class="timer-display" id="userBirthdayCountdown">325 days</div>
-    </div>
-    
-    <div class="timer-card">
-      <div class="timer-title">🎂 Brother's Birthday</div>
-      <div class="timer-display" id="brotherBirthdayCountdown">340 days</div>
+<!-- Replace your existing timers-section with this -->
+<div class="timers-section">
+  <div class="timer-status" id="timerStatus">
+    <span id="syncStatus">⏳ Syncing time...</span>
+    <button onclick="manualTimeSync()" class="sync-btn">Sync Now</button>
+  </div>
+  
+  <div class="timer-card">
+    <div class="timer-title">💕 Our Relationship Journey</div>
+    <div class="timer-display" id="relationshipTimer">
+      <div class="time-unit">
+        <span class="time-value" id="years">0</span>
+        <span class="time-label">years</span>
+      </div>
+      <div class="time-unit">
+        <span class="time-value" id="months">0</span>
+        <span class="time-label">months</span>
+      </div>
+      <div class="time-unit">
+        <span class="time-value" id="days">0</span>
+        <span class="time-label">days</span>
+      </div>
     </div>
   </div>
-
+  
+  <div class="timer-card">
+    <div class="timer-title">🎉 Next Anniversary</div>
+    <div class="timer-display" id="anniversaryCountdown">
+      <div class="countdown-grid">
+        <div class="countdown-item">
+          <div class="countdown-number" id="annivMonths">0</div>
+          <div class="countdown-label">months</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="annivDays">0</div>
+          <div class="countdown-label">days</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="annivHours">0</div>
+          <div class="countdown-label">hours</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="annivMinutes">0</div>
+          <div class="countdown-label">mins</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="timer-card">
+    <div class="timer-title">🎂 Your Special Day</div>
+    <div class="timer-display" id="userBirthdayCountdown">
+      <div class="countdown-grid">
+        <div class="countdown-item">
+          <div class="countdown-number" id="userBdayMonths">0</div>
+          <div class="countdown-label">months</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="userBdayDays">0</div>
+          <div class="countdown-label">days</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="userBdayHours">0</div>
+          <div class="countdown-label">hours</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="userBdayMinutes">0</div>
+          <div class="countdown-label">mins</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="timer-card">
+    <div class="timer-title">🎂 Brother's Birthday</div>
+    <div class="timer-display" id="brotherBirthdayCountdown">
+      <div class="countdown-grid">
+        <div class="countdown-item">
+          <div class="countdown-number" id="brotherBdayMonths">0</div>
+          <div class="countdown-label">months</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="brotherBdayDays">0</div>
+          <div class="countdown-label">days</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="brotherBdayHours">0</div>
+          <div class="countdown-label">hours</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-number" id="brotherBdayMinutes">0</div>
+          <div class="countdown-label">mins</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="media-section">
   <div class="section-title">Shared Media</div>
@@ -10251,30 +10325,58 @@ body.dark #animationsTab button:hover {
   font-size: 14px;
 }
 
-/* Relationship Timers & Countdowns - Matching App Theme */
+
+</style>
+<style>
+/* ===== COMPLETELY NEW TIMER LOGIC ===== */
+
+/* Timer Container */
 .timers-section {
     background: #DDF2ED;
     padding: 20px;
     border-radius: 20px;
     margin: 20px;
     box-shadow: 0 4px 15px rgba(0, 107, 97, 0.1);
-    color: #3A4F4A;
-    text-align: center;
     border: 2px solid #006B61;
 }
 
 body.dark .timers-section {
     background: #13221F;
-    color: #B7CAC6;
     border-color: #005047;
 }
 
+/* Timer Status */
+.timer-status {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(0, 107, 97, 0.1);
+    font-size: 14px;
+}
+
+.sync-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.sync-btn:hover {
+    background: #1d4ed8;
+}
+
+/* Timer Cards */
 .timer-card {
     background: #E9FEF9;
     border-radius: 15px;
-    padding: 15px;
+    padding: 20px;
     margin: 15px 0;
-    border: 1px solid #006B61;
+    border: 2px solid #006B61;
     transition: all 0.3s ease;
 }
 
@@ -10286,37 +10388,79 @@ body.dark .timer-card {
 .timer-title {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     color: #006B61;
+    text-align: center;
 }
 
 body.dark .timer-title {
     color: #25D366;
 }
 
+/* Relationship Timer Display */
 .timer-display {
-    font-size: 18px;
-    font-weight: bold;
-    color: #3A4F4A;
-    min-height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-body.dark .timer-display {
+.time-unit {
+    text-align: center;
+    padding: 10px 15px;
+    background: #DDF2ED;
+    border-radius: 10px;
+    border: 1px solid #006B61;
+    min-width: 80px;
+}
+
+body.dark .time-unit {
+    background: #13221F;
+    border-color: #005047;
+}
+
+.time-value {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #006B61;
+    line-height: 1.2;
+}
+
+body.dark .time-value {
+    color: #25D366;
+}
+
+.time-label {
+    display: block;
+    font-size: 12px;
+    color: #3A4F4A;
+    text-transform: uppercase;
+    margin-top: 5px;
+}
+
+body.dark .time-label {
     color: #B7CAC6;
 }
 
+/* Countdown Grid */
 .countdown-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 10px;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
 .countdown-item {
     background: #DDF2ED;
-    padding: 8px 5px;
-    border-radius: 8px;
-    border: 1px solid #006B61;
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 2px solid #006B61;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
 body.dark .countdown-item {
@@ -10325,9 +10469,11 @@ body.dark .countdown-item {
 }
 
 .countdown-number {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: bold;
     color: #006B61;
+    line-height: 1.2;
+    display: block;
 }
 
 body.dark .countdown-number {
@@ -10335,506 +10481,332 @@ body.dark .countdown-number {
 }
 
 .countdown-label {
-    font-size: 10px;
+    font-size: 11px;
     color: #3A4F4A;
     text-transform: uppercase;
+    display: block;
+    margin-top: 4px;
 }
 
 body.dark .countdown-label {
     color: #B7CAC6;
 }
 
-/* Romantic animations */
-@keyframes gentlePulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
+/* Hover Effects */
 .timer-card:hover {
-    animation: gentlePulse 2s ease-in-out infinite;
+    transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 107, 97, 0.15);
 }
 
 body.dark .timer-card:hover {
     box-shadow: 0 6px 20px rgba(37, 211, 102, 0.15);
 }
+
+.countdown-item:hover {
+    transform: scale(1.05);
+    background: rgba(0, 107, 97, 0.1);
+}
+
+body.dark .countdown-item:hover {
+    background: rgba(37, 211, 102, 0.1);
+}
+
+/* Status Colors */
+.sync-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.sync-status.syncing {
+    background: #FFD700;
+    color: #000;
+}
+
+.sync-status.success {
+    background: #25D366;
+    color: white;
+}
+
+.sync-status.error {
+    background: #FF3B30;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .timers-section {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .timer-display {
+        gap: 10px;
+    }
+    
+    .time-unit {
+        min-width: 70px;
+        padding: 8px 12px;
+    }
+    
+    .time-value {
+        font-size: 20px;
+    }
+    
+    .countdown-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .countdown-item {
+        padding: 10px 6px;
+    }
+    
+    .countdown-number {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .timer-display {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .time-unit {
+        width: 100%;
+        max-width: 120px;
+    }
+    
+    .countdown-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Animation for number changes */
+@keyframes numberChange {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.time-value.updated, .countdown-number.updated {
+    animation: numberChange 0.3s ease;
+}
+
+/* Today celebration style */
+.today-celebration {
+    background: linear-gradient(135deg, #25D366, #4CAF50) !important;
+    color: white !important;
+    border-color: #25D366 !important;
+}
+
+.today-celebration .countdown-number,
+.today-celebration .time-value {
+    color: white !important;
+}
+
+.today-celebration .countdown-label,
+.today-celebration .time-label {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
 </style>
 <script>
-  // Relationship start date
-const RELATIONSHIP_START_DATE = new Date('October 15, 2017');
-
-// Important dates (update years to current/next year)
-const currentYear = new Date().getFullYear();
-const nextYear = currentYear + 1;
-
-const ANNIVERSARY_DATE = new Date(`September 23, ${currentYear}`);
-const USER_BIRTHDAY = new Date(`August 10, ${currentYear}`);
-const BROTHER_BIRTHDAY = new Date(`September 16, ${currentYear}`);
-
-function initializeTimers() {
-    // Update immediately on load
-    updateAllTimers();
+  // Completely new timer logic
+class TimerManager {
+  constructor() {
+    this.relationshipStart = new Date('October 15, 2017');
+    this.timeOffset = 0;
+    this.isSynced = false;
+    this.timerElements = {};
+    this.init();
+  }
+  
+  async init() {
+    await this.syncTime();
+    this.cacheElements();
+    this.startTimers();
+    setInterval(() => this.updateAllTimers(), 1000);
+    setInterval(() => this.syncTime(), 60 * 60 * 1000); // Sync every hour
+  }
+  
+  async syncTime() {
+    try {
+      this.updateSyncStatus('⏳ Syncing time...', 'syncing');
+      const response = await fetch('https://worldtimeapi.org/api/ip');
+      const data = await response.json();
+      const serverTime = new Date(data.utc_datetime);
+      this.timeOffset = serverTime - Date.now();
+      this.isSynced = true;
+      this.updateSyncStatus('✅ Using online time', 'success');
+      return true;
+    } catch (error) {
+      this.isSynced = false;
+      this.timeOffset = 0;
+      this.updateSyncStatus('⚠️ Using device time', 'error');
+      return false;
+    }
+  }
+  
+  updateSyncStatus(message, status) {
+    const statusElement = document.getElementById('syncStatus');
+    if (statusElement) {
+      statusElement.textContent = message;
+      statusElement.className = `sync-status ${status}`;
+    }
+  }
+  
+  cacheElements() {
+    // Relationship timer
+    this.timerElements.years = document.getElementById('years');
+    this.timerElements.months = document.getElementById('months');
+    this.timerElements.days = document.getElementById('days');
     
-    // Then update every second
-    setInterval(updateAllTimers, 1000);
-}
-
-function updateAllTimers() {
-    updateRelationshipTimer();
-    updateCountdown('anniversaryCountdown', ANNIVERSARY_DATE, 'Anniversary');
-    updateCountdown('userBirthdayCountdown', USER_BIRTHDAY, 'Your Birthday');
-    updateCountdown('brotherBirthdayCountdown', BROTHER_BIRTHDAY, 'Brother\\'s Birthday');
-}
-
-function updateRelationshipTimer() {
-    const now = new Date();
-    const diff = now - RELATIONSHIP_START_DATE;
+    // Anniversary countdown
+    this.timerElements.annivMonths = document.getElementById('annivMonths');
+    this.timerElements.annivDays = document.getElementById('annivDays');
+    this.timerElements.annivHours = document.getElementById('annivHours');
+    this.timerElements.annivMinutes = document.getElementById('annivMinutes');
     
+    // User birthday
+    this.timerElements.userBdayMonths = document.getElementById('userBdayMonths');
+    this.timerElements.userBdayDays = document.getElementById('userBdayDays');
+    this.timerElements.userBdayHours = document.getElementById('userBdayHours');
+    this.timerElements.userBdayMinutes = document.getElementById('userBdayMinutes');
+    
+    // Brother birthday
+    this.timerElements.brotherBdayMonths = document.getElementById('brotherBdayMonths');
+    this.timerElements.brotherBdayDays = document.getElementById('brotherBdayDays');
+    this.timerElements.brotherBdayHours = document.getElementById('brotherBdayHours');
+    this.timerElements.brotherBdayMinutes = document.getElementById('brotherBdayMinutes');
+  }
+  
+  getCurrentTime() {
+    return this.isSynced ? new Date(Date.now() + this.timeOffset) : new Date();
+  }
+  
+  updateAllTimers() {
+    const now = this.getCurrentTime();
+    this.updateRelationshipTimer(now);
+    this.updateCountdowns(now);
+  }
+  
+  updateRelationshipTimer(now) {
+    const diff = now - this.relationshipStart;
     const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
     const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
     const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
     
-    document.getElementById('relationshipTimer').innerHTML = 
-        `<strong>${years}</strong> years <strong>${months}</strong> months <strong>${days}</strong> days`;
-}
-
-function updateCountdown(elementId, targetDate, eventName) {
-    const now = new Date();
-    
-    // Set target date to current or next year
-    let nextDate = new Date(targetDate);
-    const currentYear = now.getFullYear();
-    nextDate.setFullYear(currentYear);
-    
-    if (nextDate < now) {
-        nextDate.setFullYear(currentYear + 1);
-    }
-    
-    const diff = nextDate - now;
-    
-    if (diff <= 0) {
-        document.getElementById(elementId).innerHTML = 
-            `<div style="color: #25D366; font-weight: bold;">🎉 Today is ${eventName}!</div>`;
-        return;
-    }
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    document.getElementById(elementId).innerHTML = `
-        <div class="countdown-grid">
-            <div class="countdown-item">
-                <div class="countdown-number">${days}</div>
-                <div class="countdown-label">days</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${hours}</div>
-                <div class="countdown-label">hours</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${minutes}</div>
-                <div class="countdown-label">mins</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${seconds}</div>
-                <div class="countdown-label">secs</div>
-            </div>
-        </div>
-    `;
-}
-
-// Initialize timers when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeTimers);
-
-// Also initialize if DOM is already loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeTimers);
-} else {
-    initializeTimers();
-}
-
-// Add this to your existing JavaScript
-// Replace your existing initializeRelationshipTimers function with this:
-// ADD THIS CODE ANYWHERE IN YOUR SCRIPT (preferably at the end)
-// COMPLETE TIMER SOLUTION - Add this anywhere in your script
-function initializeRelationshipTimers() {
-    console.log('🕒 Initializing relationship timers...');
-    
-    const profileTab = document.getElementById('profileTab');
-    if (!profileTab) {
-        console.log('❌ Profile tab not found');
-        return;
-    }
-    
-    // Check if timers already exist
-    let timersSection = profileTab.querySelector('.timers-section');
-    
-    if (!timersSection) {
-        // Create timers HTML
-        const timersHTML = `
-        <div class="timers-section">
-            <div class="timer-card">
-                <div class="timer-title">💕 Our Relationship Journey</div>
-                <div class="timer-display" id="relationshipTimer">Calculating...</div>
-            </div>
-            
-            <div class="timer-card">
-                <div class="timer-title">🎉 Next Anniversary</div>
-                <div class="timer-display" id="anniversaryCountdown">Calculating...</div>
-            </div>
-            
-            <div class="timer-card">
-                <div class="timer-title">🎂 Your Special Day</div>
-                <div class="timer-display" id="userBirthdayCountdown">Calculating...</div>
-            </div>
-            
-            <div class="timer-card">
-                <div class="timer-title">🎂 Brother's Birthday</div>
-                <div class="timer-display" id="brotherBirthdayCountdown">Calculating...</div>
-            </div>
-        </div>
-        `;
-        
-        // Insert after media section or at the end
-        const mediaSection = profileTab.querySelector('.media-section');
-        if (mediaSection) {
-            mediaSection.insertAdjacentHTML('afterend', timersHTML);
-        } else {
-            profileTab.insertAdjacentHTML('beforeend', timersHTML);
-        }
-        
-        console.log('✅ Timers HTML added to profile tab');
-    }
-    
-    // Start the timers
-    startRelationshipTimers();
-}
-
-// Self-contained timer functions
-function startRelationshipTimers() {
-    console.log('Starting timer updates...');
-    updateAllRelationshipTimers();
-    setInterval(updateAllRelationshipTimers, 1000);
-}
-
-function updateAllRelationshipTimers() {
-    updateRelationshipTimer();
-    updateCountdownTimers();
-}
-
-function updateRelationshipTimer() {
-    const timerElement = document.getElementById('relationshipTimer');
-    if (!timerElement) return;
-    
-    const now = new Date();
-    const start = new Date('October 15, 2017');
-    const diff = now - start;
-    
-    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
-    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
-    
-    timerElement.innerHTML = `<strong>${years}</strong> years <strong>${months}</strong> months <strong>${days}</strong> days`;
-}
-
-function updateCountdownTimers() {
-    const now = new Date();
+    this.updateElementWithAnimation(this.timerElements.years, years);
+    this.updateElementWithAnimation(this.timerElements.months, months);
+    this.updateElementWithAnimation(this.timerElements.days, days);
+  }
+  
+  updateCountdowns(now) {
     const currentYear = now.getFullYear();
     
     // Anniversary - September 23
     const anniversary = new Date(`September 23, ${currentYear}`);
-    if (anniversary < now) anniversary.setFullYear(currentYear + 1);
-    updateSingleCountdownTimer('anniversaryCountdown', anniversary, '🎉 Anniversary Today!');
+    if (anniversary <= now) anniversary.setFullYear(currentYear + 1);
+    this.updateSingleCountdown('anniversary', anniversary, now);
     
     // User Birthday - August 10
     const userBday = new Date(`August 10, ${currentYear}`);
-    if (userBday < now) userBday.setFullYear(currentYear + 1);
-    updateSingleCountdownTimer('userBirthdayCountdown', userBday, '🎂 Your Birthday Today!');
+    if (userBday <= now) userBday.setFullYear(currentYear + 1);
+    this.updateSingleCountdown('userBday', userBday, now);
     
     // Brother Birthday - September 16
     const brotherBday = new Date(`September 16, ${currentYear}`);
-    if (brotherBday < now) brotherBday.setFullYear(currentYear + 1);
-    updateSingleCountdownTimer('brotherBirthdayCountdown', brotherBday, '🎂 Brother\\'s Birthday Today!');
-}
-
-function updateSingleCountdownTimer(elementId, targetDate, todayMessage) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    const now = new Date();
+    if (brotherBday <= now) brotherBday.setFullYear(currentYear + 1);
+    this.updateSingleCountdown('brotherBday', brotherBday, now);
+  }
+  
+  updateSingleCountdown(type, targetDate, now) {
     const diff = targetDate - now;
     
     if (diff <= 0) {
-        element.innerHTML = `<div style="color: #25D366; font-weight: bold;">${todayMessage}</div>`;
-        return;
+      this.showTodayCelebration(type);
+      return;
     }
     
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    element.innerHTML = `
-        <div class="countdown-grid">
-            <div class="countdown-item">
-                <div class="countdown-number">${days}</div>
-                <div class="countdown-label">days</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${hours}</div>
-                <div class="countdown-label">hours</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${minutes}</div>
-                <div class="countdown-label">mins</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${seconds}</div>
-                <div class="countdown-label">secs</div>
-            </div>
-        </div>
-    `;
-}
-
-// Make it globally available
-window.initializeRelationshipTimers = initializeRelationshipTimers;
-
-// Auto-initialize when profile tab opens
-document.addEventListener('DOMContentLoaded', function() {
-    // Override the openProfileTab function to include timers
-    const originalOpenProfileTab = window.openProfileTab;
-    window.openProfileTab = function() {
-        if (originalOpenProfileTab) {
-            originalOpenProfileTab();
-        }
-        
-        // Initialize timers after profile tab is opened
-        setTimeout(() => {
-            initializeRelationshipTimers();
-        }, 200);
-    };
-});
-
-console.log('✅ Relationship timers loaded - use initializeRelationshipTimers() to test');
-
-// Timer functions
-function startTimers() {
-    updateAllTimers();
-    setInterval(updateAllTimers, 1000);
-}
-
-function updateAllTimers() {
-    updateRelationshipTimer();
-    updateCountdowns();
-}
-
-function updateRelationshipTimer() {
-    const now = new Date();
-    const start = new Date('October 15, 2017');
-    const diff = now - start;
-    
-    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+    const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
     const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
-    
-    const timerElement = document.getElementById('relationshipTimer');
-    if (timerElement) {
-        timerElement.innerHTML = `<strong>${years}</strong> years <strong>${months}</strong> months <strong>${days}</strong> days`;
-    }
-}
-
-function updateCountdowns() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    
-    // Anniversary - September 23
-    const anniversary = new Date(`September 23, ${currentYear}`);
-    if (anniversary < now) anniversary.setFullYear(currentYear + 1);
-    updateSingleCountdown('anniversaryCountdown', anniversary, '🎉 Anniversary Today!');
-    
-    // User Birthday - August 10
-    const userBday = new Date(`August 10, ${currentYear}`);
-    if (userBday < now) userBday.setFullYear(currentYear + 1);
-    updateSingleCountdown('userBirthdayCountdown', userBday, '🎂 Your Birthday Today!');
-    
-    // Brother Birthday - September 16
-    const brotherBday = new Date(`September 16, ${currentYear}`);
-    if (brotherBday < now) brotherBday.setFullYear(currentYear + 1);
-    updateSingleCountdown('brotherBirthdayCountdown', brotherBday, '🎂 Brother\\'s Birthday Today!');
-}
-
-function updateSingleCountdown(elementId, targetDate, todayMessage) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    const now = new Date();
-    const diff = targetDate - now;
-    
-    if (diff <= 0) {
-        element.innerHTML = `<div style="color: #25D366; font-weight: bold;">${todayMessage}</div>`;
-        return;
-    }
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
-    element.innerHTML = `
-        <div class="countdown-grid">
-            <div class="countdown-item">
-                <div class="countdown-number">${days}</div>
-                <div class="countdown-label">days</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${hours}</div>
-                <div class="countdown-label">hours</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${minutes}</div>
-                <div class="countdown-label">mins</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${seconds}</div>
-                <div class="countdown-label">secs</div>
-            </div>
-        </div>
-    `;
-}
-
-// Make it globally available
-window.initializeRelationshipTimers = initializeRelationshipTimers;
-
-// Auto-initialize when profile tab opens
-const originalOpenProfileTab = window.openProfileTab;
-window.openProfileTab = function() {
-    originalOpenProfileTab && originalOpenProfileTab();
+    const prefix = type === 'anniversary' ? 'anniv' : type === 'userBday' ? 'userBday' : 'brotherBday';
     
-    // Initialize timers after a short delay
-    setTimeout(() => {
-        initializeRelationshipTimers();
-    }, 100);
-};
-
-// Make sure this function is called when profile tab opens
-function openProfileTab() {
-  const profileTab = document.getElementById('profileTab');
-  if (profileTab) {
-    profileTab.style.display = 'block';
-    loadProfileData();
-    loadSharedMedia();
+    this.updateElementWithAnimation(this.timerElements[`${prefix}Months`], months);
+    this.updateElementWithAnimation(this.timerElements[`${prefix}Days`], days);
+    this.updateElementWithAnimation(this.timerElements[`${prefix}Hours`], hours);
+    this.updateElementWithAnimation(this.timerElements[`${prefix}Minutes`], minutes);
     
-    // Initialize timers when profile tab opens
-    setTimeout(initializeRelationshipTimers, 100);
+    this.removeTodayCelebration(type);
+  }
+  
+  updateElementWithAnimation(element, value) {
+    if (!element) return;
+    
+    const currentValue = parseInt(element.textContent) || 0;
+    if (currentValue !== value) {
+      element.textContent = value;
+      element.classList.add('updated');
+      setTimeout(() => element.classList.remove('updated'), 300);
+    }
+  }
+  
+  showTodayCelebration(type) {
+    const element = document.getElementById(`${type}Countdown`);
+    if (element) {
+      element.classList.add('today-celebration');
+      const message = type === 'anniversary' ? '🎉 Happy Anniversary!' :
+        type === 'userBday' ? '🎂 Happy Birthday!' : '🎂 Happy Birthday!';
+      element.innerHTML = `<div style="text-align: center; font-weight: bold; font-size: 18px;">${message}</div>`;
+    }
+  }
+  
+  removeTodayCelebration(type) {
+    const element = document.getElementById(`${type}Countdown`);
+    if (element) {
+      element.classList.remove('today-celebration');
+    }
+  }
+  
+  startTimers() {
+    this.updateAllTimers();
   }
 }
 
-function startTimers() {
-    console.log('🕒 Starting timer updates...');
-    
-    // Update immediately
-    updateAllTimers();
-    
-    // Update every second
-    setInterval(updateAllTimers, 1000);
+// Initialize the timer system
+let timerManager;
+
+function initializeTimers() {
+  timerManager = new TimerManager();
 }
 
-// Relationship start date
-const RELATIONSHIP_START_DATE = new Date('October 15, 2017');
-
-function updateAllTimers() {
-    updateRelationshipTimer();
-    updateCountdowns();
+// Manual sync function
+function manualTimeSync() {
+  if (timerManager) {
+    timerManager.syncTime();
+  }
 }
 
-function updateRelationshipTimer() {
-    const now = new Date();
-    const start = new Date(RELATIONSHIP_START_DATE);
-    const diff = now - start;
-    
-    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
-    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
-    
-    const timerElement = document.getElementById('relationshipTimer');
-    if (timerElement) {
-        timerElement.innerHTML = `${years} years ${months} months ${days} days`;
+// Start timers when profile tab opens
+function initializeProfileTimers() {
+  setTimeout(() => {
+    if (!timerManager) {
+      initializeTimers();
     }
+  }, 100);
 }
 
-function updateCountdowns() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    
-    // Anniversary - September 23
-    const anniversary = new Date(`September 23, ${currentYear}`);
-    if (anniversary < now) anniversary.setFullYear(currentYear + 1);
-    updateSingleCountdown('anniversaryCountdown', anniversary, '🎉 Anniversary Today!');
-    
-    // User Birthday - August 10
-    const userBday = new Date(`August 10, ${currentYear}`);
-    if (userBday < now) userBday.setFullYear(currentYear + 1);
-    updateSingleCountdown('userBirthdayCountdown', userBday, '🎂 Your Birthday Today!');
-    
-    // Brother Birthday - September 16
-    const brotherBday = new Date(`September 16, ${currentYear}`);
-    if (brotherBday < now) brotherBday.setFullYear(currentYear + 1);
-    updateSingleCountdown('brotherBirthdayCountdown', brotherBday, '🎂 Brother\\'s Birthday Today!');
-}
+// Make functions globally available
+window.initializeTimers = initializeTimers;
+window.manualTimeSync = manualTimeSync;
+window.initializeProfileTimers = initializeProfileTimers;
 
-function updateSingleCountdown(elementId, targetDate, todayMessage) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    const now = new Date();
-    const diff = targetDate - now;
-    
-    if (diff <= 0) {
-        element.innerHTML = `<span style="color: #25D366; font-weight: bold;">${todayMessage}</span>`;
-        return;
-    }
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    element.innerHTML = `
-        <div class="countdown-grid">
-            <div class="countdown-item">
-                <div class="countdown-number">${days}</div>
-                <div class="countdown-label">days</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${hours}</div>
-                <div class="countdown-label">hours</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${minutes}</div>
-                <div class="countdown-label">mins</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-number">${seconds}</div>
-                <div class="countdown-label">secs</div>
-            </div>
-        </div>
-    `;
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM loaded, initializing timers...');
-    setTimeout(initializeRelationshipTimers, 1000);
-});
-
-// Also try to initialize if DOM is already loaded
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log('⚡ DOM ready, initializing timers immediately...');
-    setTimeout(initializeRelationshipTimers, 500);
-}
+// Auto-initialize
+document.addEventListener('DOMContentLoaded', initializeTimers);
 </script>
 
 </body>
