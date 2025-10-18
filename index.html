@@ -7148,19 +7148,134 @@ document.addEventListener('DOMContentLoaded', function() {
         <option value="none">None</option>
       </select>
     </div>
-    <div class="setting-item">
+    <div class="setting-item" style="display:none">
       <label>Highlight Duration</label>
       <input type="number" id="highlightDuration" min="0.5" max="5" step="0.5" class="size-input">
       <span class="unit">s</span>
     </div>
-<br /><br /><br /><br /><br /><br /><br /><br />
+  </div>
+  
+  <!-- HEARTS CUSTOMIZATION SECTION -->
+  <div class="settings-group" style="margin-top: 30px; padding-top: 20px;">
+    <h4>💖 Hearts Animation</h4>
+    
+    <div class="setting-item">
+      <label>Enable Hearts</label>
+      <input type="checkbox" id="enableHearts" checked>
+    </div>
+    
+    <div class="setting-item">
+      <label>Animation Type</label>
+      <select id="heartAnimationType">
+        <option value="fall">Falling</option>
+        <option value="rise">Rising</option>
+        <option value="float">Floating</option>
+        <option value="explosion">Explosion</option>
+        <option value="spiral">Spiral</option>
+      </select>
+    </div>
+    
+    <div class="setting-item">
+      <label>Duration</label>
+      <input type="number" id="heartAnimationDuration" min="1" max="10" step="0.5" value="3" class="size-input">
+      <span class="unit">s</span>
+    </div>
+    
+    <div class="setting-item">
+      <label>Quantity</label>
+      <input type="number" id="heartQuantity" min="5" max="100" step="5" value="25" class="size-input">
+      <span class="unit">hrt</span>
+    </div>
+    
+    <div class="setting-item">
+      <label>Min Size</label>
+      <input type="number" id="heartMinSize" min="10" max="50" step="2" value="20" class="size-input">
+      <span class="unit">px</span>
+    </div>
+    
+    <div class="setting-item">
+      <label>Max Size</label>
+      <input type="number" id="heartMaxSize" min="20" max="100" step="5" value="35" class="size-input">
+      <span class="unit">px</span>
+    </div>
+    
 
   </div>
   
-
+  <div class="settings-group">
+    <h4>Custom Words</h4>
+    <div id="customWordsContainer">
+      <div class="custom-word-item" style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px;  border-radius: 6px;">
+        <input type="text" class="custom-word" value="love" placeholder="Word" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="text" class="custom-emoji" value="❤️" placeholder="Emoji" maxlength="5" style="width: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+        <input type="number" class="custom-quantity" value="25" min="5" max="100" style="width: 70px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+        <button onclick="removeCustomWord(0)" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">×</button>
+      </div>
+      <div class="custom-word-item" style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+        <input type="text" class="custom-word" value="bubu" placeholder="Word" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="text" class="custom-emoji" value="😘" placeholder="Emoji" maxlength="5" style="width: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+        <input type="number" class="custom-quantity" value="30" min="5" max="100" style="width: 70px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+        <button onclick="removeCustomWord(1)" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">×</button>
+      </div>
+    </div>
+    
+    <button onclick="addCustomWord()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px;">+ Add Word</button>
+  </div>
   
-
+  
+  <div class="settings-group" style="display: none;">
+    <h4>Colors</h4>
+    <div class="setting-item">
+      <label>Color Theme</label>
+      <select id="heartColorTheme" onchange="toggleCustomColors()">
+        <option value="random">Random</option>
+        <option value="reds">Reds</option>
+        <option value="pinks">Pinks</option>
+        <option value="rainbow">Rainbow</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    
+    <div id="customColorsContainer" style="display: none; margin-top: 10px;">
+      <div class="setting-item">
+        <label>Color 1</label>
+        <input type="color" id="customColor1" value="#ff4081">
+      </div>
+      <div class="setting-item">
+        <label>Color 2</label>
+        <input type="color" id="customColor2" value="#f44336">
+      </div>
+      <div class="setting-item">
+        <label>Color 3</label>
+        <input type="color" id="customColor3" value="#e91e63">
+      </div>
+    </div>
+  </div>
+  
+  <div class="settings-group">
+    <h4>Triggers</h4>
+    <div class="setting-item">
+      <label>On Send</label>
+      <input type="checkbox" id="triggerOnSend" checked>
+    </div>
+    <div class="setting-item">
+      <label>On Receive</label>
+      <input type="checkbox" id="triggerOnReceive" checked>
+    </div>
+    <div class="setting-item">
+      <label>Cooldown</label>
+      <input type="number" id="heartCooldown" min="1" max="30" step="1" value="3" class="size-input">
+      <span class="unit">s</span>
+    </div>
+  </div>
+  
+  <div class="settings-group">
+    <h4>Test</h4>
+    <button onclick="previewHeartsAnimation()" style="background: #10B981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px;">Preview</button>
+    <button onclick="testAllCustomWords()" style="background: #8B5CF6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Test All</button>
+  </div>
 </div>
+
     <div id="layoutTab" class="tab-content">
       <div class="settings-group">
         <h4>Border Radius</h4>
@@ -7216,7 +7331,9 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="modal-btn primary" id="saveAdvancedBtn">Save Changes</button>
     </div>
   </div>
+  
 </div>
+
 <style>
 
 
@@ -7317,6 +7434,7 @@ body.dark .unit {
   color: #B7CAC6;
 }
 </style>
+
 <script>
 // Advanced settings functionality
 const advancedSettingsModal = document.getElementById('advancedSettingsModal');
@@ -7624,6 +7742,7 @@ document.addEventListener('click', (e) => {
   }
 });
 </script>
+
 <script>
 // Enhanced Animation System - FIXED VERSION
 function applyMessageAnimation(bubble, animationType, duration, isUser) {
@@ -9116,5 +9235,996 @@ height: 120px;
 height: 150px;
 }
 }</style>
+<!-- Add this CSS for the hearts animation -->
+<!-- Add this CSS for the hearts animation -->
+<style>
+/* Falling Hearts Animation */
+.heart-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.heart {
+  position: absolute;
+  top: -50px;
+  font-size: 24px;
+  color: #ff4081;
+  animation: fall linear forwards;
+  text-shadow: 0 0 5px rgba(255, 64, 129, 0.7);
+  z-index: 9999;
+  user-select: none;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(calc(100vh + 50px)) rotate(360deg);
+    opacity: 0;
+  }
+}
+/* Heart Animation Types */
+@keyframes heartFall {
+  to {
+    transform: translateY(calc(100vh + 50px)) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes heartRise {
+  from {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100vh) rotate(-360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes heartFloat {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  50% {
+    transform: translateY(-40px) translateX(-10px);
+  }
+  75% {
+    transform: translateY(-20px) translateX(10px);
+  }
+}
+
+@keyframes heartExplosion {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: 
+      translate(
+        calc(-50% + cos(var(--angle)) * var(--distance)),
+        calc(-50% + sin(var(--angle)) * var(--distance))
+      ) 
+      scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes heartSpiral {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: 
+      translate(
+        calc(-50% + cos(360deg) * 200px),
+        calc(-50% + sin(360deg) * 200px)
+      ) 
+      rotate(720deg) scale(0);
+    opacity: 0;
+  }
+}
+
+.heart {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  user-select: none;
+  animation-timing-function: linear;
+}
+
+/* Different heart colors for variety */
+.heart.pink { color: #ff4081; }
+.heart.red { color: #f44336; }
+.heart.purple { color: #e91e63; }
+.heart.deep-pink { color: #c2185b; }
+</style>
+
+<!-- Add this HTML for the hearts container -->
+<div id="heartContainer" class="heart-container"></div>
+<script>
+  // Fixed hearts implementation - hook directly into Firebase send
+  let heartsEnabled = false;
+  let isHeartsActive = false;
+  
+  function showHearts() {
+    if (!heartsEnabled) return;
+    
+    const container = document.getElementById('heartContainer');
+    if (!container) return;
+    
+    // Prevent multiple heart storms from stacking
+    if (isHeartsActive) return;
+    isHeartsActive = true;
+    
+    const heartColors = ['pink', 'red', 'purple', 'deep-pink'];
+    
+    for (let i = 0; i < 25; i++) {
+      setTimeout(() => {
+        const heart = document.createElement('div');
+        heart.className = 'heart ' + heartColors[Math.floor(Math.random() * heartColors.length)];
+        heart.innerHTML = '❤️';
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (3 + Math.random() * 2) + 's';
+        heart.style.fontSize = (20 + Math.random() * 15) + 'px';
+        
+        container.appendChild(heart);
+        
+        // Remove heart after animation completes
+        setTimeout(() => {
+          if (heart.parentNode === container) {
+            container.removeChild(heart);
+          }
+        }, 5000);
+      }, i * 150);
+    }
+    
+    // Reset the active flag after the heart storm completes
+    setTimeout(() => {
+      isHeartsActive = false;
+    }, 4000);
+  }
+  
+  // Improved keyword detection function
+  function containsHeartKeywords(text) {
+    if (!text) return false;
+    
+    const lowerText = text.toLowerCase();
+    
+    // Exact word matching (not partial matches)
+    const words = lowerText.split(/\s+/);
+    
+    // Check for exact words
+    const hasExactMatch = words.some(word => {
+      const cleanWord = word.replace(/[^\w]/g, ''); // Remove punctuation
+      return cleanWord === 'love' || cleanWord === 'bubu' || cleanWord === 'jaan';
+    });
+    
+    // Check for heart emoji
+    const hasHeartEmoji = text.includes('💖') || text.includes('❤️') || text.includes('😍');
+    
+    return hasExactMatch || hasHeartEmoji;
+  }
+  
+  let lastTriggerTime = 0;
+  
+  // Enable hearts only after page is fully loaded and user interacts
+  document.addEventListener('DOMContentLoaded', function() {
+    // Disable hearts initially
+    heartsEnabled = false;
+    
+    // Enable hearts when user starts typing or after 3 seconds
+    const enableHearts = function() {
+      heartsEnabled = true;
+      console.log('Hearts enabled! Will show when sending messages with keywords.');
+      
+      // Remove event listeners after first activation
+      document.removeEventListener('click', enableHearts);
+      document.removeEventListener('touchstart', enableHearts);
+      document.removeEventListener('focus', enableHearts);
+    };
+    
+    // Enable on user interaction
+    document.addEventListener('click', enableHearts);
+    document.addEventListener('touchstart', enableHearts);
+    
+    // Also enable after 3 seconds automatically
+    setTimeout(enableHearts, 3000);
+    
+    // METHOD 1: Override the Firebase database set function
+    const originalSet = db.ref().set;
+    if (originalSet) {
+      db.ref().set = function(...args) {
+        console.log('Firebase set called:', args);
+        
+        // Check if this is a message send operation
+        const path = this.toString();
+        if (path.includes('chats/') && path.includes('/brother')) {
+          const messageData = args[0];
+          if (messageData && messageData.text && containsHeartKeywords(messageData.text)) {
+            const currentTime = Date.now();
+            if (currentTime - lastTriggerTime > 3000) {
+              lastTriggerTime = currentTime;
+              console.log('🎯 Hearts triggered from FIREBASE SEND:', messageData.text);
+              showHearts();
+            }
+          }
+        }
+        
+        return originalSet.apply(this, args);
+      };
+      console.log('Firebase set function overridden');
+    }
+    
+    // METHOD 2: Hook into your sendReply function directly
+    if (typeof window.sendReply === 'function') {
+      const originalSendReply = window.sendReply;
+      window.sendReply = function() {
+        const replyInput = document.getElementById('replyInput');
+        if (replyInput && heartsEnabled) {
+          const text = replyInput.value;
+          const currentTime = Date.now();
+          
+          if (containsHeartKeywords(text) && (currentTime - lastTriggerTime > 3000)) {
+            lastTriggerTime = currentTime;
+            console.log('🎯 Hearts triggered from SENDREPLY FUNCTION:', text);
+            showHearts();
+          }
+        }
+        
+        return originalSendReply.apply(this, arguments);
+      };
+      console.log('sendReply function overridden');
+    }
+    
+    // METHOD 3: Monitor the send button with proper event capturing
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) {
+      // Remove any existing listeners and add new one
+      const newSendBtn = sendBtn.cloneNode(true);
+      sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+      
+      newSendBtn.addEventListener('click', function(e) {
+        console.log('Send button clicked!');
+        const replyInput = document.getElementById('replyInput');
+        
+        if (heartsEnabled && replyInput) {
+          const text = replyInput.value;
+          const currentTime = Date.now();
+          
+          console.log('Send button - checking text:', text);
+          
+          if (containsHeartKeywords(text) && (currentTime - lastTriggerTime > 3000)) {
+            lastTriggerTime = currentTime;
+            console.log('🎯 Hearts triggered from SEND BUTTON CLICK:', text);
+            showHearts();
+          }
+        }
+        
+        // Also call the original send functionality
+        if (typeof window.sendReply === 'function') {
+          window.sendReply();
+        }
+      }, true); // Use capturing to catch the event early
+      
+      console.log('Send button listener added with capturing');
+    }
+    
+    // METHOD 4: Watch for new brother messages as backup
+    setTimeout(() => {
+      const messagesEl = document.getElementById('messages');
+      if (messagesEl) {
+        let lastMessageCount = document.querySelectorAll('.bubble.from-brother').length;
+        
+        const checkForNewSentMessages = () => {
+          const currentMessageCount = document.querySelectorAll('.bubble.from-brother').length;
+          if (currentMessageCount > lastMessageCount) {
+            // New message was added
+            const brotherMessages = document.querySelectorAll('.bubble.from-brother');
+            const latestMessage = brotherMessages[brotherMessages.length - 1];
+            const text = latestMessage.textContent || '';
+            const currentTime = Date.now();
+            
+            if (containsHeartKeywords(text) && (currentTime - lastTriggerTime > 3000)) {
+              lastTriggerTime = currentTime;
+              console.log('🎯 Hearts triggered from NEW SENT MESSAGE DETECTION:', text.substring(0, 50));
+              showHearts();
+            }
+            
+            lastMessageCount = currentMessageCount;
+          }
+        };
+        
+        // Check every 500ms for new messages
+        setInterval(checkForNewSentMessages, 500);
+        console.log('Started interval check for new sent messages');
+      }
+    }, 2000);
+  });
+  
+  // TEST FUNCTION - You can call this in browser console to test: testHearts()
+  window.testHearts = function() {
+    heartsEnabled = true;
+    showHearts();
+    console.log('Hearts test triggered!');
+  };
+  
+  // DEBUG: Check what's happening when you send
+  window.debugSend = function() {
+    console.log('=== SEND DEBUG ===');
+    console.log('heartsEnabled:', heartsEnabled);
+    console.log('sendReply function:', typeof window.sendReply);
+    console.log('sendBtn:', document.getElementById('sendBtn'));
+    console.log('replyInput:', document.getElementById('replyInput'));
+    console.log('db.ref:', typeof db.ref);
+    
+    // Test the keyword detection
+    console.log('Keyword test - love:', containsHeartKeywords('love'));
+    console.log('Keyword test - hello:', containsHeartKeywords('hello'));
+    console.log('=== END DEBUG ===');
+  };
+</script>
+<script>
+// Hearts settings system
+const defaultHeartsSettings = {
+  enabled: true,
+  animationType: 'fall',
+  animationDuration: 3,
+  quantity: 25,
+  minSize: 20,
+  maxSize: 35,
+  
+  colorTheme: 'random',
+  customColors: ['#ff4081', '#f44336', '#e91e63'],
+  triggerOnSend: true,
+  triggerOnReceive: true,
+  cooldown: 3,
+  customWords: [
+    { word: 'love', emoji: '❤️', quantity: 25 },
+    { word: 'bubu', emoji: '😘', quantity: 30 },
+    { word: 'babu', emoji: '💖', quantity: 20 }
+  ]
+};
+
+// Load hearts settings
+let heartsSettings = JSON.parse(localStorage.getItem('heartsSettings')) || {...defaultHeartsSettings};
+
+// Initialize hearts settings in the form
+function initializeHeartsSettings() {
+  if (!document.getElementById('enableHearts')) {
+    console.log('Hearts settings form not ready yet');
+    return;
+  }
+  
+  console.log('Initializing hearts settings from storage:', heartsSettings);
+  
+  // Set form values from saved settings
+  document.getElementById('enableHearts').checked = heartsSettings.enabled;
+  document.getElementById('heartAnimationType').value = heartsSettings.animationType;
+  document.getElementById('heartAnimationDuration').value = heartsSettings.animationDuration;
+  document.getElementById('heartQuantity').value = heartsSettings.quantity;
+  document.getElementById('heartMinSize').value = heartsSettings.minSize;
+  document.getElementById('heartMaxSize').value = heartsSettings.maxSize;
+ 
+  document.getElementById('heartColorTheme').value = heartsSettings.colorTheme;
+  document.getElementById('triggerOnSend').checked = heartsSettings.triggerOnSend;
+  document.getElementById('triggerOnReceive').checked = heartsSettings.triggerOnReceive;
+  document.getElementById('heartCooldown').value = heartsSettings.cooldown;
+  
+  // Set custom colors
+  document.getElementById('customColor1').value = heartsSettings.customColors[0];
+  document.getElementById('customColor2').value = heartsSettings.customColors[1];
+  document.getElementById('customColor3').value = heartsSettings.customColors[2];
+  
+  // Load custom words
+  loadCustomWords();
+  
+  // Toggle custom colors visibility
+  toggleCustomColors();
+}
+
+// Save hearts settings to localStorage
+function saveHeartsSettings() {
+  console.log('Saving hearts settings...');
+  
+  // Get values from form
+  heartsSettings.enabled = document.getElementById('enableHearts').checked;
+  heartsSettings.animationType = document.getElementById('heartAnimationType').value;
+  heartsSettings.animationDuration = parseFloat(document.getElementById('heartAnimationDuration').value) || 3;
+  heartsSettings.quantity = parseInt(document.getElementById('heartQuantity').value) || 25;
+  heartsSettings.minSize = parseInt(document.getElementById('heartMinSize').value) || 20;
+  heartsSettings.maxSize = parseInt(document.getElementById('heartMaxSize').value) || 35;
+
+  heartsSettings.colorTheme = document.getElementById('heartColorTheme').value || 'random';
+  heartsSettings.triggerOnSend = document.getElementById('triggerOnSend').checked;
+  heartsSettings.triggerOnReceive = document.getElementById('triggerOnReceive').checked;
+  heartsSettings.cooldown = parseInt(document.getElementById('heartCooldown').value) || 3;
+  
+  // Save custom colors
+  heartsSettings.customColors = [
+    document.getElementById('customColor1').value,
+    document.getElementById('customColor2').value,
+    document.getElementById('customColor3').value
+  ];
+  
+  // Save custom words
+  const wordItems = document.querySelectorAll('.custom-word-item');
+  heartsSettings.customWords = [];
+  wordItems.forEach(item => {
+    const word = item.querySelector('.custom-word').value.trim();
+    const emoji = item.querySelector('.custom-emoji').value.trim();
+    const quantity = parseInt(item.querySelector('.custom-quantity').value) || 25;
+    
+    if (word && emoji) {
+      heartsSettings.customWords.push({
+        word: word.toLowerCase(),
+        emoji: emoji,
+        quantity: quantity
+      });
+    }
+  });
+  
+  // Save to localStorage
+  localStorage.setItem('heartsSettings', JSON.stringify(heartsSettings));
+  console.log('Hearts settings saved successfully!', heartsSettings);
+}
+
+// Reset hearts settings to default
+function resetHeartsSettings() {
+  console.log('Resetting hearts settings to default...');
+  heartsSettings = {...defaultHeartsSettings};
+  localStorage.setItem('heartsSettings', JSON.stringify(heartsSettings));
+  initializeHeartsSettings();
+}
+
+// Load custom words into UI
+function loadCustomWords() {
+  const container = document.getElementById('customWordsContainer');
+  if (!container) {
+    console.log('Custom words container not found');
+    return;
+  }
+  
+  container.innerHTML = '';
+  
+  heartsSettings.customWords.forEach((wordObj, index) => {
+    const wordDiv = document.createElement('div');
+    wordDiv.className = 'custom-word-item';
+    wordDiv.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px;';
+    wordDiv.innerHTML = `
+      <input type="text" class="custom-word" value="${wordObj.word}" placeholder="Word" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+      <input type="text" class="custom-emoji" value="${wordObj.emoji}" placeholder="Emoji" maxlength="5" style="width: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+      <input type="number" class="custom-quantity" value="${wordObj.quantity}" min="5" max="100" style="width: 70px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+      <button onclick="removeCustomWord(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">×</button>
+    `;
+    container.appendChild(wordDiv);
+  });
+}
+
+// Toggle custom colors visibility
+function toggleCustomColors() {
+  const container = document.getElementById('customColorsContainer');
+  if (container) {
+    const theme = document.getElementById('heartColorTheme').value;
+    container.style.display = theme === 'custom' ? 'block' : 'none';
+  }
+}
+
+// Hearts animation functions
+// Update the showHearts function to use the selected animation type
+window.showHearts = function(customText = '') {
+  if (!heartsSettings.enabled) {
+    console.log('Hearts are disabled');
+    return;
+  }
+  
+  const container = document.getElementById('heartContainer');
+  if (!container) {
+    console.log('Heart container not found');
+    return;
+  }
+  
+  if (window.isHeartsActive) {
+    console.log('Hearts already active');
+    return;
+  }
+  
+  window.isHeartsActive = true;
+  console.log('Showing hearts with animation type:', heartsSettings.animationType);
+  
+  // 🚨 CRITICAL FIX: Use ONLY custom words, never default emoji
+  let emojiToUse = '❤️'; // Fallback only
+  let quantityToUse = heartsSettings.quantity;
+  
+  if (customText) {
+    const matchedWord = heartsSettings.customWords.find(wordObj =>
+      customText.toLowerCase().includes(wordObj.word.toLowerCase())
+    );
+    if (matchedWord) {
+      emojiToUse = matchedWord.emoji;
+      quantityToUse = matchedWord.quantity;
+      console.log('Using custom emoji:', emojiToUse, 'for word:', matchedWord.word);
+    } else {
+      // 🚨 DON'T use default emoji for unmatched words
+      console.log('No custom word match found, not showing hearts');
+      window.isHeartsActive = false;
+      return;
+    }
+  } else {
+    // 🚨 If no custom text provided, don't show default hearts
+    console.log('No custom text provided, not showing hearts');
+    window.isHeartsActive = false;
+    return;
+  }
+  
+  // Get colors
+  const colors = getHeartColors();
+  
+  container.innerHTML = '';
+  
+  for (let i = 0; i < quantityToUse; i++) {
+    setTimeout(() => {
+      const heart = document.createElement('div');
+      heart.className = 'heart';
+      heart.innerHTML = emojiToUse;
+      heart.style.left = Math.random() * 100 + '%';
+      heart.style.animationDuration = heartsSettings.animationDuration + 's';
+      heart.style.fontSize = (heartsSettings.minSize + Math.random() * (heartsSettings.maxSize - heartsSettings.minSize)) + 'px';
+      heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+      
+      // Apply the selected animation type
+      applyHeartAnimation(heart, heartsSettings.animationType);
+      
+      container.appendChild(heart);
+      setTimeout(() => heart.remove(), heartsSettings.animationDuration * 1000);
+    }, i * 50);
+  }
+  
+  setTimeout(() => { window.isHeartsActive = false; }, heartsSettings.animationDuration * 1000);
+};
+
+// Function to apply different animation types
+function applyHeartAnimation(heart, animationType) {
+  // Reset any existing animation
+  heart.style.animation = '';
+  
+  switch (animationType) {
+    case 'fall':
+      heart.style.animation = `heartFall ${heartsSettings.animationDuration}s linear forwards`;
+      heart.style.top = '-50px';
+      break;
+      
+    case 'rise':
+      heart.style.animation = `heartRise ${heartsSettings.animationDuration}s linear forwards`;
+      heart.style.top = '100vh';
+      heart.style.bottom = 'auto';
+      break;
+      
+    case 'float':
+      heart.style.animation = `heartFloat ${heartsSettings.animationDuration}s ease-in-out infinite`;
+      heart.style.top = Math.random() * 100 + 'vh';
+      break;
+      
+    case 'explosion':
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 100 + Math.random() * 200;
+      heart.style.animation = `heartExplosion ${heartsSettings.animationDuration}s ease-out forwards`;
+      heart.style.setProperty('--angle', angle + 'rad');
+      heart.style.setProperty('--distance', distance + 'px');
+      heart.style.top = '50%';
+      heart.style.left = '50%';
+      break;
+      
+    case 'spiral':
+      heart.style.animation = `heartSpiral ${heartsSettings.animationDuration}s linear forwards`;
+      heart.style.top = '50%';
+      heart.style.left = '50%';
+      break;
+      
+    default:
+      heart.style.animation = `heartFall ${heartsSettings.animationDuration}s linear forwards`;
+      heart.style.top = '-50px';
+  }
+}
+
+function getHeartColors() {
+  switch (heartsSettings.colorTheme) {
+    case 'reds': return ['#ff4081', '#f44336', '#e91e63', '#c2185b'];
+    case 'pinks': return ['#ff4081', '#e91e63', '#ad1457', '#f8bbd0'];
+    case 'rainbow': return ['#ff4081', '#ff9800', '#ffeb3b', '#4caf50', '#2196f3', '#9c27b0'];
+    case 'custom': return heartsSettings.customColors;
+    default: return ['#ff4081', '#f44336', '#e91e63', '#c2185b', '#ff9800', '#4caf50'];
+  }
+}
+
+window.previewHeartsAnimation = function() {
+  console.log('Previewing hearts with current form values...');
+  // Save current form values first
+  saveHeartsSettings();
+  window.showHearts('love');
+};
+
+window.testAllCustomWords = function() {
+  console.log('Testing all custom words...');
+  saveHeartsSettings();
+  heartsSettings.customWords.forEach((wordObj, index) => {
+    setTimeout(() => {
+      window.showHearts(wordObj.word);
+    }, index * 4000);
+  });
+};
+
+window.addCustomWord = function() {
+  heartsSettings.customWords.push({ word: 'new', emoji: '❤️', quantity: 25 });
+  loadCustomWords();
+};
+
+window.removeCustomWord = function(index) {
+  heartsSettings.customWords.splice(index, 1);
+  loadCustomWords();
+};
+
+// Override your existing saveAdvancedSettings function
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait for the save button to exist, then override its behavior
+  const checkSaveButton = setInterval(() => {
+    const saveBtn = document.getElementById('saveAdvancedBtn');
+    if (saveBtn) {
+      console.log('Found save button, overriding behavior...');
+      
+      // Remove existing click listeners and add new one
+      const newSaveBtn = saveBtn.cloneNode(true);
+      saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+      
+      newSaveBtn.addEventListener('click', function() {
+        console.log('Save Advanced button clicked - saving ALL settings including hearts...');
+        
+        // Save hearts settings
+        saveHeartsSettings();
+        
+        // Call original save function if it exists
+        if (typeof window.saveAdvancedSettings === 'function') {
+          window.saveAdvancedSettings();
+        }
+        
+        alert('All settings (including hearts) saved successfully!');
+      });
+      
+      clearInterval(checkSaveButton);
+    }
+  }, 500);
+
+  // Also override reset button
+  const checkResetButton = setInterval(() => {
+    const resetBtn = document.getElementById('resetAdvancedBtn');
+    if (resetBtn) {
+      console.log('Found reset button, overriding behavior...');
+      
+      const newResetBtn = resetBtn.cloneNode(true);
+      resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+      
+      newResetBtn.addEventListener('click', function() {
+        console.log('Reset Advanced button clicked - resetting ALL settings including hearts...');
+        
+        if (confirm('Are you sure you want to reset ALL settings (including hearts) to default?')) {
+          // Reset hearts settings
+          resetHeartsSettings();
+          
+          // Call original reset function if it exists
+          if (typeof window.resetAdvancedSettings === 'function') {
+            window.resetAdvancedSettings();
+          }
+          
+          alert('All settings (including hearts) reset to default!');
+        }
+      });
+      
+      clearInterval(checkResetButton);
+    }
+  }, 500);
+
+  // Initialize hearts settings when animations tab opens
+  const animationsTab = document.getElementById('animationsTab');
+  if (animationsTab) {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (animationsTab.classList.contains('active')) {
+            console.log('Animations tab opened - initializing hearts settings');
+            setTimeout(initializeHeartsSettings, 100);
+          }
+        }
+      });
+    });
+    observer.observe(animationsTab, { attributes: true });
+  }
+
+  // Initialize hearts state
+  window.isHeartsActive = false;
+  
+  // Setup enhanced hearts for message sending
+  window.setupEnhancedHearts();
+});
+
+// Enhanced hearts for message detection
+window.setupEnhancedHearts = function() {
+  const originalSendReply = window.sendReply;
+  if (typeof originalSendReply === 'function') {
+    window.sendReply = function() {
+      const replyInput = document.getElementById('replyInput');
+      
+      if (replyInput && heartsSettings.enabled && heartsSettings.triggerOnSend) {
+        const text = replyInput.value;
+        const currentTime = Date.now();
+        const cooldown = heartsSettings.cooldown * 1000;
+        
+        if (window.containsHeartKeywords(text) && (currentTime - window.lastTriggerTime > cooldown)) {
+          window.lastTriggerTime = currentTime;
+          const matchedWord = window.getMatchedWord(text);
+          console.log('Hearts triggered from message send:', text);
+          window.showHearts(matchedWord);
+        }
+      }
+      
+      return originalSendReply.apply(this, arguments);
+    };
+    console.log('Enhanced hearts setup complete');
+  }
+  
+  window.lastTriggerTime = 0;
+};
+
+// Keyword detection
+window.containsHeartKeywords = function(text) {
+  if (!text || !heartsSettings.enabled) return false;
+  
+  const lowerText = text.toLowerCase();
+  
+  // Check custom words
+  const hasCustomWord = heartsSettings.customWords.some(wordObj => 
+    lowerText.includes(wordObj.word)
+  );
+  
+  // Check default words
+  const hasDefaultWord = lowerText.includes('love') || 
+                        lowerText.includes('bubu') || 
+                        lowerText.includes('babu');
+  
+  return hasCustomWord || hasDefaultWord;
+};
+
+window.getMatchedWord = function(text) {
+  if (!text) return '';
+  const lowerText = text.toLowerCase();
+  const matchedWord = heartsSettings.customWords.find(wordObj => 
+    lowerText.includes(wordObj.word)
+  );
+  return matchedWord ? matchedWord.word : '';
+};
+
+// Hearts CSS
+const heartCSS = `
+@keyframes heartFall {
+  to {
+    transform: translateY(calc(100vh + 50px)) rotate(360deg);
+    opacity: 0;
+  }
+}
+.heart {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  user-select: none;
+  animation-timing-function: linear;
+}
+`;
+document.head.insertAdjacentHTML('beforeend', `<style>${heartCSS}</style>`);
+
+console.log('Hearts system loaded! Settings will save with Advanced Settings buttons.');
+</script>
+<style>
+  /* Animation Tabs - Clean Input Styling */
+#animationsTab .setting-item input[type="text"],
+#animationsTab .setting-item input[type="number"],
+#animationsTab .setting-item input[type="color"],
+#animationsTab .setting-item select {
+  background: #DDF2ED;
+  border: 1px solid #ccc;
+  color: #3A4F4A;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  width: auto;
+}
+
+/* Dark mode for animation tab inputs */
+body.dark #animationsTab .setting-item input[type="text"],
+body.dark #animationsTab .setting-item input[type="number"],
+body.dark #animationsTab .setting-item input[type="color"],
+body.dark #animationsTab .setting-item select {
+  background: #061613;
+  border: 1px solid #2A3A36;
+  color: #B7CAC6;
+}
+
+/* Remove duplicate backgrounds from custom words container */
+#customWordsContainer {
+  padding: 0;
+  margin-bottom: 10px;
+  background: transparent !important;
+}
+
+/* Remove background from custom word items - make them transparent */
+.custom-word-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Custom word inputs - standalone without containers */
+.custom-word-item input {
+  background: #DDF2ED !important;
+  border: 1px solid #ccc !important;
+  color: #3A4F4A !important;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+body.dark .custom-word-item input {
+  background: #061613 !important;
+  border: 1px solid #2A3A36 !important;
+  color: #B7CAC6 !important;
+}
+
+/* Focus states */
+#animationsTab .setting-item input:focus,
+#animationsTab .setting-item select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+body.dark #animationsTab .setting-item input:focus,
+body.dark #animationsTab .setting-item select:focus {
+  border-color: #5ac8fa;
+  box-shadow: 0 0 0 2px rgba(90, 200, 250, 0.1);
+}
+
+/* Remove background from settings groups in animation tab */
+#animationsTab .settings-group {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  margin-bottom: 25px;
+}
+
+body.dark #animationsTab .settings-group {
+  background: transparent;
+}
+
+/* Keep the section headers but remove extra backgrounds */
+#animationsTab .settings-group h4 {
+  color: #2563eb;
+  margin-bottom: 15px;
+  font-size: 16px;
+  
+  padding-bottom: 8px;
+  background: transparent;
+}
+
+body.dark #animationsTab .settings-group h4 {
+  color: #5ac8fa;
+  
+  background: transparent;
+}
+
+/* Checkbox styling */
+#animationsTab .setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
+}
+
+body.dark #animationsTab .setting-item input[type="checkbox"] {
+  accent-color: #5ac8fa;
+}
+
+/* Buttons in animation tab */
+#animationsTab button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+#animationsTab button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+body.dark #animationsTab button {
+  background: #5ac8fa;
+  color: #13221F;
+}
+
+body.dark #animationsTab button:hover {
+  background: #47b8e8;
+}
+
+/* Remove button specific styling */
+.custom-word-item button {
+  background: #ef4444 !important;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.custom-word-item button:hover {
+  background: #dc2626 !important;
+}
+
+
+/* Custom word items - fixed width */
+.custom-word-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  align-items: center;
+}
+
+/* Custom word input - reduced width */
+.custom-word-item .custom-word {
+  width: 80px !important; /* Reduced from full width */
+  background: #DDF2ED !important;
+  border: 1px solid #ccc !important;
+  color: #3A4F4A !important;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.custom-word-item .custom-emoji {
+  width: 50px !important; /* Slightly smaller for emoji */
+  background: #DDF2ED !important;
+  border: 1px solid #ccc !important;
+  color: #3A4F4A !important;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.custom-word-item .custom-quantity {
+  width: 60px !important; /* Fixed width for quantity */
+  background: #DDF2ED !important;
+  border: 1px solid #ccc !important;
+  color: #3A4F4A !important;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+</style>
 </body>
 </html>
