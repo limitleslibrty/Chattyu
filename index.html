@@ -4251,6 +4251,22 @@ function processAndRenderMessages(messages) {
     if (initialLoadDone && val.from === "user" && key > lastRenderedMsgTime) {
       const snd = document.getElementById("receiveSound");
       if (snd) snd.play().catch(() => {});
+      
+
+  
+  // Check for hearts in received messages
+  if (heartsSettings.enabled && heartsSettings.triggerOnReceive) {
+    const text = val.text || '';
+    const currentTime = Date.now();
+    
+    if (containsHeartKeywords(text) && (currentTime - lastTriggerTime > heartsSettings.cooldown * 1000)) {
+      lastTriggerTime = currentTime;
+      const matchedWord = getMatchedWord(text);
+      console.log('🎯 Hearts triggered from RECEIVED MESSAGE:', text);
+      showHearts(matchedWord);
+    }
+  }
+
     }
     
     // Update last seen
