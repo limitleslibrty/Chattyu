@@ -1624,8 +1624,8 @@ body.dark .reply-preview-text a {
 </head>
 <body>
 
-  <script>
-  // Show Diwali animation every time for 5 seconds
+<script>
+  // Show Diwali animation with minimal close button
   window.addEventListener('load', function() {
     const diwaliOverlay = document.createElement('div');
     diwaliOverlay.style.cssText = `
@@ -1642,13 +1642,32 @@ body.dark .reply-preview-text a {
     iframe.src = 'diwali.html'; // Your Diwali animation file
     iframe.style.cssText = 'width:100%; height:100%; border:none;';
     
-    diwaliOverlay.appendChild(iframe);
-    document.body.appendChild(diwaliOverlay);
+    // Create minimal close button
+    const closeButton = document.createElement('div');
+    closeButton.innerHTML = '×';
+    closeButton.style.cssText = `
+        position: absolute;
+        top: 16px;
+        right: 50px;
+        color: rgba(255,255,255,0.2);
+        
+        font-size: 25px;
+        cursor: pointer;
+        z-index: 100000;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        text-align: center;
+    `;
     
-    // Remove after 5 seconds
-    setTimeout(() => {
+    // Close functionality
+    closeButton.addEventListener('click', function() {
       document.body.removeChild(diwaliOverlay);
-    }, 15000);
+    });
+    
+    diwaliOverlay.appendChild(iframe);
+    diwaliOverlay.appendChild(closeButton);
+    document.body.appendChild(diwaliOverlay);
   });
 </script>
 
