@@ -1624,7 +1624,33 @@ body.dark .reply-preview-text a {
 </head>
 <body>
 
-  
+  <script>
+  // Show Diwali animation every time for 5 seconds
+  window.addEventListener('load', function() {
+    const diwaliOverlay = document.createElement('div');
+    diwaliOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        z-index: 99999;
+    `;
+    
+    const iframe = document.createElement('iframe');
+    iframe.src = 'diwali.html'; // Your Diwali animation file
+    iframe.style.cssText = 'width:100%; height:100%; border:none;';
+    
+    diwaliOverlay.appendChild(iframe);
+    document.body.appendChild(diwaliOverlay);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+      document.body.removeChild(diwaliOverlay);
+    }, 15000);
+  });
+</script>
 
   
   
