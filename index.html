@@ -2438,7 +2438,7 @@ body.dark .modal-btn.secondary {
       
     </button>
     <!-- optional file attach (works locally; to upload to Firebase Storage add storage SDK) -->
-    <input id="attachFile" type="file" accept="image/*,video/gif" style="display:none" />
+    <input id="attachFile" type="file" accept="image/*,video/gif" multiple style="display:none" />
     <button id="attachBtn" title="Attach"
     style="height:35px;">
   <svg xmlns="http://www.w3.org/2000/svg" 
@@ -5213,73 +5213,131 @@ async function compressImageFile(file, targetKb = 200, opts = {}) {
   return dataUrl;
 }
 
-/* ===== Replace attachFile handling to compress before sending ===== */
-attachFile.addEventListener('change', async (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  // Only compress images (not gifs/videos). GIFs you may want to pass through as-is.
-  if (!f.type.startsWith('image/')) {
-    // fallback: send as-is (or handle video differently)
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      sendMediaMessage({ type: 'image', url: ev.target.result });
-    };
-    reader.readAsDataURL(f);
-    attachFile.value = '';
-    return;
+// Remove any existing event listeners first
+attachFile.removeEventListener('change', handleFileUpload);
+attachFile.addEventListener('change', handleFileUpload);
+
+async function handleFileUpload(e) {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+  
+  // Show processing indicator that matches app theme
+  const processingIndicator = document.createElement('div');
+  processingIndicator.id = 'fileUploadProgress';
+  processingIndicator.innerHTML = `
+    <div class="progress-content">
+      <div class="progress-spinner"></div>
+      <div class="progress-text">Processing ${files.length} image(s)...</div>
+      <div class="progress-count">0/${files.length}</div>
+    </div>
+  `;
+  
+  processingIndicator.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: ${document.body.classList.contains('dark') ? '#13221F' : '#DDF2ED'};
+    color: ${document.body.classList.contains('dark') ? '#B7CAC6' : '#3A4F4A'};
+    padding: 20px;
+    border-radius: 16px;
+    
+    z-index: 10000;
+  
+    min-width: 280px;
+    backdrop-filter: blur(10px);
+    font-family: 'Segoe UI', sans-serif;
+  `;
+  
+  document.body.appendChild(processingIndicator);
+  
+  let processedCount = 0;
+  let sentMessages = 0;
+  
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) {
+      processedCount++;
+      continue;
+    }
+    
+    try {
+      const compressedDataUrl = await compressImageFile(file, 200, { maxWidth: 1600, maxHeight: 1600 });
+      if (compressedDataUrl) {
+        setTimeout(() => {
+          sendMediaMessage({ type: 'image', url: compressedDataUrl });
+          sentMessages++;
+        }, sentMessages * 100);
+      }
+    } catch (err) {
+      console.error('Image compression failed', err);
+      setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          sendMediaMessage({ type: 'image', url: ev.target.result });
+          sentMessages++;
+        };
+        reader.readAsDataURL(file);
+      }, sentMessages * 100);
+    }
+    
+    processedCount++;
+    // Update progress text
+    const progressText = processingIndicator.querySelector('.progress-text');
+    const progressCount = processingIndicator.querySelector('.progress-count');
+    if (progressText && progressCount) {
+      progressText.textContent = `Processing ${files.length} image(s)...`;
+      progressCount.textContent = `${processedCount}/${files.length}`;
+    }
   }
   
-  try {
-    // compress to ~200 KB
-    const compressedDataUrl = await compressImageFile(f, 200, { maxWidth: 1600, maxHeight: 1600 });
-    if (compressedDataUrl) {
-      sendMediaMessage({ type: 'image', url: compressedDataUrl });
-    } else {
-      // fallback if compression failed
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        sendMediaMessage({ type: 'image', url: ev.target.result });
-      };
-      reader.readAsDataURL(f);
+  // Remove indicator after all processing is done
+  setTimeout(() => {
+    const indicator = document.getElementById('fileUploadProgress');
+    if (indicator && indicator.parentNode) {
+      // Add fade out animation
+      indicator.style.opacity = '0';
+      indicator.style.transform = 'translate(-50%, -50%) scale(0.9)';
+      indicator.style.transition = 'all 0.3s ease';
+      
+      setTimeout(() => {
+        if (indicator.parentNode) {
+          document.body.removeChild(indicator);
+        }
+      }, 300);
     }
-  } catch (err) {
-    console.error('Image compression failed', err);
-    // fallback send original as dataURL (beware of DB size)
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      sendMediaMessage({ type: 'image', url: ev.target.result });
-    };
-    reader.readAsDataURL(f);
-  }
-  attachFile.value = '';
-});
-
+    attachFile.value = '';
+  }, Math.max(1000, files.length * 150));
+}
 /* ===== Paste handler: compress pasted image blob before sending ===== */
 document.addEventListener('paste', async (e) => {
   const items = e.clipboardData && e.clipboardData.items;
   if (!items) return;
-  for (const it of items) {
-    if (it.kind === 'file') {
+  
+  const imageItems = Array.from(items).filter(it => it.kind === 'file' && it.type.startsWith('image/'));
+  
+  if (imageItems.length > 0) {
+    for (const it of imageItems) {
       const blob = it.getAsFile();
-      if (blob && blob.type.startsWith('image/')) {
+      if (blob) {
         try {
           const compressed = await compressImageFile(blob, 200, { maxWidth: 1600, maxHeight: 1600 });
           if (compressed) sendMediaMessage({ type: 'image', url: compressed });
         } catch (err) {
           console.error('Paste compression failed', err);
-          // fallback to sending original
           const reader = new FileReader();
           reader.onload = (ev) => sendMediaMessage({ type: 'image', url: ev.target.result });
           reader.readAsDataURL(blob);
         }
-        e.preventDefault();
-        return;
       }
     }
+    e.preventDefault();
+  }
+  
+  // Handle single URL pasting (existing code)
+  for (const it of items) {
     if (it.kind === 'string' && it.type === 'text/plain') {
       it.getAsString(str => {
         if (str.match(/\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || str.includes('giphy.com')) {
-          // unchanged for URLs
           sendMediaMessage({ type: 'gif', url: str });
         }
       });
@@ -5289,32 +5347,7 @@ document.addEventListener('paste', async (e) => {
 
 
 /* ===== Paste handler for image/GIF URLs or direct images ===== */
-document.addEventListener('paste', (e) => {
-  // If clipboard contains an image file, or URL
-  const items = e.clipboardData && e.clipboardData.items;
-  if(!items) return;
-  for (const it of items) {
-    if (it.kind === 'file') {
-      const blob = it.getAsFile();
-      if (blob) {
-        // File pasted -> read and send as dataURL (or upload to Storage in production)
-        const reader = new FileReader();
-        reader.onload = (ev) => sendMediaMessage({ type: 'image', url: ev.target.result });
-        reader.readAsDataURL(blob);
-        e.preventDefault();
-        return;
-      }
-    }
-    if (it.kind === 'string' && it.type === 'text/plain') {
-      it.getAsString(str => {
-        // if user pasted a giphy or image URL, send as gif/image
-        if (str.match(/\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i) || str.includes('giphy.com')) {
-          sendMediaMessage({ type: 'gif', url: str });
-        }
-      });
-    }
-  }
-});
+
 
 /* ===== sendMediaMessage helper =====
    Sends a chat message object to your DB with type and url.
@@ -10851,6 +10884,62 @@ window.initializeProfileTimers = initializeProfileTimers;
 document.addEventListener('DOMContentLoaded', initializeTimers);
 
 </script>
+<style>
+/* Progress Indicator Styles */
+.progress-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
 
+.progress-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid transparent;
+  border-top: 3px solid #006B61;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+body.dark .progress-spinner {
+  border-top: 3px solid #25D366;
+}
+
+.progress-text {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.progress-count {
+  font-size: 14px;
+  opacity: 0.8;
+  background: ${document.body.classList.contains('dark') ? '#031813' : '#C8E6E0'};
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Smooth transitions for theme changes */
+#fileUploadProgress {
+  transition: all 0.3s ease;
+}
+
+/* Success state (optional) */
+.progress-success {
+  background: #25D366 !important;
+  color: white !important;
+}
+
+.progress-success .progress-spinner {
+  border-top-color: white !important;
+}
+</style>
 </body>
 </html>
