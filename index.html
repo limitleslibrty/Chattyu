@@ -2603,43 +2603,276 @@ padding: 3px;
   
   <script>
   
+
+
+
+
+// ===== WHATSAPP-LIKE SCROLL BEHAVIOR =====
+let isUserScrolling = false;
+let lastScrollPosition = 0;
+let newMessagesCount = 0;
+let unreadMessages = [];
+let newMessagesDividerAdded = false;
+let scrollEndTimer;
+let unreadDividerTimer;
+
+// Initialize scroll tracking
+function initializeScrollTracking() {
+  const messagesEl = document.getElementById('messages');
+  if (!messagesEl) return;
+  
+  messagesEl.addEventListener('scroll', handleScroll);
+}
+
+// Check if near bottom
+function isNearBottom(threshold = 100) {
+  const messagesEl = document.getElementById('messages');
+  if (!messagesEl) return true;
+  return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < threshold;
+}
+
+// Handle scroll events
+function handleScroll() {
+  const messagesEl = document.getElementById('messages');
+  if (!messagesEl) return;
+  
+  // Infinite scroll
+  if (isLoadingOlderMessages || !hasMoreMessages) return;
+  
+  if (messagesEl.scrollTop < 100) {
+    loadOlderMessages();
+  }
+  
+  const currentScroll = messagesEl.scrollTop;
+  const scrollDirection = currentScroll > lastScrollPosition ? 'down' : 'up';
+  
+  // When user manually scrolls to bottom
+  if (scrollDirection === 'down' && isNearBottom(50)) {
+    handleViewingNewMessages();
+  }
+  
+  lastScrollPosition = currentScroll;
+}
+
+// Handle when user views new messages (click or manual scroll)
+function handleViewingNewMessages() {
+  // Reset unread count immediately
+  resetUnreadCount();
+  
+  // Remove message highlights immediately
+  clearMessageHighlights();
+  
+  // Hide notification immediately
+  hideNewMessageNotification();
+  
+  // Remove unread divider after 5 seconds
+  clearTimeout(unreadDividerTimer);
+  unreadDividerTimer = setTimeout(() => {
+    removeNewMessagesDivider();
+  }, 5000);
+}
+
+// Show notification and divider
+function showNewMessageNotification(count = 1) {
+  const notification = document.getElementById('newMessageNotification');
+  const countElement = document.getElementById('newMessageCount');
+  
+  if (!notification || !countElement) return;
+  
+  newMessagesCount += count;
+  countElement.textContent = newMessagesCount;
+  notification.style.display = 'flex';
+  
+  // Always add divider when new messages arrive
+  addNewMessagesDivider();
+  
+  if (navigator.vibrate) {
+    navigator.vibrate([100, 50, 100]);
+  }
+  
+  // Auto-hide notification after 8 seconds (but keep divider)
+  setTimeout(() => {
+    if (notification.style.display !== 'none') {
+      hideNewMessageNotification();
+    }
+  }, 8000);
+}
+
+// Scroll to new messages (when clicking notification)
+function scrollToNewMessages() {
+  const messagesEl = document.getElementById('messages');
+  if (!messagesEl) return;
+  
+  // Scroll to bottom first
+  messagesEl.scrollTo({
+    top: messagesEl.scrollHeight,
+    behavior: 'smooth'
+  });
+  
+  // Then handle viewing messages
+  setTimeout(() => {
+    handleViewingNewMessages();
+  }, 300);
+}
+
+// Hide notification only (keep divider)
+function hideNewMessageNotification() {
+  const notification = document.getElementById('newMessageNotification');
+  if (notification) {
+    notification.style.display = 'none';
+  }
+}
+
+// Reset unread count
+function resetUnreadCount() {
+  newMessagesCount = 0;
+  const countElement = document.getElementById('newMessageCount');
+  if (countElement) {
+    countElement.textContent = '0';
+  }
+  unreadMessages = [];
+}
+
+// Clear message highlights
+function clearMessageHighlights() {
+  document.querySelectorAll('.bubble.new-message').forEach(bubble => {
+    bubble.classList.remove('new-message');
+  });
+}
+
+// Add divider
+function addNewMessagesDivider() {
+  // Remove existing divider first to avoid duplicates
+  removeNewMessagesDivider();
+  
+  const messagesEl = document.getElementById('messages');
+  if (!messagesEl || unreadMessages.length === 0) return;
+  
+  const divider = document.createElement('div');
+  divider.className = 'new-messages-divider';
+  divider.innerHTML = '<span>New messages</span>';
+  divider.id = 'newMessagesDivider';
+  
+  const firstUnreadMsg = document.getElementById('msg_' + unreadMessages[0]);
+  if (firstUnreadMsg && firstUnreadMsg.parentNode) {
+    firstUnreadMsg.parentNode.insertBefore(divider, firstUnreadMsg);
+    newMessagesDividerAdded = true;
+    console.log('Unread divider added');
+  }
+}
+
+// Remove divider
+function removeNewMessagesDivider() {
+  const divider = document.getElementById('newMessagesDivider');
+  if (divider) {
+    divider.remove();
+    newMessagesDividerAdded = false;
+    console.log('Unread divider removed');
+  }
+}
   let selectedBackground = null;
 let selectedType = 'color';
-  document.addEventListener("DOMContentLoaded", function() {
-    if (!localStorage.getItem("authenticated")) {
-      document.body.style.filter = "blur(8px)";
+  document.addEventListener('DOMContentLoaded', function() {
+  // Your existing authentication code
+  if (!localStorage.getItem("authenticated")) {
+    document.body.style.filter = "blur(8px)";
+    
+    setTimeout(() => {
+      const raw = prompt("Enter password to access:");
+      const entered = raw === null ? '' : raw.trim();
       
-      setTimeout(() => {
-        const raw = prompt("Enter password to access:");
-        const entered = raw === null ? '' : raw.trim();
-        
-        // CORRECT encoded value for this scheme:
-        // scheme: reverse the real password, then Base64-encode that reversed string.
-        // For real password "8990" -> reversed "0998" -> base64 => "MDk5OA=="
-        const encoded = "MDk5OA==";
-        
-        function decodePassword(enc) {
-          try {
-            const decoded = atob(enc); // Base64 decode -> "0998"
-            return decoded.split('').reverse().join(''); // reverse -> "8990"
-          } catch (e) {
-            return null;
-          }
+      // CORRECT encoded value for this scheme:
+      // scheme: reverse the real password, then Base64-encode that reversed string.
+      // For real password "8990" -> reversed "0998" -> base64 => "MDk5OA=="
+      const encoded = "MDk5OA==";
+      
+      function decodePassword(enc) {
+        try {
+          const decoded = atob(enc); // Base64 decode -> "0998"
+          return decoded.split('').reverse().join(''); // reverse -> "8990"
+        } catch (e) {
+          return null;
         }
+      }
+      
+      const expected = decodePassword(encoded);
+      
+      if (entered && expected && entered === expected) {
+        localStorage.setItem("authenticated", "true");
+        alert("Access granted ✅");
+        document.body.style.filter = "none";
+      } else {
+        alert("Wrong password ❌");
+        location.reload();
+      }
+    }, 50);
+  }
+  
+  // Initialize all your existing functionality
+  initializeUploadedImages();
+  loadSavedDP();
+  loadSavedBackground();
+  loadSavedHomeBackground();
+  loadSavedName();
+  
+  
+  setTimeout(() => {
+  initializeScrollTracking();
+  console.log('WhatsApp-like scroll behavior initialized');
+}, 2000);
+  // Initialize ALL images (both default and uploaded) with click handlers
+  function initializeAllImages() {
+    const allImages = document.querySelectorAll('.image-option');
+    allImages.forEach(imageOption => {
+      const imageUrl = imageOption.getAttribute('data-image');
+      const imageName = imageOption.getAttribute('data-name') || 'Default Image';
+      
+      // Remove any existing click listeners to prevent duplicates
+      const newImageOption = imageOption.cloneNode(true);
+      imageOption.parentNode.replaceChild(newImageOption, imageOption);
+      
+      // Add click handler to the new element
+      newImageOption.addEventListener('click', function(e) {
+        e.stopPropagation();
         
-        const expected = decodePassword(encoded);
+        // Remove selection from all other options
+        document.querySelectorAll('.color-option, .gradient-option, .image-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
         
-        if (entered && expected && entered === expected) {
-          localStorage.setItem("authenticated", "true");
-          alert("Access granted ✅");
-          document.body.style.filter = "none";
-        } else {
-          alert("Wrong password ❌");
-          location.reload();
-        }
-      }, 50);
-    }
-  });
+        // Select this image
+        this.classList.add('selected');
+        
+        // Store selection
+        selectedBackground = this.getAttribute('data-image');
+        selectedType = 'image';
+        
+        // Show action options for ALL images
+        showImageActions(this, imageUrl, imageName);
+      });
+    });
+  }
+  
+  // Initialize images after a short delay to ensure DOM is ready
+  setTimeout(initializeAllImages, 100);
+  
+  // Initialize WhatsApp-like scroll behavior
+  setTimeout(() => {
+    initializeScrollTracking();
+    console.log('WhatsApp-like scroll behavior initialized');
+  }, 2000);
+  
+  // Re-initialize when background modal opens (for newly uploaded images)
+  const backgroundModal = document.getElementById('backgroundModal');
+  if (backgroundModal) {
+    backgroundModal.addEventListener('click', function(e) {
+      if (e.target === backgroundModal || e.target.classList.contains('background-close-btn')) {
+        // Re-initialize images when modal closes/opens to catch new uploads
+        setTimeout(initializeAllImages, 300);
+      }
+    });
+  }
+});
 </script>
  
  
@@ -3794,19 +4027,27 @@ function openChat(key) {
   // Reset state
   currentKey = key;
   
-  history.pushState({screen: "chat"}, "Chat");
-
+  history.pushState({ screen: "chat" }, "Chat");
+  
   messageStore = {};
   lastRenderedDate = null;
   lastRenderedMsgTime = 0;
   messagesEl.innerHTML = '';
   initialLoadDone = false;
   clearSelection();
+  
+// Reset WhatsApp-like behavior state when opening a new chat
+hideNewMessageNotification();
+removeNewMessagesDivider();
+clearMessageHighlights(); // ADD THIS LINE
+unreadMessages = [];
+newMessagesCount = 0;
+isUserScrolling = false;
   // Reset infinite scroll variables
   isLoadingOlderMessages = false;
   hasMoreMessages = true;
   oldestLoadedTimestamp = null;
-
+  
   // Show loading indicator
   messagesEl.innerHTML = '<div class="loading-indicator">Loading messages...</div>';
   
@@ -3838,9 +4079,12 @@ function openChat(key) {
         }
       }
     });
-    
+  
   // Add scroll event listener for infinite scroll
   messagesEl.addEventListener('scroll', handleScroll);
+  
+  // Subscribe to presence for this chat
+  subscribeToPresenceFor(key);
 }
 
 // Handle image upload and storage
@@ -4248,16 +4492,21 @@ document.addEventListener('DOMContentLoaded', function() {
   loadSavedName();
   // ... rest of initialization
 });
+// --- Render messages (fixed) ---
 function processAndRenderMessages(messages) {
   if (!messages) return;
+  
+  const wasNearBottom = isNearBottom();
+  const messagesEl = document.getElementById('messages');
   
   // Convert to array and sort by timestamp
   const messageArray = Object.entries(messages)
     .map(([key, value]) => ({ key: Number(key), value }))
-    .sort((a, b) => a.key - b.key); // Sort by timestamp (ascending order)
+    .sort((a, b) => a.key - b.key);
   
   const fragment = document.createDocumentFragment();
   let addedNewMessages = false;
+  let newMessageCount = 0;
   
   messageArray.forEach(({ key, value }) => {
     const msgKey = String(key);
@@ -4266,8 +4515,8 @@ function processAndRenderMessages(messages) {
     if (!val || (!val.text && !val.type && !val.url)) return;
     
     // Check if this message is already rendered
-    const existingMsg = document.getElementById('msg_' + msgKey) || 
-                       document.querySelector('[data-msg-key="' + msgKey + '"]');
+    const existingMsg = document.getElementById('msg_' + msgKey) ||
+      document.querySelector('[data-msg-key="' + msgKey + '"]');
     if (existingMsg) return;
     
     // Add to messageStore
@@ -4283,34 +4532,32 @@ function processAndRenderMessages(messages) {
     }
     
     const div = buildMessageBubble(msgKey, val);
+    
+// Mark as new message if it's from user and we're not at bottom
+if (val.from === "user" && !wasNearBottom && initialLoadDone) {
+  div.classList.add('new-message');
+  newMessageCount++;
+  
+  // Track unread messages for proper highlighting
+  if (!unreadMessages.includes(msgKey)) {
+    unreadMessages.push(msgKey);
+  }
+  
+  // Show notification and divider for new messages
+  if (initialLoadDone) {
+    showNewMessageNotification(1);
+  }
+}
+    
     fragment.appendChild(div);
     addedNewMessages = true;
     
-   // Play sound only for new incoming messages
-if (initialLoadDone && val.from === "user" && key > lastRenderedMsgTime) {
-  const snd = document.getElementById("receiveSound");
-  if (snd) snd.play().catch(() => {});
-}
-
-// Check for hearts ONLY in NEWLY received messages
-if (initialLoadDone && val.from === "user" && heartsSettings.enabled && heartsSettings.triggerOnReceive) {
-  const text = val.text || '';
-  const currentTime = Date.now();
-  
-  // ONLY trigger hearts for messages newer than the last rendered message
-  if (key > lastRenderedMsgTime) {
-    if (containsHeartKeywords(text) && (currentTime - lastTriggerTime > heartsSettings.cooldown * 1000)) {
-      lastTriggerTime = currentTime;
-      const matchedWord = getMatchedWord(text);
-      console.log('🎯 Hearts triggered from NEW RECEIVED MESSAGE:', text.substring(0, 50));
-      
-      // Small delay to ensure message is visible
-      setTimeout(() => {
-        showHearts(matchedWord);
-      }, 300);
+    // Play sound only for new incoming messages
+    if (initialLoadDone && val.from === "user" && key > lastRenderedMsgTime) {
+      const snd = document.getElementById("receiveSound");
+      if (snd) snd.play().catch(() => {});
     }
-  }
-}
+    
     // Update last seen
     if (key > lastRenderedMsgTime) {
       lastRenderedMsgTime = key;
@@ -4320,18 +4567,29 @@ if (initialLoadDone && val.from === "user" && heartsSettings.enabled && heartsSe
   if (addedNewMessages) {
     messagesEl.appendChild(fragment);
     
- // Only scroll to bottom if we're not loading older messages and it's a new message
-if (!isLoadingOlderMessages) {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-    
+    // WhatsApp-like behavior
+    if (!isUserScrolling && wasNearBottom) {
+      // Auto-scroll if user is at bottom
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      hideNewMessageNotification();
+    } else if (initialLoadDone && newMessageCount > 0) {
+      // User is not at bottom - show notification
+      showNewMessageNotification(newMessageCount);
+    }
   }
   
   // Mark first load as done
   initialLoadDone = true;
 }
-
-// Update your cacheMessages function to maintain proper order
+// Clear all message highlights when opening chat
+function clearMessageHighlights() {
+  document.querySelectorAll('.bubble.new-message').forEach(bubble => {
+    bubble.classList.remove('new-message');
+  });
+  document.querySelectorAll('.message-highlight').forEach(bubble => {
+    bubble.classList.remove('message-highlight');
+  });
+}
 function cacheMessages(chatKey, data) {
   if (!data) return;
   
@@ -6247,14 +6505,7 @@ function enableDarkMode() {
   localStorage.setItem('darkMode', 'enabled');
   applyCustomColors('dark');
 }
-function handleScroll() {
-  if (isLoadingOlderMessages || !hasMoreMessages) return;
-  
-  // Load more messages when scrolled to top (within 100px)
-  if (messagesEl.scrollTop < 100) {
-    loadOlderMessages();
-  }
-}
+
 function disableDarkMode() {
   document.body.classList.remove('dark');
   localStorage.setItem('darkMode', 'disabled');
@@ -10941,5 +11192,120 @@ body.dark .progress-spinner {
   border-top-color: white !important;
 }
 </style>
+<style>.new-message-notification {
+position: fixed;
+bottom: 80px;
+left: 50%;
+transform: translateX(-50%);
+background: #25D366;
+color: white;
+padding: 12px 20px;
+border-radius: 25px;
+font-size: 14px;
+cursor: pointer;
+z-index: 1000;
+box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+display: none;
+align-items: center;
+gap: 8px;
+animation: slideUp 0.3s ease;
+/* Prevent swipe gestures */
+touch-action: pan-y;
+user-select: none;
+-webkit-user-select: none;
+font-weight: bold;
+}
+
+.new-message-notification:hover {
+background: #128C7E !important;
+transform: translateX(-50%) scale(1.05);
+}
+
+.new-message-notification:active {
+transform: translateX(-50%) scale(0.95);
+}
+
+/* Remove any swipe handlers from the notification */
+.new-message-notification {
+pointer-events: auto !important;
+}
+
+.new-message-notification * {
+pointer-events: none !important;
+}
+
+.new-message-notification .count {
+background: #075E54;
+color: white;
+border-radius: 50%;
+width: 20px;
+height: 20px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 12px;
+font-weight: bold;
+}
+
+@keyframes slideUp {
+from {
+opacity: 0;
+transform: translateX(-50%) translateY(20px);
+}
+to {
+opacity: 1;
+transform: translateX(-50%) translateY(0);
+}
+}
+
+.new-messages-divider {
+text-align: center;
+margin: 10px 0;
+position: relative;
+}
+
+.new-messages-divider::before {
+content: '';
+position: absolute;
+top: 50%;
+left: 0;
+right: 0;
+height: 1px;
+background: #25D366;
+z-index: 1;
+}
+
+.new-messages-divider span {
+background: #E9FEF9;
+padding: 5px 15px;
+border-radius: 15px;
+font-size: 12px;
+color: #25D366;
+font-weight: bold;
+position: relative;
+z-index: 2;
+border: 1px solid #25D366;
+}
+
+body.dark .new-messages-divider span {
+background: #031813;
+color: #25D366;
+}
+
+/* Highlight new messages that arrive when not at bottom */
+.bubble.new-message {
+animation: pulseHighlight 2s ease-in-out;
+border-left: 3px solid #25D366;
+}
+
+@keyframes pulseHighlight {
+0% { background-color: rgba(37, 211, 102, 0.1); }
+50% { background-color: rgba(37, 211, 102, 0.3); }
+100% { background-color: transparent; }
+}</style>
+<div class="new-message-notification" id="newMessageNotification" onclick="scrollToNewMessages()">
+  <div class="count" id="newMessageCount">1</div>
+  <span>New messages</span>
+</div>
 </body>
 </html>
