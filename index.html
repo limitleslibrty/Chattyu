@@ -1624,52 +1624,7 @@ body.dark .reply-preview-text a {
 </head>
 <body>
 
-<script>
-  // Show Diwali animation with minimal close button
-  window.addEventListener('load', function() {
-    const diwaliOverlay = document.createElement('div');
-    diwaliOverlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: black;
-        z-index: 99999;
-    `;
-    
-    const iframe = document.createElement('iframe');
-    iframe.src = 'diwali.html'; // Your Diwali animation file
-    iframe.style.cssText = 'width:100%; height:100%; border:none;';
-    
-    // Create minimal close button
-    const closeButton = document.createElement('div');
-    closeButton.innerHTML = '×';
-    closeButton.style.cssText = `
-        position: absolute;
-        top: 16px;
-        right: 50px;
-        color: rgba(255,255,255,0.2);
-        
-        font-size: 25px;
-        cursor: pointer;
-        z-index: 100000;
-        width: 20px;
-        height: 20px;
-        line-height: 20px;
-        text-align: center;
-    `;
-    
-    // Close functionality
-    closeButton.addEventListener('click', function() {
-      document.body.removeChild(diwaliOverlay);
-    });
-    
-    diwaliOverlay.appendChild(iframe);
-    diwaliOverlay.appendChild(closeButton);
-    document.body.appendChild(diwaliOverlay);
-  });
-</script>
+
 
   
   
